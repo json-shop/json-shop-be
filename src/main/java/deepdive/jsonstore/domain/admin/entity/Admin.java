@@ -7,7 +7,6 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "admins")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -41,7 +40,7 @@ public class Admin extends BaseEntity {
 
     /*
     // 관리자가 등록한 상품들 (1:N 관계)
-    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "Admin", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products;
 */
     // 엔티티가 저장되기 전에 UUID 자동 생성
