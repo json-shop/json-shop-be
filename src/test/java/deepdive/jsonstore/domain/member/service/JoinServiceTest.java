@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.member.service;
 
-import deepdive.jsonstore.common.exception.CustomException;
+import deepdive.jsonstore.common.exception.JoinException;
+import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import deepdive.jsonstore.domain.member.dto.JoinResponse;
 import deepdive.jsonstore.domain.member.model.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
@@ -76,8 +77,8 @@ class JoinServiceTest {
 
             // when & then
             assertThatThrownBy(() -> joinService.joinProcess(joinResponse))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessage("이미 존재하는 이메일입니다.")
+                    .isInstanceOf(JoinException.DuplicateEmailException.class)
+                    .hasMessage(JsonStoreErrorCode.DUPLICATE_EMAIL.getMessage())
                     .satisfies(e -> logger.error("예외 발생: {}", e.getMessage()));
 
             verify(memberRepository, never()).save(any(Member.class));
@@ -97,8 +98,8 @@ class JoinServiceTest {
 
             // when & then
             assertThatThrownBy(() -> joinService.joinProcess(invalidJoinResponse))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessage("비밀번호가 일치하지 않습니다.")
+                    .isInstanceOf(JoinException.PasswordMismatchException.class)
+                    .hasMessage(JsonStoreErrorCode.PASSWORD_MISMATCH.getMessage())
                     .satisfies(e -> logger.error("예외 발생: {}", e.getMessage()));
 
             verify(memberRepository, never()).save(any(Member.class));

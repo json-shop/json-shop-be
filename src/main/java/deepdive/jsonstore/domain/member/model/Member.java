@@ -33,9 +33,8 @@ public class Member extends BaseEntity {
     @Column(length = 255)
     private String phone;
 
-    @Column
-    @Builder.Default
-    private boolean isDeleted = false; // 회원 가입 시 기본값 false
+    @Column(nullable = false)
+    private Boolean isDeleted; // 회원 가입 시 기본값 false
 
     @Column
     private LocalDateTime deletedAt; // 삭제 시점 (삭제될 때만 값이 들어감)
