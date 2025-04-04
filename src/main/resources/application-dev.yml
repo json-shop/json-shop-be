@@ -22,3 +22,8 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+external:
+  api:
+    address:
+      key: "${API_KEY}"

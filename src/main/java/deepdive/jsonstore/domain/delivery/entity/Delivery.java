@@ -24,16 +24,13 @@ public class Delivery extends BaseEntity {
     private String address;
 
     @Column(nullable = false)
-    private String zipcode;
+    private String zipCode;
 
     @Column(nullable = false)
     private String phone;
 
     @Column(nullable = false)
     private String recipient;
-
-    @Column(nullable = false)
-    private boolean isDefault;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
