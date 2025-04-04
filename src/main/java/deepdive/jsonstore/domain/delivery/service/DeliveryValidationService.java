@@ -30,15 +30,12 @@ public class DeliveryValidationService {
 
             String response = restTemplate.getForObject(url, String.class);
 
-            System.out.println(response); //테스트용
-
             JSONObject json = new JSONObject(response);
             JSONArray address = json.getJSONObject("results").getJSONArray("juso");
 
             return address.length() > 0;
 
         }catch (Exception e){ //나중에 수정
-            log.error("오류 발생", e);
             return false;
         }
 
