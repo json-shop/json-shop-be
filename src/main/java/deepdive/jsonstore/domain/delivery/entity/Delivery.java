@@ -36,7 +36,10 @@ public class Delivery extends BaseEntity {
     private boolean isDefault;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(
+            nullable = false,
+            foreignKey = @ForeignKey(ConstraintMode.CONSTRAINT)
+    )
     private Member member;
 
 }
