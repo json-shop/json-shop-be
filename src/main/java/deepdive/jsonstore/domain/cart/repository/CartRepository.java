@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.cart.repository;
 
-import deepdive.jsonstore.domain.cart.model.Cart;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.cart.entity.Cart;
+import deepdive.jsonstore.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
