@@ -24,7 +24,7 @@ public class Delivery extends BaseEntity {
     private String address;
 
     @Column(nullable = false)
-    private String zipcode;
+    private String zipCode;
 
     @Column(nullable = false)
     private String phone;
