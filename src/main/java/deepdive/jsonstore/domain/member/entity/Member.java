@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "members")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -39,6 +38,25 @@ public class Member extends BaseEntity {
 
     @Column
     private LocalDateTime deletedAt; // 삭제 시점 (삭제될 때만 값이 들어감)
+
+    /*
+   // 회원 - 배송지
+   @OneToMany(mappedBy = "Member", cascade = CascadeType.ALL, orphanRemoval = true)
+   private List<Delivery> delivery;
+
+   // 회원 - 장바구니
+   @OneToMany(mappedBy = "Member", cascade = CascadeType.ALL, orphanRemoval = true)
+   private List<Cart> cart;
+
+    // 회원 - 주문
+   @OneToMany(mappedBy = "Member", cascade = CascadeType.ALL, orphanRemoval = true)
+   private List<Order> order;
+
+   // 회원 - 알람
+   @OneToMany(mappedBy = "Member", cascade = CascadeType.ALL, orphanRemoval = true)
+   private List<Notification> notification;
+*/
+
 
     // UUID 자동 생성 로직
     @PrePersist
