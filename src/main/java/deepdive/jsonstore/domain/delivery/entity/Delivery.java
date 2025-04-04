@@ -37,4 +37,5 @@ public class Delivery extends BaseEntity {
             foreignKey = @ForeignKey(ConstraintMode.CONSTRAINT)
     )
     private Member member;
+
 }
