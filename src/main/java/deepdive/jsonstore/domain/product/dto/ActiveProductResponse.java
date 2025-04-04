@@ -2,7 +2,7 @@ package deepdive.jsonstore.domain.product.dto;
 
 import java.util.UUID;
 
-import deepdive.jsonstore.domain.product.model.Category;
+import deepdive.jsonstore.domain.product.entity.Category;
 import lombok.Builder;
 
 @Builder
