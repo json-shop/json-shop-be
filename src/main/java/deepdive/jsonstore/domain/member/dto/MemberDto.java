@@ -16,7 +16,7 @@ public record MemberDto(
                 member.getUsername(),
                 member.getEmail(),
                 member.getPhone(),
-                member.isDeleted()
+                member.getIsDeleted()
         );
     }
 }
