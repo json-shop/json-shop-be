@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.notification.repository;
 
-import deepdive.jsonstore.domain.notification.model.Notification;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.notification.entity.Notification;
+import deepdive.jsonstore.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
