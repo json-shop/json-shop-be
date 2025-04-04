@@ -1,11 +1,9 @@
-package deepdive.jsonstore.domain.notification.model;
+package deepdive.jsonstore.domain.notification.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.Date;
 
 @Entity
 @Table(name = "notification")
@@ -28,6 +26,10 @@ public class Notification extends BaseEntity {
     private NotificationCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(
+            name = "member_id",
+            nullable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+    )
     private Member member;
 }

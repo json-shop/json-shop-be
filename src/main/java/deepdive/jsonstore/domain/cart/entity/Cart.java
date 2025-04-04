@@ -1,12 +1,10 @@
-package deepdive.jsonstore.domain.cart.model;
+package deepdive.jsonstore.domain.cart.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.product.model.Product;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.Date;
 
 @Entity
 @Table(name = "carts")
@@ -21,12 +19,20 @@ public class Cart extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)  // 한 회원당 하나의 장바구니
-    @JoinColumn(name = "member_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "member_id",
+            nullable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+    )
     private Member member;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "product_id",
+            nullable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+    )
     private Product product;
 
     @Column(nullable = false)
