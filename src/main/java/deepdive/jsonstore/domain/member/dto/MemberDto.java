@@ -1,6 +1,6 @@
 package deepdive.jsonstore.domain.member.dto;
 
-import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.member.model.Member;
 import java.util.UUID;
 
 public record MemberDto(
@@ -12,11 +12,11 @@ public record MemberDto(
 ) {
     public static MemberDto fromEntity(Member member) {
         return new MemberDto(
-                member.getUuid(),      // getter 사용
+                member.getUuid(),
                 member.getUsername(),
                 member.getEmail(),
                 member.getPhone(),
-                member.getIsDeleted()
+                member.isDeleted()
         );
     }
 }

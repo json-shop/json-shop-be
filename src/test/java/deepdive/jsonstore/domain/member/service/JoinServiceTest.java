@@ -2,7 +2,7 @@ package deepdive.jsonstore.domain.member.service;
 
 import deepdive.jsonstore.common.exception.CustomException;
 import deepdive.jsonstore.domain.member.dto.JoinResponse;
-import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.member.model.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
