@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import deepdive.jsonstore.domain.product.model.Product;
+import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
