@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.delivery.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
+import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,7 +25,7 @@ public class Delivery extends BaseEntity {
     private String address;
 
     @Column(nullable = false)
-    private String zipcode;
+    private String zipCode;
 
     @Column(nullable = false)
     private String phone;
