@@ -1,6 +1,6 @@
 package deepdive.jsonstore.domain.order.entity;
 
-import deepdive.jsonstore.domain.product.model.Product;
+import deepdive.jsonstore.domain.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

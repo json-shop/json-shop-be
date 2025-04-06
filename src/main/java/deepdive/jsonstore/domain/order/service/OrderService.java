@@ -11,7 +11,7 @@ import deepdive.jsonstore.domain.order.entity.Order;
 import deepdive.jsonstore.domain.order.entity.OrderProduct;
 import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
-import deepdive.jsonstore.domain.product.model.Product;
+import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
