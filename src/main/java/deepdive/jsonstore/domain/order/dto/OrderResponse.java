@@ -17,7 +17,11 @@ public record OrderResponse(
         List<OrderProductResponse> products, // 주문할 상품
         OrderStatus orderStatus,
         // TODO : 딜리버리 추가
-        // Delivery delivery,
+        //  DeliveryResponse delivery,
+        String recipient,
+        String phone,
+        String address,
+        String zipCode,
         int total // 총액
 
 ) {
@@ -28,6 +32,10 @@ public record OrderResponse(
                 .orderUuid(order.getUuid())
                 .memberUuid(order.getMember().getUuid())
                 .orderStatus(order.getOrderStatus())
+                .recipient(order.getRecipient())
+                .phone(order.getPhone())
+                .address(order.getAddress())
+                .zipCode(order.getZipCode())
                 .username(order.getMember().getUsername())
                 .products(orderProductResponse)
                 .total(order.getTotal())
