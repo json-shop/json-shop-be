@@ -25,7 +25,7 @@ public class DeliveryService {
 
         Delivery delivery = deliveryRegRequestDTO.toDelivery(member);
 
-        if (!deliveryValidationService.validateZipcode(deliveryRegRequestDTO.zipcode())) {
+        if (!deliveryValidationService.validateZipcode(deliveryRegRequestDTO.zipCode())) {
 //        throw new InvalidZipcodeException("유효하지 않은 우편번호입니다: " + deliveryRegRequestDTO.zipcode());
         }
 
