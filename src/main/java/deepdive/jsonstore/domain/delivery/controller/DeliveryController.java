@@ -1,7 +1,6 @@
 package deepdive.jsonstore.domain.delivery.controller;
 
 import deepdive.jsonstore.domain.delivery.dto.DeliveryRegRequestDTO;
-import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import deepdive.jsonstore.domain.delivery.service.DeliveryService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -20,11 +21,11 @@ public class DeliveryController {
     private final DeliveryService deliveryService;
 
     @PostMapping("/delivery")
-    public ResponseEntity<?> deliveryReg(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) { //인증 모듈 추가 시 수정 필요
+    public ResponseEntity<?> deliveryReg(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) { //인증 모듈 추가 시 수정 필요 /예외처리 개선 필요
         try{
-            Delivery delivery = deliveryService.deliveryReg(email, deliveryRegDTO);
+            UUID uuid = deliveryService.deliveryReg(email, deliveryRegDTO);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(delivery.getUuid());
+            return ResponseEntity.status(HttpStatus.CREATED).body(uuid);
         }catch (EntityNotFoundException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
