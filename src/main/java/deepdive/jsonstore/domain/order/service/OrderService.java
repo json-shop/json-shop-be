@@ -1,17 +1,14 @@
 package deepdive.jsonstore.domain.order.service;
 
 import deepdive.jsonstore.common.exception.OrderException;
-import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.order.dto.OrderProductRequest;
-import deepdive.jsonstore.domain.order.dto.OrderProductResponse;
 import deepdive.jsonstore.domain.order.dto.OrderRequest;
 import deepdive.jsonstore.domain.order.dto.OrderResponse;
 import deepdive.jsonstore.domain.order.entity.Order;
 import deepdive.jsonstore.domain.order.entity.OrderProduct;
 import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
-import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,8 +29,8 @@ public class OrderService {
 
     /**
      * 주문서 조회
-     * @param orderUid
-     * @return
+     * @param orderUid 주문 uid
+     * @return 주문서 Dto
      */
     public OrderResponse getOrder(UUID orderUid) {
 
@@ -56,11 +53,14 @@ public class OrderService {
 
     /**
      * 재고를 확인하고 주문서를 생성합니다.
-     * @param memberId
-     * @param orderRequest
-     * @return
+     * @param memberId 주문자 아이디
+     * @param orderRequest 주문 요청 Dto
+     * @return 주문서 Dto
      */
     public OrderResponse createOrder(Long memberId, OrderRequest orderRequest) {
+
+//        var member = memberValidationService.findByUuid(memberId);
+        var member = Member.builder().build();
 
         List<OrderProduct> orderProducts = new ArrayList<>();
         int total = 0;
@@ -88,6 +88,7 @@ public class OrderService {
 
         Order order = Order.builder()
                 .orderStatus(OrderStatus.PENDING_PAYMENT)
+                .member(member)
                 .phone(orderRequest.phone())
                 .recipient(orderRequest.recipient())
                 .address(orderRequest.address())
