@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.order.dto;
 
 import deepdive.jsonstore.domain.order.entity.Order;
+import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import lombok.Builder;
 
 import java.util.List;
@@ -14,9 +15,11 @@ public record OrderResponse(
         UUID memberUuid, // 주문자
         String username,
         List<OrderProductResponse> products, // 주문할 상품
+        OrderStatus orderStatus,
         // TODO : 딜리버리 추가
         // Delivery delivery,
         int total // 총액
+
 ) {
     public static OrderResponse from(Order order) {
         var orderProductResponse = order.getProducts().stream().map(OrderProductResponse::from)
@@ -24,6 +27,7 @@ public record OrderResponse(
         return OrderResponse.builder()
                 .orderUuid(order.getUuid())
                 .memberUuid(order.getMember().getUuid())
+                .orderStatus(order.getOrderStatus())
                 .username(order.getMember().getUsername())
                 .products(orderProductResponse)
                 .total(order.getTotal())

@@ -11,7 +11,9 @@ import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class OrderService {
     private final ProductValidationService productValidationService;
     private final OrderValidationService orderValidationService;
 //    private final MemberValidationService memberValidationService;
+    @Value("${order.expire-minutes}") private final int ORDER_EXPIRE_TIME;
 
     /**
      * 주문서 조회
@@ -57,6 +60,7 @@ public class OrderService {
      * @param orderRequest 주문 요청 Dto
      * @return 주문서 Dto
      */
+    @Transactional
     public OrderResponse createOrder(Long memberId, OrderRequest orderRequest) {
 
 //        var member = memberValidationService.findByUuid(memberId);
@@ -86,6 +90,7 @@ public class OrderService {
             total += price * quantity;
         }
 
+        // 주문 생성 및 저장
         Order order = Order.builder()
                 .orderStatus(OrderStatus.PENDING_PAYMENT)
                 .member(member)
@@ -95,7 +100,7 @@ public class OrderService {
                 .zipCode(orderRequest.zipCode())
                 .products(orderProducts)
                 .total(total)
-                .expiredAt(LocalDateTime.now().plusMinutes(15))
+                .expiredAt(LocalDateTime.now().plusMinutes(ORDER_EXPIRE_TIME))
                 .build();
 
         var savedOrder = orderRepository.save(order);
