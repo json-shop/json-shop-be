@@ -35,7 +35,7 @@ public class OrderProduct {
     private int price; // 실결제 금액
     private int quantity;
 
-    public static OrderProduct from(Product product, int quantity, int price) {
+    public static OrderProduct from(Product product, int quantity) {
         return OrderProduct.builder()
                 .product(product)
                 .price(product.getPrice())

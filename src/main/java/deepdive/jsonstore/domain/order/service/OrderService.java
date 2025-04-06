@@ -80,7 +80,7 @@ public class OrderService {
             }
 
             // 리스트에 추가
-            orderProducts.add(OrderProduct.from(product, quantity, price));
+            orderProducts.add(OrderProduct.from(product, quantity));
 
             // 총액 계산
             total += price * quantity;
