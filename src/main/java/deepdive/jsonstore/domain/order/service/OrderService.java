@@ -66,9 +66,7 @@ public class OrderService {
         int total = 0;
 
         for (OrderProductRequest orderProductReq : orderRequest.orderProductRequests()) {
-//            var product = productValidationService.findByUuid(orderProductReq.productUuid());
-//            Product product = productValidationService.findByUuid(orderProductReq.productUuid());
-            Product product = Product.builder().build();
+            var product = productValidationService.findActiveProductById(orderProductReq.productUuid());
 
             int quantity = orderProductReq.quantity();
             int price = product.getPrice();
