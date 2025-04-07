@@ -46,5 +46,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 
+    @ExceptionHandler(DeliveryException.class)
+    public ResponseEntity<ErrorResponse> deliveryExceptionHandler(DeliveryException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
 
 }

@@ -12,6 +12,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Slf4j
 @Component
@@ -28,6 +29,8 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private final MemberRepository memberRepository;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final AuthenticationManager authenticationManager;
 
     private Key key;
 
@@ -40,31 +43,12 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // ✅ 토큰 생성
     public JwtTokenDto generateToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-
-        long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + 86400000); // 24시간
-
-        String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim("auth", authorities)
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-
-        return JwtTokenDto.builder()
-                .grantType("Bearer")
-                .accessToken(accessToken)
-                .build();
+        return jwtTokenUtil.generateToken(authentication, key);
     }
 
-    // ✅ 인증 객체 생성
     public Authentication getAuthentication(String accessToken) {
-        Claims claims = parseClaims(accessToken);
+        Claims claims = jwtTokenUtil.parseClaims(accessToken, key);
 
         if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
@@ -76,20 +60,15 @@ public class JwtTokenProvider {
 
         String email = claims.getSubject();
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
+                .orElseThrow(AuthException.UserNotFoundException::new);
 
         CustomMemberDetails customMemberDetails = new CustomMemberDetails(member, authorities);
         return new UsernamePasswordAuthenticationToken(customMemberDetails, "", authorities);
     }
 
-    // ✅ 토큰 유효성 검증
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
+            return jwtTokenUtil.validateToken(token, key);
         } catch (SecurityException | MalformedJwtException e) {
             throw new AuthException.InvalidTokenException();
         } catch (ExpiredJwtException e) {
@@ -101,17 +80,19 @@ public class JwtTokenProvider {
         }
     }
 
-
-    // Claims 파싱
-    private Claims parseClaims(String accessToken) {
+    public JwtTokenDto authenticateAndGenerateToken(String email, String password) {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(accessToken)
-                    .getBody();
-        } catch (ExpiredJwtException e) {
-            return e.getClaims();
+            // 이메일, 비밀번호로 인증
+            UsernamePasswordAuthenticationToken token =
+                    new UsernamePasswordAuthenticationToken(email, password);
+
+            Authentication authentication = authenticationManager.authenticate(token);
+
+            // 인증되면 JWT 발급
+            return generateToken(authentication);
+
+        } catch (Exception e) {
+            throw new AuthException.InvalidCredentialsException();
         }
     }
 }
