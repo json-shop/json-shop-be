@@ -1,2 +1,6 @@
+spring:
+  profiles:
+    active: dev
+
 order:
   expire-minutes: 15
