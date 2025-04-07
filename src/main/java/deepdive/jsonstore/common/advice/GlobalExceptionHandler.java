@@ -1,10 +1,7 @@
 package deepdive.jsonstore.common.advice;
 
 import deepdive.jsonstore.common.dto.ErrorResponse;
-import deepdive.jsonstore.common.exception.CommonException;
-import deepdive.jsonstore.common.exception.JoinException;
-import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
-import deepdive.jsonstore.common.exception.OrderException;
+import deepdive.jsonstore.common.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -43,6 +40,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> joinExceptionHandler(JoinException ex) {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<?> handleAuthException(AuthException e) {
+        return ResponseEntity
+                .status(e.getErrorCode().getHttpStatus())
+                .body(e.getErrorCode().getMessage());
     }
 
 
