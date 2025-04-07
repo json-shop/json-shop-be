@@ -15,7 +15,7 @@ public class DeliveryValidationService {
     private final RestTemplate restTemplate = new RestTemplate();
 
 
-    @Value("${external.api.address.key}")
+    @Value("${external.api.address.key:dummy-key}")
     private String ADDRESS_API_KEY;
 
     public boolean validateZipcode(String zipcode) {

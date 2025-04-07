@@ -15,7 +15,7 @@ public enum JsonStoreErrorCode {
     // order
     TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "타임아웃"),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
-    ORDER_EXPIRED(HttpStatus.GONE, "만료된 주문입니다.");
+    ORDER_EXPIRED(HttpStatus.GONE, "만료된 주문입니다."),
 
     // Join (회원가입)
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일입니다."),
