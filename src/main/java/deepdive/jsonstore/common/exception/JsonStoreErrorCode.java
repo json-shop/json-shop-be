@@ -15,9 +15,14 @@ public enum JsonStoreErrorCode {
     // order
     TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "타임아웃"),
 
+    // Join (회원가입)
+    DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일입니다."),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+
     //delivery
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "배송지를 찾을 수 없습니다.");
+
 
     private final HttpStatus httpStatus;
     private final String message;

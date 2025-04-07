@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.delivery.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
-import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.member.model.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,9 +32,6 @@ public class Delivery extends BaseEntity {
 
     @Column(nullable = false)
     private String recipient;
-
-    @Column(nullable = false)
-    private boolean isDefault;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
