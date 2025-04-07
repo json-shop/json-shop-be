@@ -1,13 +1,13 @@
 package deepdive.jsonstore.domain.auth.auth;
 
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
+import deepdive.jsonstore.domain.auth.service.CustomMemberDetailsService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -23,7 +23,7 @@ public class JwtTokenProvider {
     private String secretKey;
 
     private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
+    private final CustomMemberDetailsService customMemberDetailsService;
     private final JwtTokenUtil jwtTokenUtil;
     private Key key;
 
@@ -43,7 +43,7 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = jwtTokenUtil.parseClaims(token, key);
         String email = claims.getSubject();
-        return new UsernamePasswordAuthenticationToken(email, "", userDetailsService.loadUserByUsername(email).getAuthorities());
+        return new UsernamePasswordAuthenticationToken(email, "", customMemberDetailsService.loadUserByUsername(email).getAuthorities());
     }
 
     public String resolveToken(HttpServletRequest req) {
