@@ -3,6 +3,7 @@ package deepdive.jsonstore.common.advice;
 import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.common.exception.JoinException;
+import deepdive.jsonstore.common.exception.DeliveryException;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import deepdive.jsonstore.common.exception.OrderException;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JoinException.class)
     public ResponseEntity<ErrorResponse> joinExceptionHandler(JoinException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(DeliveryException.class)
+    public ResponseEntity<ErrorResponse> deliveryExceptionHandler(DeliveryException ex) {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
