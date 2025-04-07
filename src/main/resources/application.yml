@@ -1,2 +1,3 @@
-order:
-  expire-minutes: 15
+spring:
+  profiles:
+    active: dev
