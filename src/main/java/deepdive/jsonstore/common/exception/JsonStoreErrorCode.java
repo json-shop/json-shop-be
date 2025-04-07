@@ -14,6 +14,8 @@ public enum JsonStoreErrorCode {
 
     // order
     TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "타임아웃"),
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
+    ORDER_EXPIRED(HttpStatus.GONE, "만료된 주문입니다."),
 
     // Join (회원가입)
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일입니다."),
@@ -27,7 +29,11 @@ public enum JsonStoreErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "지원하지 않는 토큰 형식입니다."),
-    EMPTY_TOKEN(HttpStatus.UNAUTHORIZED, "토큰이 비어 있습니다.");
+    EMPTY_TOKEN(HttpStatus.UNAUTHORIZED, "토큰이 비어 있습니다."),
+
+    //delivery
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
+    DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "배송지를 찾을 수 없습니다.");
 
 
     private final HttpStatus httpStatus;

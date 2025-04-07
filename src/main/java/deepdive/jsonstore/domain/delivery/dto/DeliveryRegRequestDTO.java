@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.delivery.dto;
 
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
-import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.member.model.Member;
 
 import java.util.UUID;
 
@@ -17,7 +17,7 @@ public record DeliveryRegRequestDTO(
                 .zipCode(zipCode)
                 .phone(phone)
                 .recipient(recipient)
-                .uuid(UUID.randomUUID())
+                .uid(UUID.randomUUID())
                 .member(member)
                 .build();
     }
