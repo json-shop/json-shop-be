@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.delivery.service;
 
 import deepdive.jsonstore.common.exception.DeliveryException;
 import deepdive.jsonstore.domain.delivery.dto.DeliveryRegRequestDTO;
+import deepdive.jsonstore.domain.delivery.dto.DeliveryResponseDTO;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import deepdive.jsonstore.domain.delivery.repository.DeliveryRepository;
 import deepdive.jsonstore.domain.member.model.Member;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,5 +51,15 @@ public class DeliveryService{
         }
 
         deliveryRepository.delete(delivery);
+    }
+
+    public List<DeliveryResponseDTO> getDelivery(String email) {
+
+        if (!memberRepository.existsByEmail(email)) {
+            throw new DeliveryException.DeliveryAccessDeniedException();
+        }
+
+        return deliveryRepository.findByMemberEmailAsDTO(email);
+
     }
 }

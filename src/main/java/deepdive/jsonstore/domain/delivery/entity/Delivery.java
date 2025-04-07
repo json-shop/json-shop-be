@@ -10,7 +10,7 @@ import java.util.UUID;
 @Entity
 @Builder
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 public class Delivery extends BaseEntity {
 

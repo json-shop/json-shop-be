@@ -35,5 +35,10 @@ public class DeliveryController {
 
     }
 
+    @GetMapping("/delivery")
+    public ResponseEntity<?> getDelivery(String email){
+
+        return ResponseEntity.ok(deliveryService.getDelivery(email));
+    }
 
 }
