@@ -8,7 +8,7 @@ import lombok.Builder;
 
 @Builder
 public record ActiveProductResponse(
-	UUID id,
+	UUID uid,
 	String productName,
 	String image,
 	String productDetail,
@@ -19,7 +19,7 @@ public record ActiveProductResponse(
 
 	public static ActiveProductResponse toActiveProductResponse(Product product) {
 		return ActiveProductResponse.builder()
-			.id(product.getUuid())
+			.uid(product.getUid())
 			.productName(product.getName())
 			.productDetail(product.getDetail())
 			.image(product.getImage())

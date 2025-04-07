@@ -30,13 +30,6 @@ public class S3ImageService {
 	/**
 	 * MultipartFile로 받은 이미지를 S3에 업로드하고 파일 URL을 반환합니다.
 	 */
-	public String saveImage(MultipartFile multipartFile) {
-		String fileName = uploadImage(multipartFile);
-
-		// 업로드 후 접근 가능한 URL 생성
-		return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName);
-	}
-
 	public String uploadImage(MultipartFile multipartFile) {
 		// 고유 파일명 생성 (uuid + 기존 파일명)
 		String key = "images/" + UUID.randomUUID()+"_"+multipartFile.getOriginalFilename();
@@ -53,6 +46,6 @@ public class S3ImageService {
 		} catch (IOException e) {
 			throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
 		}
-		return key;
+		return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
 	}
 }

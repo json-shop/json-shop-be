@@ -9,5 +9,5 @@ import deepdive.jsonstore.domain.product.entity.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-	Optional<Product> findByUuidAndActiveIsTrue(UUID uuid);
+	Optional<Product> findByUidAndActiveIsTrue(UUID uuid);
 }
