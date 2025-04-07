@@ -24,7 +24,7 @@ public class DeliveryService{
     private final DeliveryValidationService deliveryValidationService;
 
 
-    public UUID deliveryReg(String email, DeliveryRegRequestDTO deliveryRegRequestDTO) {
+    public UUID deliveryReg(String email, DeliveryRegRequestDTO dto) {
         Member member = memberRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException());
 
         Delivery delivery = dto.toDelivery(member);
@@ -53,7 +53,7 @@ public class DeliveryService{
     }
 
     public void updateDelivery(String email, UUID uid, DeliveryRegRequestDTO dto) {
-        Delivery delivery = deliveryRepository.findByUuid(uid).orElseThrow(()->new DeliveryException.DeliveryNotFoundException(uid));
+        Delivery delivery = deliveryRepository.findByUid(uid).orElseThrow(()->new DeliveryException.DeliveryNotFoundException(uid));
 
         if (!delivery.getMember().getEmail().equals(email)) {
             throw new DeliveryException.DeliveryAccessDeniedException();
