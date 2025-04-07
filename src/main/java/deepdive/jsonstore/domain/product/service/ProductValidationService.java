@@ -20,7 +20,7 @@ public class ProductValidationService {
 	private final ProductRepository productRepository;
 
 	public Product findActiveProductById(UUID id) {
-		return productRepository.findByUuidAndActiveIsTrue(id)
+		return productRepository.findByUidAndActiveIsTrue(id)
 			.orElseThrow(() -> new EntityNotFoundException("존재하지 않는 상품입니다"));
 	}
 }

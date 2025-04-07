@@ -3,7 +3,6 @@ package deepdive.jsonstore.domain.product.entity;
 import java.util.UUID;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
-import deepdive.jsonstore.domain.product.dto.ActiveProductResponse;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,7 +27,7 @@ public class Product extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private UUID uuid;
+	private UUID uid;
 	private String name;
 	private int stock;
 	private int price;

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import deepdive.jsonstore.domain.product.dto.ActiveProductResponse;
-import deepdive.jsonstore.domain.product.dto.ProductRequest;
+import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
 import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class ProductService {
 		return ActiveProductResponse.toActiveProductResponse(product);
 	}
 
-	public void tempSave(List<ProductRequest> productRequestList) {
-		productRequestList.forEach(p -> productRepository.save(p.toProduct("test.jpg")));
+	public void tempSave(List<CreateProductRequest> createProductRequestList) {
+		createProductRequestList.forEach(p -> productRepository.save(p.toProduct("test.jpg")));
 	}
 }
