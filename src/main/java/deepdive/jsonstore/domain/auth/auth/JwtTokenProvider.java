@@ -4,7 +4,7 @@ import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
-import deepdive.jsonstore.domain.auth.entity.CustomUserDetails;
+import deepdive.jsonstore.domain.auth.entity.CustomMemberDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -78,8 +78,8 @@ public class JwtTokenProvider {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
 
-        CustomUserDetails customUserDetails = new CustomUserDetails(member, authorities);
-        return new UsernamePasswordAuthenticationToken(customUserDetails, "", authorities);
+        CustomMemberDetails customMemberDetails = new CustomMemberDetails(member, authorities);
+        return new UsernamePasswordAuthenticationToken(customMemberDetails, "", authorities);
     }
 
     // ✅ 토큰 유효성 검증

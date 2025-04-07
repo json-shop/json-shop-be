@@ -1,6 +1,6 @@
 package deepdive.jsonstore.domain.auth.service;
 
-import deepdive.jsonstore.domain.auth.entity.CustomUserDetails;
+import deepdive.jsonstore.domain.auth.entity.CustomMemberDetails;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService {
+public class CustomMemberDetailsService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
 
@@ -23,6 +23,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 찾을 수 없습니다."));
 
-        return new CustomUserDetails(member, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
+        return new CustomMemberDetails(member, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
     }
 }

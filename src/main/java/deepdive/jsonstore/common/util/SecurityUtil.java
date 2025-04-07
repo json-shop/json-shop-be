@@ -1,6 +1,6 @@
 package deepdive.jsonstore.common.util;
 
-import deepdive.jsonstore.domain.auth.entity.CustomUserDetails;
+import deepdive.jsonstore.domain.auth.entity.CustomMemberDetails;
 import deepdive.jsonstore.domain.member.entity.Member;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +17,8 @@ public class SecurityUtil {
 
         Object principal = authentication.getPrincipal();
 
-        if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getMember(); // 멤버 통으로 리턴
+        if (principal instanceof CustomMemberDetails customMemberDetails) {
+            return customMemberDetails.getMember(); // 멤버 통으로 리턴
         } else {
             throw new RuntimeException("유효하지 않은 인증 정보입니다.");
         }

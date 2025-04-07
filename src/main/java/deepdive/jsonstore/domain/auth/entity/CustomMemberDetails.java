@@ -8,12 +8,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 @Getter
-public class CustomUserDetails implements UserDetails {
+public class CustomMemberDetails implements UserDetails {
 
     private final Member member;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public CustomUserDetails(Member member, Collection<? extends GrantedAuthority> authorities) {
+    public CustomMemberDetails(Member member, Collection<? extends GrantedAuthority> authorities) {
         this.member = member;
         this.authorities = authorities;
     }

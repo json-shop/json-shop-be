@@ -1,7 +1,7 @@
 package deepdive.jsonstore.common.config;
 
 import deepdive.jsonstore.domain.auth.auth.JwtAuthenticationFilter;
-import deepdive.jsonstore.domain.auth.service.CustomUserDetailsService;
+import deepdive.jsonstore.domain.auth.service.CustomMemberDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final CustomMemberDetailsService customMemberDetailsService;
 
     // ✅ 비밀번호 인코더
     @Bean
@@ -40,7 +40,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(customUserDetailsService);
+        provider.setUserDetailsService(customMemberDetailsService);
         provider.setPasswordEncoder(bCryptPasswordEncoder());
         return provider;
     }
