@@ -12,7 +12,7 @@ public record MemberDto(
 ) {
     public static MemberDto fromEntity(Member member) {
         return new MemberDto(
-                member.getUuid(),
+                member.getUid(),
                 member.getUsername(),
                 member.getEmail(),
                 member.getPhone(),

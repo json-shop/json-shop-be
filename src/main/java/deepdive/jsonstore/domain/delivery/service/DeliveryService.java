@@ -4,7 +4,7 @@ import deepdive.jsonstore.common.exception.DeliveryException;
 import deepdive.jsonstore.domain.delivery.dto.DeliveryRegRequestDTO;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import deepdive.jsonstore.domain.delivery.repository.DeliveryRepository;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class DeliveryService{
     }
 
     public void deleteDelivery(String email, UUID uid) {
-        Optional<Delivery> optionalDelivery = deliveryRepository.findByUuid(uid);
+        Optional<Delivery> optionalDelivery = deliveryRepository.findByUid(uid);
 
         Delivery delivery = optionalDelivery.orElseThrow(() ->
                 new DeliveryException.DeliveryNotFoundException(uid));

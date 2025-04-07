@@ -31,7 +31,7 @@ class DeliveryServiceTest {
         UUID uuid = UUID.randomUUID();
         String email = "test@example.com";
 
-        when(deliveryRepository.findByUuid(uuid)).thenReturn(Optional.empty());
+        when(deliveryRepository.findByUid(uuid)).thenReturn(Optional.empty());
 
         assertThrows(DeliveryException.DeliveryNotFoundException.class, () ->
                 deliveryService.deleteDelivery(email, uuid));
@@ -48,7 +48,7 @@ class DeliveryServiceTest {
         delivery.setUuid(uuid);
         delivery.setMember(otherUser);
 
-        when(deliveryRepository.findByUuid(uuid)).thenReturn(Optional.of(delivery));
+        when(deliveryRepository.findByUid(uuid)).thenReturn(Optional.of(delivery));
 
         assertThrows(DeliveryException.DeliveryAccessDeniedException.class, () ->
                 deliveryService.deleteDelivery(email, uuid));
@@ -66,7 +66,7 @@ class DeliveryServiceTest {
         delivery.setUuid(uuid);
         delivery.setMember(member);
 
-        when(deliveryRepository.findByUuid(uuid)).thenReturn(Optional.of(delivery));
+        when(deliveryRepository.findByUid(uuid)).thenReturn(Optional.of(delivery));
 
         deliveryService.deleteDelivery(email, uuid);
 
