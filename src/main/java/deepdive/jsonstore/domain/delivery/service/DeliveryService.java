@@ -23,13 +23,13 @@ public class DeliveryService{
     private final MemberRepository memberRepository; // import 추가
     private final DeliveryValidationService deliveryValidationService;
 
-    public UUID deliveryReg(String email, DeliveryRegRequestDTO deliveryRegRequestDTO) {
+    public UUID deliveryReg(String email, DeliveryRegRequestDTO dto) {
         Member member = memberRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("해당 이메일의 회원을 찾을 수 없습니다: " + email));
 
-        Delivery delivery = deliveryRegRequestDTO.toDelivery(member);
+        Delivery delivery = dto.toDelivery(member);
 
-        if (!deliveryValidationService.validateZipcode(deliveryRegRequestDTO.zipCode())) {
-//        throw new InvalidZipcodeException("유효하지 않은 우편번호입니다: " + deliveryRegRequestDTO.zipcode());
+        if (!deliveryValidationService.validateZipcode(dto.zipCode())) {
+            throw new DeliveryException.AddressNotFoundException(dto.zipCode());
         }
 
         deliveryRepository.save(delivery);
@@ -49,5 +49,25 @@ public class DeliveryService{
         }
 
         deliveryRepository.delete(delivery);
+    }
+
+    public void updateDelivery(String email, UUID uid, DeliveryRegRequestDTO dto) {
+        Delivery delivery = deliveryRepository.findByUuid(uid).orElseThrow(()->new DeliveryException.DeliveryNotFoundException(uid));
+
+        if (!delivery.getMember().getEmail().equals(email)) {
+            throw new DeliveryException.DeliveryAccessDeniedException();
+        }
+
+        //우편번호 유효성 검사
+        if (!deliveryValidationService.validateZipcode(dto.zipCode())) {
+            throw new DeliveryException.AddressNotFoundException(dto.zipCode());
+        }
+
+        delivery.setAddress(dto.address());
+        delivery.setZipCode(dto.zipCode());
+        delivery.setPhone(dto.phone());
+        delivery.setRecipient(dto.recipient());
+        deliveryRepository.save(delivery);
+
     }
 }
