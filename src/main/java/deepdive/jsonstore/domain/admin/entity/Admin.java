@@ -18,7 +18,7 @@ public class Admin extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
-    private UUID uuid;
+    private UUID uid;
 
     @Column(nullable = false, unique = true, length = 255)
     private String username;
@@ -46,8 +46,8 @@ public class Admin extends BaseEntity {
     // 엔티티가 저장되기 전에 UUID 자동 생성
     @PrePersist
     public void generateUUID() {
-        if (this.uuid == null) {
-            this.uuid = UUID.randomUUID();
+        if (this.uid == null) {
+            this.uid = UUID.randomUUID();
         }
     }
 }
