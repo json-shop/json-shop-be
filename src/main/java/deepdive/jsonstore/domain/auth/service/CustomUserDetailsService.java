@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.auth.service;
 
-import deepdive.jsonstore.domain.auth.model.CustomUserDetails;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.auth.entity.CustomUserDetails;
+import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

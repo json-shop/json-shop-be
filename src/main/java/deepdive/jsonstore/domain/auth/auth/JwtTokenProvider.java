@@ -2,9 +2,9 @@ package deepdive.jsonstore.domain.auth.auth;
 
 import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
-import deepdive.jsonstore.domain.auth.model.CustomUserDetails;
+import deepdive.jsonstore.domain.auth.entity.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.member.repository;
 
 
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

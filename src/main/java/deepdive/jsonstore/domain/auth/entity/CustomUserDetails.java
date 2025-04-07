@@ -1,6 +1,6 @@
-package deepdive.jsonstore.domain.auth.model;
+package deepdive.jsonstore.domain.auth.entity;
 
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
