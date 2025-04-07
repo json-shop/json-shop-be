@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
@@ -35,5 +36,12 @@ public class DeliveryController {
 
     }
 
+    @PutMapping("/delivery/{uid}")
+    public ResponseEntity<?> deliveryUpdate(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO, @PathVariable UUID uid){
+        deliveryService.updateDelivery(email, uid, deliveryRegDTO);
+
+        return ResponseEntity.ok(URI.create("/api/v1/delivery"));
+
+    }
 
 }
