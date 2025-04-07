@@ -61,7 +61,7 @@ public class OrderService {
      * @return 주문서 Dto
      */
     @Transactional
-    public OrderResponse createOrder(Long memberId, OrderRequest orderRequest) {
+    public UUID createOrder(Long memberId, OrderRequest orderRequest) {
 
 //        var member = memberValidationService.findByUuid(memberId);
         var member = Member.builder().build();
@@ -105,6 +105,6 @@ public class OrderService {
 
         var savedOrder = orderRepository.save(order);
 
-        return OrderResponse.from(savedOrder);
+        return savedOrder.getUid();
     }
 }
