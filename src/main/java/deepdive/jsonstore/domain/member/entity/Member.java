@@ -1,4 +1,4 @@
-package deepdive.jsonstore.domain.member.model;
+package deepdive.jsonstore.domain.member.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -19,7 +19,7 @@ public class Member extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
-    private UUID uuid;
+    private UUID uid;
 
     @Column(nullable = false, unique = true, length = 255)
     private String username;
@@ -61,7 +61,7 @@ public class Member extends BaseEntity {
     // UUID 자동 생성 로직
     @PrePersist
     public void prePersist() {
-        this.uuid = (this.uuid == null) ? UUID.randomUUID() : this.uuid;
+        this.uid = (this.uid == null) ? UUID.randomUUID() : this.uid;
     }
 
     // 회원 삭제 처리 메서드

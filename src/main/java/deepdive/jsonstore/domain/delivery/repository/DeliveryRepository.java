@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
-    Optional<Delivery> findByUuid(UUID uid);
+    Optional<Delivery> findByUid(UUID uid);
 
 }

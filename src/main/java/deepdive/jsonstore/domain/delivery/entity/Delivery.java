@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.delivery.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,15 +21,19 @@ public class Delivery extends BaseEntity {
     @Column(nullable = false)
     private UUID uid;
 
+    @Setter
     @Column(nullable = false)
     private String address;
 
+    @Setter
     @Column(nullable = false)
     private String zipCode;
 
+    @Setter
     @Column(nullable = false)
     private String phone;
 
+    @Setter
     @Column(nullable = false)
     private String recipient;
 
@@ -39,5 +43,6 @@ public class Delivery extends BaseEntity {
             foreignKey = @ForeignKey(ConstraintMode.CONSTRAINT)
     )
     private Member member;
+
 
 }

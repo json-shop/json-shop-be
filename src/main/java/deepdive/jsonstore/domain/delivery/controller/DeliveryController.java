@@ -32,5 +32,12 @@ public class DeliveryController {
 
     }
 
+    @PutMapping("/delivery/{uid}")
+    public ResponseEntity<?> deliveryUpdate(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO, @PathVariable UUID uid){
+        deliveryService.updateDelivery(email, uid, deliveryRegDTO);
+
+        return ResponseEntity.ok(URI.create("/api/v1/delivery"));
+
+    }
 
 }
