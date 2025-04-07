@@ -17,11 +17,11 @@ public class DeliveryService{
 
     private final DeliveryRepository deliveryRepository;
 
-    public void deleteDelivery(String email, UUID uuid) {
-        Optional<Delivery> optionalDelivery = deliveryRepository.findByUuid(uuid);
+    public void deleteDelivery(String email, UUID uid) {
+        Optional<Delivery> optionalDelivery = deliveryRepository.findByUuid(uid);
 
         Delivery delivery = optionalDelivery.orElseThrow(() ->
-                new DeliveryException.DeliveryNotFoundException(uuid));
+                new DeliveryException.DeliveryNotFoundException(uid));
 
         if (!delivery.getMember().getEmail().equals(email)) {
             throw new DeliveryException.DeliveryAccessDeniedException();

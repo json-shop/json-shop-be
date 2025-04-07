@@ -19,7 +19,7 @@ public class Delivery extends BaseEntity {
     private long id;
 
     @Column(nullable = false)
-    private UUID uuid;
+    private UUID uid;
 
     @Column(nullable = false)
     private String address;

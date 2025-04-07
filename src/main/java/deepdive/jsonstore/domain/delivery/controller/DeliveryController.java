@@ -17,9 +17,9 @@ public class DeliveryController {
 
     private final DeliveryService deliveryService;
 
-    @DeleteMapping("/delivery/{uuid}")
-    public ResponseEntity<?> deliveryDelete(String email, @PathVariable UUID uuid){
-            deliveryService.deleteDelivery(email, uuid);
+    @DeleteMapping("/delivery/{uid}")
+    public ResponseEntity<?> deliveryDelete(String email, @PathVariable UUID uid){
+            deliveryService.deleteDelivery(email, uid);
             return ResponseEntity.ok().build();
 
     }

@@ -8,9 +8,6 @@ import java.util.UUID;
 
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
-    boolean existsByUuid(UUID deliveryId);
+    Optional<Delivery> findByUuid(UUID uid);
 
-    void deleteByUuid(UUID deliveryId);
-
-    Optional<Delivery> findByUuid(UUID deliveryId);
 }
