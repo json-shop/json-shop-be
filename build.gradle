@@ -34,6 +34,11 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    //jwt
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+
 }
 
 tasks.named('test') {

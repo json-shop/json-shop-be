@@ -5,6 +5,9 @@ spring:
     username: "${DB_USERNAME}"
     password: "${DB_PASSWORD}"
 
+  jwt:
+    secret-key: ${SECRET_KEY}
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -22,3 +25,5 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+
