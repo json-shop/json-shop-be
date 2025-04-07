@@ -1,4 +1,4 @@
-package deepdive.jsonstore.domain.auth.jwt;
+package deepdive.jsonstore.domain.auth.auth;
 
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import io.jsonwebtoken.*;
