@@ -30,6 +30,3 @@ logging:
 fcm:
   credentials:
     file: classpath:firebaseAccessKey.json
-
-order:
-  expire-minutes: 30
