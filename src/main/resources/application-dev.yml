@@ -1,23 +1,26 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: "${DB_URL}"
-    username: "${DB_USERNAME}"
-    password: "${DB_PASSWORD}"
+    url: ${DB_URL:jdbc:mysql://localhost:3306/json_store}
+    username: ${DB_USERNAME:json}
+    password: ${DB_PASSWORD:jsonpw}
 
   jwt:
     secret-key: "${SECRET_KEY}"
-  api:
-    key: abc
+
 
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
 
   data:
     redis:
@@ -28,3 +31,7 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+fcm:
+  credentials:
+    file: classpath:firebaseAccessKey.json
