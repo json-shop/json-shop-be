@@ -1,14 +1,14 @@
-package deepdive.jsonstore.domain.order.model;
+package deepdive.jsonstore.domain.order.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,14 +25,14 @@ public class Order extends BaseEntity {
     private Long id;
 
     @Column(unique = true, columnDefinition = "CHAR(36)", nullable = false)
-    private UUID uuid;
+    private UUID uid;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
     @Column
-    private BigDecimal total;
+    private int total;
 
     @Column
     private String zipCode;
@@ -40,10 +40,12 @@ public class Order extends BaseEntity {
     @Column
     private String address;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column
-    private OrderStatus orderStatus = OrderStatus.ORDERED;
+    @Column(nullable = true)
+    private OrderStatus orderStatus;
+
+    @Column(updatable = false)
+    private LocalDateTime expiredAt;
 
     @Column
     private String phone; // 수령인 번호
@@ -55,4 +57,7 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderProduct> products= new ArrayList<>();
 
+    public void expire() {
+        this.orderStatus = OrderStatus.EXPIRED;
+    }
 }

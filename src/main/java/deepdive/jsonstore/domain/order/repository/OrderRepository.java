@@ -1,6 +1,6 @@
 package deepdive.jsonstore.domain.order.repository;
 
-import deepdive.jsonstore.domain.order.model.Order;
+import deepdive.jsonstore.domain.order.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
