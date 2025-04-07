@@ -23,8 +23,9 @@ public class DeliveryService{
     private final MemberRepository memberRepository; // import 추가
     private final DeliveryValidationService deliveryValidationService;
 
-    public UUID deliveryReg(String email, DeliveryRegRequestDTO dto) {
-        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("해당 이메일의 회원을 찾을 수 없습니다: " + email));
+
+    public UUID deliveryReg(String email, DeliveryRegRequestDTO deliveryRegRequestDTO) {
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException());
 
         Delivery delivery = dto.toDelivery(member);
 
