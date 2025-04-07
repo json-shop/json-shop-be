@@ -24,19 +24,19 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomMemberDetailsService customMemberDetailsService;
 
-    // ✅ 비밀번호 인코더
+    //  비밀번호 인코더
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ AuthenticationManager
+    //  AuthenticationManager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
-    // ✅ 우리가 만든 CustomUserDetailsService를 연결하는 Provider 설정
+    //  우리가 만든 CustomUserDetailsService를 연결하는 Provider 설정
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -45,7 +45,7 @@ public class SecurityConfig {
         return provider;
     }
 
-    // ✅ Security Filter Chain
+    // Security Filter Chain
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
