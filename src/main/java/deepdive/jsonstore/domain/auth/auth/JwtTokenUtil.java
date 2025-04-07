@@ -5,7 +5,6 @@ import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -19,13 +18,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtTokenUtil {
 
+    private final long validityInMilliseconds = 86400000; // 24시간
+
     public JwtTokenDto generateToken(Authentication authentication, Key key) {
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + 86400000); // 24시간
+        Date accessTokenExpiresIn = new Date(now + validityInMilliseconds);
 
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())

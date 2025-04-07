@@ -45,6 +45,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+
+
 
 }
 

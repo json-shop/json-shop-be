@@ -6,7 +6,10 @@ spring:
     password: "${DB_PASSWORD}"
 
   jwt:
-    secret-key: ${SECRET_KEY}
+    secret-key: "${SECRET_KEY}"
+  api:
+    key: abc
+
 
   jpa:
     hibernate:
