@@ -1,6 +1,6 @@
-package deepdive.jsonstore.domain.order.model;
+package deepdive.jsonstore.domain.order.entity;
 
-import deepdive.jsonstore.domain.product.model.Product;
+import deepdive.jsonstore.domain.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,12 +32,15 @@ public class OrderProduct {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column
-    private Long price; // 실결제 금액
+    private int price; // 실결제 금액
+    private int quantity;
 
-    @Column
-    private Integer quantity;
+    public static OrderProduct from(Product product, int quantity) {
+        return OrderProduct.builder()
+                .product(product)
+                .price(product.getPrice())
+                .quantity(quantity)
+                .build();
 
-
-
+    }
 }
