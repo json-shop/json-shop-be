@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.member.service;
 
 import deepdive.jsonstore.domain.member.dto.JoinResponse;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

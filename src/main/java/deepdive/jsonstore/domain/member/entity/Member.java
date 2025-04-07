@@ -1,4 +1,4 @@
-package deepdive.jsonstore.domain.member.model;
+package deepdive.jsonstore.domain.member.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
 import jakarta.persistence.*;

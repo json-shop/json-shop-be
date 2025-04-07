@@ -15,6 +15,6 @@ public class OrderValidationService {
     private final OrderRepository orderRepository;
 
     public Order getByUuid(UUID uuid) {
-        return orderRepository.findByUuid(uuid).orElseThrow(OrderException.OrderNotFound::new);
+        return orderRepository.findByUid(uuid).orElseThrow(OrderException.OrderNotFound::new);
     }
 }
