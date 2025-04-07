@@ -25,7 +25,7 @@ public class Order extends BaseEntity {
     private Long id;
 
     @Column(unique = true, columnDefinition = "CHAR(36)", nullable = false)
-    private UUID uuid;
+    private UUID uid;
 
     @ManyToOne
     @JoinColumn(name = "member_id")

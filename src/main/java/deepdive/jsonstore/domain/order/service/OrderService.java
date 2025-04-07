@@ -28,7 +28,7 @@ public class OrderService {
     private final ProductValidationService productValidationService;
     private final OrderValidationService orderValidationService;
 //    private final MemberValidationService memberValidationService;
-    @Value("${order.expire-minutes}") private final int ORDER_EXPIRE_TIME;
+    @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
 
     /**
      * 주문서 조회
@@ -61,7 +61,7 @@ public class OrderService {
      * @return 주문서 Dto
      */
     @Transactional
-    public UUID createOrder(Long memberId, OrderRequest orderRequest) {
+    public UUID createOrder(UUID memberId, OrderRequest orderRequest) {
 
 //        var member = memberValidationService.findByUuid(memberId);
         var member = Member.builder().build();
@@ -70,7 +70,7 @@ public class OrderService {
         int total = 0;
 
         for (OrderProductRequest orderProductReq : orderRequest.orderProductRequests()) {
-            var product = productValidationService.findActiveProductById(orderProductReq.productUuid());
+            var product = productValidationService.findActiveProductById(orderProductReq.productUid());
 
             int quantity = orderProductReq.quantity();
             int price = product.getPrice();

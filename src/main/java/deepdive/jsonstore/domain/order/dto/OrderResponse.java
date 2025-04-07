@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 @Builder
 public record OrderResponse(
 
-        UUID orderUuid, // 주문번호
-        UUID memberUuid, // 주문자
+        UUID orderUid, // 주문번호
+        UUID memberUid, // 주문자
         String username,
         List<OrderProductResponse> products, // 주문할 상품
         OrderStatus orderStatus,
@@ -29,8 +29,8 @@ public record OrderResponse(
         var orderProductResponse = order.getProducts().stream().map(OrderProductResponse::from)
                 .collect(Collectors.toList());
         return OrderResponse.builder()
-                .orderUuid(order.getUuid())
-                .memberUuid(order.getMember().getUuid())
+                .orderUid(order.getUid())
+                .memberUid(order.getMember().getUuid())
                 .orderStatus(order.getOrderStatus())
                 .recipient(order.getRecipient())
                 .phone(order.getPhone())

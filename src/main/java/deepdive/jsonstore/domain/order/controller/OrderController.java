@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -18,11 +20,14 @@ public class OrderController {
 
     // 주문 생성
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(
+    public ResponseEntity<Map<?,?>> createOrder(
 //            @AuthencitaitonPrincipal(expression"Member=member.id")
-            Long memberId,
+            UUID memberId,
             OrderRequest orderRequest) {
-        return ResponseEntity.ok(orderService.createOrder(memberId, orderRequest));
+        var orderUid = orderService.createOrder(memberId, orderRequest);
+        return ResponseEntity.created(
+                URI.create("/api/v1/orders/" + orderUid.toString())
+        ).body(Map.of("result", true));
     }
 
     // 주문 조회

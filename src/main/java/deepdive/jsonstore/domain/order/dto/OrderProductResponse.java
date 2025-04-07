@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Builder
 public record OrderProductResponse(
-        UUID productUuid,
+        UUID productUid,
         String productName,
         String productImageUrl,
         int quantity,
@@ -19,7 +19,7 @@ public record OrderProductResponse(
         int amount = orderProduct.getPrice();
         int subTotal =  quantity * amount;
         return OrderProductResponse.builder()
-                .productUuid(orderProduct.getUuid())
+                .productUid(orderProduct.getUuid())
                 .productName(orderProduct.getProduct().getName())
                 .productImageUrl(orderProduct.getProduct().getImage())
                 .quantity(quantity)
