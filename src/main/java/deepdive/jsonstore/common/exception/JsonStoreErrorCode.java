@@ -24,10 +24,13 @@ public enum JsonStoreErrorCode {
     //delivery
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     DELIVERY_NOT_FOUND(HttpStatus.BAD_REQUEST, "배송지를 찾을 수 없습니다."),
-    ZIPCODE_NOT_VALID(HttpStatus.BAD_REQUEST,"유효하지 않은 우편번호입니다.");
-  
+    ZIPCODE_NOT_VALID(HttpStatus.BAD_REQUEST,"유효하지 않은 우편번호입니다."),
+
     //entity
-    ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 엔티티를 찾을 수 없습니다.");
+    ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 엔티티를 찾을 수 없습니다."),
+
+    //s3
+    S3_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "s3 시스템에 문제가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
