@@ -5,6 +5,11 @@ spring:
     username: ${DB_USERNAME:json}
     password: ${DB_PASSWORD:jsonpw}
 
+  jwt:
+    secret-key: "${SECRET_KEY}"
+
+
+
   jpa:
     hibernate:
       ddl-auto: create
