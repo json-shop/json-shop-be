@@ -1,11 +1,11 @@
-package deepdive.jsonstore.domain.product.dto;
+package deepdive.jsonstore.domain.admin.dto;
 
 import java.util.UUID;
 
 import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.Product;
 
-public record ProductRequest(
+public record CreateProductRequest(
 	String productName,
 	String productDetail,
 	Category category,
@@ -15,7 +15,7 @@ public record ProductRequest(
 
 	public Product toProduct(String url) {
 		return Product.builder()
-			.uuid(UUID.randomUUID())
+			.uid(UUID.randomUUID())
 			.name(productName)
 			.category(category)
 			.detail(productDetail)
