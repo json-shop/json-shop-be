@@ -2,7 +2,7 @@ package deepdive.jsonstore.domain.member.service;
 
 import deepdive.jsonstore.common.exception.JoinException;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
-import deepdive.jsonstore.domain.member.dto.JoinResponse;
+import deepdive.jsonstore.domain.member.dto.JoinRequest;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,14 +31,17 @@ class JoinServiceTest {
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Mock
+    private JoinValidationService joinValidationService;  // JoinValidationService 모킹 추가
+
     @InjectMocks
     private JoinService joinService;
 
-    private JoinResponse joinResponse;
+    private JoinRequest joinRequest;
 
     @BeforeEach
     void setUp() {
-        joinResponse = new JoinResponse(
+        joinRequest = new JoinRequest(
                 "test@example.com",
                 "password123",
                 "password123",
@@ -56,27 +58,29 @@ class JoinServiceTest {
         @DisplayName("성공")
         void success() {
             // given
-            when(bCryptPasswordEncoder.encode(joinResponse.password())).thenReturn("encryptedPassword");
-            when(memberRepository.existsByEmail(joinResponse.email())).thenReturn(false);
+            doNothing().when(joinValidationService).validateJoinRequest(joinRequest);  // ValidationService 동작 추가
+            when(bCryptPasswordEncoder.encode(joinRequest.password())).thenReturn("encryptedPassword");
+            when(memberRepository.existsByEmail(joinRequest.email())).thenReturn(false);
 
             // when
-            joinService.joinProcess(joinResponse);
+            joinService.joinProcess(joinRequest);
 
             // then
-            verify(bCryptPasswordEncoder, times(1)).encode(joinResponse.password());
+            verify(joinValidationService, times(1)).validateJoinRequest(joinRequest);  // validateJoinRequest 검증 추가
+            verify(bCryptPasswordEncoder, times(1)).encode(joinRequest.password());
             verify(memberRepository, times(1)).save(any(Member.class));
 
-            logger.info("회원 가입 성공: {}", joinResponse.email());
+            logger.info("회원 가입 성공: {}", joinRequest.email());
         }
 
         @Test
         @DisplayName("실패 - 이메일 중복")
         void fail_이메일_중복_예외() {
             // given
-            when(memberRepository.existsByEmail(joinResponse.email())).thenReturn(true);
+            when(memberRepository.existsByEmail(joinRequest.email())).thenReturn(true);
 
             // when & then
-            assertThatThrownBy(() -> joinService.joinProcess(joinResponse))
+            assertThatThrownBy(() -> joinService.joinProcess(joinRequest))
                     .isInstanceOf(JoinException.DuplicateEmailException.class)
                     .hasMessage(JsonStoreErrorCode.DUPLICATE_EMAIL.getMessage())
                     .satisfies(e -> logger.error("예외 발생: {}", e.getMessage()));
@@ -88,16 +92,16 @@ class JoinServiceTest {
         @DisplayName("실패 - 비밀번호 불일치")
         void fail_비밀번호_불일치_예외() {
             // given
-            JoinResponse invalidJoinResponse = new JoinResponse(
-                    joinResponse.email(),
-                    joinResponse.password(),
+            JoinRequest invalidJoinRequest = new JoinRequest(
+                    joinRequest.email(),
+                    joinRequest.password(),
                     "differentPassword", // 잘못된 비밀번호 확인 값
-                    joinResponse.username(),
-                    joinResponse.phone()
+                    joinRequest.username(),
+                    joinRequest.phone()
             );
 
             // when & then
-            assertThatThrownBy(() -> joinService.joinProcess(invalidJoinResponse))
+            assertThatThrownBy(() -> joinService.joinProcess(invalidJoinRequest))
                     .isInstanceOf(JoinException.PasswordMismatchException.class)
                     .hasMessage(JsonStoreErrorCode.PASSWORD_MISMATCH.getMessage())
                     .satisfies(e -> logger.error("예외 발생: {}", e.getMessage()));
