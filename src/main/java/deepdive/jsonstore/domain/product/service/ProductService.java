@@ -27,7 +27,4 @@ public class ProductService {
 		return ActiveProductResponse.toActiveProductResponse(product);
 	}
 
-	public void tempSave(List<CreateProductRequest> createProductRequestList) {
-		createProductRequestList.forEach(p -> productRepository.save(p.toProduct("test.jpg")));
-	}
 }
