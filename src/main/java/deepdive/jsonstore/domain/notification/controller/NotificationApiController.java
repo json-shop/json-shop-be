@@ -39,4 +39,11 @@ public class NotificationApiController {
         );
         return ResponseEntity.ok("Notification sent successfully");
     }
+
+    // 특정 멤버 알림 내역 조회
+    @GetMapping("/notifications/{memberId}")
+    public ResponseEntity<List<Notification>> getNotificationHistory(@PathVariable Long memberId) {
+        List<Notification> history = notificationService.getNotificationHistory(memberId);
+        return ResponseEntity.ok(history);
+    }
 }
