@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -38,7 +39,7 @@ public class NotificationService {
             log.info("FCM Token saved successfully for member: {}", memberId);
         } catch (Exception e) {
             log.error("Redis 저장 중 오류 발생: {}", e.getMessage(), e);
-            throw new NotificationException(JsonStoreErrorCode.REDIS_SERVER_ERROR); // 반드시 이걸 던져야 함
+            throw new NotificationException(JsonStoreErrorCode.REDIS_SERVER_ERROR);
         }
     }
 
@@ -83,5 +84,10 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
+    }
+
+    // 사용자별 알림 내역 조회
+    public List<Notification> getNotificationHistory(Long memberId) {
+        return notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
     }
 }
