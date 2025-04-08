@@ -28,7 +28,7 @@ public class JoinService {
                 joinRequest.email(),
                 joinRequest.phone(),
                 false
-
+        );
 
         Member member = memberDto.toEntity(bCryptPasswordEncoder.encode(joinRequest.password()));
         memberRepository.save(member);
