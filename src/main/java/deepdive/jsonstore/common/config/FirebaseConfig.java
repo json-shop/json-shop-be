@@ -3,8 +3,10 @@ package deepdive.jsonstore.common.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
@@ -15,7 +17,7 @@ import java.io.IOException;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${fcm.credentials.file:classpath:firebaseAccessKey.json}") // 기본값 설정
+    @Value("${fcm.credentials.file:classpath:firebaseAccessKey.json}")
     private String fcmCredentialsPath;
 
     @PostConstruct
@@ -23,9 +25,6 @@ public class FirebaseConfig {
         log.info("Firebase 초기화 시작, 파일 경로: {}", fcmCredentialsPath);
 
         try {
-            log.info("Firebase 초기화 시작, 파일 경로: {}", fcmCredentialsPath);
-
-            // classpath: 접두사 제거
             String resourcePath = fcmCredentialsPath.replace("classpath:", "");
             ClassPathResource resource = new ClassPathResource(resourcePath);
 
@@ -46,5 +45,10 @@ public class FirebaseConfig {
             log.error("Error initializing Firebase: ", e);
             throw new RuntimeException("Firebase 초기화 중 오류가 발생했습니다", e);
         }
+    }
+
+    @Bean
+    public FirebaseMessaging firebaseMessaging() {
+        return FirebaseMessaging.getInstance();
     }
 }

@@ -1,27 +1,36 @@
 package deepdive.jsonstore.domain.notification.service;
 
-import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
+import deepdive.jsonstore.common.exception.NotificationException;
+import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
+@Service
+@RequiredArgsConstructor
 public class NotificationValidationService {
-    // Input 값 검증
-    public static void validateInput(Long memberId, String token) {
-        if (memberId == null) {
-            throw new CommonException(JsonStoreErrorCode.UNAUTHORIZED);
-        }
+    private final RedisTemplate<String, String> redisTemplate;
+    private final MemberRepository memberRepository;
 
-        if (token == null || token.trim().isEmpty()) {
-            throw new CommonException.InvalidInputException();
+    public String validateAndGetFcmToken(Long memberId) {
+        String token = redisTemplate.opsForValue().get("fcm:token:" + memberId);
+        if (token == null) {
+            throw new NotificationException(JsonStoreErrorCode.MISSING_FCM_TOKEN);
+        }
+        return token;
+    }
+
+    public void validateMemberExists(Long memberId) {
+        if (!memberRepository.existsById(memberId)) {
+            throw new NotificationException(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND);
         }
     }
 
-    // 회원 정보 검증 -> 추후 member 쪽 uid 검증으로 수정 예정
-    public static void validateMemberExistence(Long memberId, MemberRepository memberRepository) {
-        boolean exists = memberRepository.existsById(memberId);
-
-        if (!exists) {
-            throw new CommonException(JsonStoreErrorCode.UNAUTHORIZED);
-        }
+    public Member validateAndGetMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotificationException(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND));
     }
 }
+

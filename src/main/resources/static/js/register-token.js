@@ -39,7 +39,7 @@ document.getElementById('registerButton').addEventListener('click', async () => 
   messaging.onMessage((payload) => {
     console.log('포그라운드 메시지 수신:', payload);
     const notification = new Notification(payload.notification.title, {
-      body: payload.notification.body,
+      body: payload.notification.body
     });
     notification.onclick = function () {
       window.focus();
