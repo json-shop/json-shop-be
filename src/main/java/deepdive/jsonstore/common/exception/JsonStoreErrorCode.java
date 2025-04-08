@@ -10,7 +10,13 @@ public enum JsonStoreErrorCode {
 
     //common
     INVALID_INPUT_PARAMETER(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
     SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "시스템에 문제가 발생했습니다."),
+
+    // notification
+    MISSING_FCM_TOKEN(HttpStatus.BAD_REQUEST, "FCM 토큰이 없습니다."),
+    NOTIFICATION_MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다."),
+    REDIS_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 서버에 문제가 발생했습니다."),
 
     // order
     TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "타임아웃"),
@@ -35,9 +41,14 @@ public enum JsonStoreErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     DELIVERY_NOT_FOUND(HttpStatus.BAD_REQUEST, "배송지를 찾을 수 없습니다."),
     ZIPCODE_NOT_VALID(HttpStatus.BAD_REQUEST,"유효하지 않은 우편번호입니다."),
+    ADDRESS_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"주소 검색 시스템 오류"),
 
     //entity
     ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 엔티티를 찾을 수 없습니다."),
+
+    //s3
+    S3_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "s3 시스템에 문제가 발생했습니다."),
+    //ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 엔티티를 찾을 수 없습니다."),
 
     //admin
     ADMIN_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "관리자 로그인에 실패했습니다.");
