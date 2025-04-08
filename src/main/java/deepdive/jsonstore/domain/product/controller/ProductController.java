@@ -31,10 +31,4 @@ public class ProductController {
 		return ResponseEntity.ok(res);
 	}
 
-	@PostMapping
-	public ResponseEntity<Void> saveTemp(@RequestBody List<CreateProductRequest> createProductRequestList) {
-		productService.tempSave(createProductRequestList);
-		return ResponseEntity.noContent().build();
-	}
-
 }

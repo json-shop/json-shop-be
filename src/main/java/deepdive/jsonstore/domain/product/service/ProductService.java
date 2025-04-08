@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductService {
 
 	private final ProductValidationService productValidationService;
-	private final ProductRepository productRepository;
 
 	@Transactional(readOnly = true)
 	public ActiveProductResponse getActiveProductDetail(UUID id) {
@@ -27,7 +26,4 @@ public class ProductService {
 		return ActiveProductResponse.toActiveProductResponse(product);
 	}
 
-	public void tempSave(List<CreateProductRequest> createProductRequestList) {
-		createProductRequestList.forEach(p -> productRepository.save(p.toProduct("test.jpg")));
-	}
 }
