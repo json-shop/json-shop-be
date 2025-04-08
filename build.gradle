@@ -50,9 +50,6 @@ dependencies {
     // firebase
     implementation 'com.google.firebase:firebase-admin:9.4.3'
 
-    // env
-    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
-
     //aws s3
     implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.1.1'
     implementation 'software.amazon.awssdk:s3:2.31.16'
