@@ -29,7 +29,8 @@ public record MemberDto(
                 this.email,
                 this.phone,
                 false, // isDeleted 초기값 설정
-                null // deletedAt 초기값 설정
+                null, // deletedAt 초기값 설정
+                null //default delivery 초기값
         );
     }
 }
