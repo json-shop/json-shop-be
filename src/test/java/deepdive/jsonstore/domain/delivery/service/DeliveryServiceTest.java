@@ -1,75 +1,133 @@
 package deepdive.jsonstore.domain.delivery.service;
 
+import deepdive.jsonstore.common.config.FirebaseConfig;
+import deepdive.jsonstore.common.config.RedisTestService;
 import deepdive.jsonstore.common.exception.DeliveryException;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import deepdive.jsonstore.domain.delivery.repository.DeliveryRepository;
 import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.member.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@Transactional
+@Rollback(false)
+@DisplayName("DeliveryService 기본배송지 관련 테스트")
 class DeliveryServiceTest {
 
-    @Mock
-    private DeliveryRepository deliveryRepository;
-
-    @InjectMocks
+    @Autowired
     private DeliveryService deliveryService;
 
-    @Test
-    void deleteDelivery_존재하지않는_배송지_예외() {
-        UUID uuid = UUID.randomUUID();
-        String email = "test@example.com";
+    @MockitoBean
+    private FirebaseConfig firebaseConfig;
 
-        when(deliveryRepository.findByUid(uuid)).thenReturn(Optional.empty());
+    @MockitoBean
+    private RedisTestService redisTestService;
 
-        assertThrows(DeliveryException.DeliveryNotFoundException.class, () ->
-                deliveryService.deleteDelivery(email, uuid));
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private DeliveryRepository deliveryRepository;
+
+    @BeforeEach
+    void clean() { //해당 테이블 데이터 삭제하고 시작
+        deliveryRepository.deleteAll();
+        memberRepository.deleteAll();
     }
 
-    @Test
-    void deleteDelivery_권한없음_예외() {
-        UUID uuid = UUID.randomUUID();
-        String email = "user1@example.com";
-        Member otherUser = new Member();
-        otherUser.setEmail("user2@example.com");
-
-        Delivery delivery = new Delivery();
-        delivery.setUuid(uuid);
-        delivery.setMember(otherUser);
-
-        when(deliveryRepository.findByUid(uuid)).thenReturn(Optional.of(delivery));
-
-        assertThrows(DeliveryException.DeliveryAccessDeniedException.class, () ->
-                deliveryService.deleteDelivery(email, uuid));
+    private Member createMember(String email, String username) {
+        Member member = Member.builder()
+                .email(email)
+                .username(username)
+                .password("pw")
+                .uid(UUID.randomUUID())
+                .isDeleted(false)
+                .build();
+        return memberRepository.save(member);
     }
 
-    @Test
-    void deleteDelivery_정상삭제() {
-        UUID uuid = UUID.randomUUID();
-        String email = "user@example.com";
+    private Delivery createDelivery(Member member) {
+        Delivery delivery = Delivery.builder()
+                .uid(UUID.randomUUID())
+                .address("서울")
+                .zipCode("12345")
+                .phone("010-1234-5678")
+                .recipient("이인구")
+                .member(member)
+                .build();
+        return deliveryRepository.save(delivery);
+    }
 
-        Member member = new Member();
-        member.setEmail(email);
+    @Nested
+    @DisplayName("기본 배송지 설정")
+    class DefaultDeliverySetting {
 
-        Delivery delivery = new Delivery();
-        delivery.setUuid(uuid);
-        delivery.setMember(member);
+        @Nested
+        @DisplayName("성공 케이스")
+        class Success {
 
-        when(deliveryRepository.findByUid(uuid)).thenReturn(Optional.of(delivery));
+            @Test
+            @DisplayName("기본 배송지 정상 설정")
+            void setDefaultDelivery() {
+                // given
+                Member member = createMember("user1@example.com", "user1");
+                Delivery delivery = createDelivery(member);
 
-        deliveryService.deleteDelivery(email, uuid);
+                // when
+                deliveryService.setDeliveryDefault(member.getEmail(), delivery.getUid());
 
-        verify(deliveryRepository).delete(delivery);
+                // then
+                Member result = memberRepository.findByEmail(member.getEmail()).orElseThrow();
+                assertThat(result.getDefaultDelivery().getUid()).isEqualTo(delivery.getUid());
+            }
+        }
+
+        @Nested
+        @DisplayName("실패 케이스")
+        class Failure {
+
+            @Test
+            @DisplayName("자신의 배송지가 아닐 경우 예외 발생")
+            void setDefault_notOwner() {
+                // given
+                Member owner = createMember("owner@example.com", "owner");
+                Delivery delivery = createDelivery(owner);
+
+                Member attacker = createMember("unknown@example.com", "unknown");
+
+                // when & then
+                assertThatThrownBy(() ->
+                        deliveryService.setDeliveryDefault(attacker.getEmail(), delivery.getUid())
+                ).isInstanceOf(DeliveryException.DeliveryAccessDeniedException.class);
+            }
+
+            @Test
+            @DisplayName("존재하지 않는 배송지 UID일 경우 예외 발생")
+            void setDefault_invalidDelivery() {
+                // given
+                Member member = createMember("user2@example.com", "tester");
+                UUID nonExistentUid = UUID.randomUUID();
+
+                // when & then
+                assertThatThrownBy(() ->
+                        deliveryService.setDeliveryDefault(member.getEmail(), nonExistentUid)
+                ).isInstanceOf(EntityNotFoundException.class);
+            }
+        }
     }
 }

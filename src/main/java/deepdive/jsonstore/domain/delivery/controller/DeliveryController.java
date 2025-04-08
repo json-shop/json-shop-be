@@ -46,4 +46,12 @@ public class DeliveryController {
 
     }
 
+    @PatchMapping("/delivery/default/{uid}")
+    public ResponseEntity<?> setDeliveryDefault(String email, @PathVariable UUID uid){
+
+        deliveryService.setDeliveryDefault(email, uid);
+
+        return ResponseEntity.noContent().build();
+
+    }
 }

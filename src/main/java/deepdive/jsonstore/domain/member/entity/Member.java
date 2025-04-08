@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.member.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
+import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,11 +40,16 @@ public class Member extends BaseEntity {
     @Column
     private LocalDateTime deletedAt; // 삭제 시점 (삭제될 때만 값이 들어감)
 
-    /*
-   // 회원 - 배송지
-   @OneToMany(mappedBy = "Member", cascade = CascadeType.ALL, orphanRemoval = true)
-   private List<Delivery> delivery;
+    @Setter
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_delivery_id",
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT) )
+    private Delivery defaultDelivery; // 기본 배송지
 
+//   // 회원 - 배송지
+//   @OneToMany(mappedBy = "Member", cascade = CascadeType.ALL, orphanRemoval = true)
+//   private List<Delivery> delivery;
+    /*
    // 회원 - 장바구니
    @OneToMany(mappedBy = "Member", cascade = CascadeType.ALL, orphanRemoval = true)
    private List<Cart> cart;
