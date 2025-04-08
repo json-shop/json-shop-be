@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushNotification;
+import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import deepdive.jsonstore.common.exception.NotificationException;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.notification.entity.Notification;
@@ -27,13 +28,18 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final MemberRepository memberRepository;
     private final NotificationValidationService validationService;
+    private final FirebaseMessaging firebaseMessaging;
 
     public void saveToken(Long memberId, String token) {
-        // 회원 정보 검증
         validationService.validateMemberExists(memberId);
 
-        redisTemplate.opsForValue().set("fcm:token:" + memberId, token);
-        log.info("FCM Token saved successfully for member: {}", memberId);
+        try {
+            redisTemplate.opsForValue().set("fcm:token:" + memberId, token);
+            log.info("FCM Token saved successfully for member: {}", memberId);
+        } catch (Exception e) {
+            log.error("Redis 저장 중 오류 발생: {}", e.getMessage(), e);
+            throw new NotificationException(JsonStoreErrorCode.REDIS_SERVER_ERROR); // 반드시 이걸 던져야 함
+        }
     }
 
     // 알림 전송
@@ -52,15 +58,17 @@ public class NotificationService {
                             .build())
                     .build();
 
-            String response = FirebaseMessaging.getInstance().sendAsync(fcmMessage).get();
+            String response = firebaseMessaging.sendAsync(fcmMessage).get();
             log.info("FCM message sent successfully to user {} with message ID: {}", memberId, response);
 
             saveNotificationRecord(member, title, body, NotificationCategory.SAVE);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error sending FCM message to user {}: {}", memberId, e.getMessage());
-            Member member = memberRepository.findById(memberId).orElseThrow();
-            saveNotificationRecord(member, title, body, NotificationCategory.ERROR);
+
+            memberRepository.findById(memberId).ifPresent(member ->
+                    saveNotificationRecord(member, title, body, NotificationCategory.ERROR));
+
             throw new CommonException.InternalServerException();
         }
     }

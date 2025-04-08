@@ -16,6 +16,7 @@ public enum JsonStoreErrorCode {
     // notification
     MISSING_FCM_TOKEN(HttpStatus.BAD_REQUEST, "FCM 토큰이 없습니다."),
     NOTIFICATION_MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다."),
+    REDIS_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 서버에 문제가 발생했습니다."),
 
     // order
     TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "타임아웃"),

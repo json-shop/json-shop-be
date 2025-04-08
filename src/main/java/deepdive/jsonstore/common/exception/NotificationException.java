@@ -19,4 +19,10 @@ public class NotificationException extends RuntimeException {
             super(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND);
         }
     }
+
+    public static class RedisServerException extends NotificationException {
+        public RedisServerException() {
+            super(JsonStoreErrorCode.REDIS_SERVER_ERROR);
+        }
+    }
 }
