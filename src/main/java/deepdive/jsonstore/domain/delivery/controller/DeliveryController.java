@@ -17,15 +17,15 @@ public class DeliveryController {
     private final DeliveryService deliveryService;
 
     @PostMapping("/delivery")
-    public ResponseEntity<?> deliveryReg(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) { //인증 모듈 추가 시 수정 필요
-        deliveryService.deliveryReg(email, deliveryRegDTO);
+    public ResponseEntity<?> createDelivery(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) { //인증 모듈 추가 시 수정 필요
+        deliveryService.createDelivery(email, deliveryRegDTO);
 
         return ResponseEntity.created(URI.create("/api/v1/delivery")).build(); //HTTP method는 어떻게 전달하지?
 
     }
 
     @DeleteMapping("/delivery/{uid}")
-    public ResponseEntity<?> deliveryDelete(String email, @PathVariable UUID uid){
+    public ResponseEntity<?> deleteDelivery(String email, @PathVariable UUID uid){
         deliveryService.deleteDelivery(email, uid);
 
         return ResponseEntity.ok().build();
@@ -39,7 +39,7 @@ public class DeliveryController {
   }
   
     @PutMapping("/delivery/{uid}")
-    public ResponseEntity<?> deliveryUpdate(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO, @PathVariable UUID uid){
+    public ResponseEntity<?> updateDelivery(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO, @PathVariable UUID uid){
         deliveryService.updateDelivery(email, uid, deliveryRegDTO);
 
         return ResponseEntity.ok(URI.create("/api/v1/delivery"));
@@ -47,7 +47,7 @@ public class DeliveryController {
     }
 
     @PatchMapping("/delivery/default/{uid}")
-    public ResponseEntity<?> setDeliveryDefault(String email, @PathVariable UUID uid){
+    public ResponseEntity<?> setDefaultDelivery(String email, @PathVariable UUID uid){
 
         deliveryService.setDeliveryDefault(email, uid);
 
