@@ -1,7 +1,7 @@
 package deepdive.jsonstore.domain.order.service;
 
 import deepdive.jsonstore.common.exception.OrderException;
-import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.member.service.MemberValidationService;
 import deepdive.jsonstore.domain.order.dto.OrderProductRequest;
 import deepdive.jsonstore.domain.order.dto.OrderRequest;
 import deepdive.jsonstore.domain.order.dto.OrderResponse;
@@ -27,7 +27,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductValidationService productValidationService;
     private final OrderValidationService orderValidationService;
-//    private final MemberValidationService memberValidationService;
+    private final MemberValidationService memberValidationService;
     @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
 
     /**
@@ -38,10 +38,10 @@ public class OrderService {
     public OrderResponse getOrder(UUID orderUid) {
 
         // 주문서 조회
-        var foundOrder= orderValidationService.getByUuid(orderUid);
+        var foundOrder= orderValidationService.findByUid(orderUid);
 
         // 주문서 만료 처리
-        if (foundOrder.getExpiredAt().isAfter(LocalDateTime.now())) {
+        if (foundOrder.getExpiredAt().isBefore(LocalDateTime.now())) {
             foundOrder.expire();
         }
 
@@ -63,8 +63,7 @@ public class OrderService {
     @Transactional
     public UUID createOrder(UUID memberId, OrderRequest orderRequest) {
 
-//        var member = memberValidationService.findByUuid(memberId);
-        var member = Member.builder().build();
+        var member = memberValidationService.findByUid(memberId);
 
         List<OrderProduct> orderProducts = new ArrayList<>();
         int total = 0;
