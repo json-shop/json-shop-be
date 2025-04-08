@@ -29,7 +29,8 @@ public class JoinService {
                 joinResponse.email(),
                 joinResponse.phone(),
                 false, // isDeleted 초기값 설정
-                null // deletedAt 초기값 설정
+                null, // deletedAt 초기값 설정
+                null //default delivery 초기값 설정
         );
 
         memberRepository.save(member);
