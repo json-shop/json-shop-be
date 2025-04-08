@@ -21,7 +21,7 @@ public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProces
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AdminLoginAuthenticationFilter(AuthenticationManager authenticationManager, AdminJwtTokenProvider adminJwtTokenProvider) {
-        super(new AntPathRequestMatcher("/api/v1/admin/login", "POST")); // 🔐 관리자 로그인 경로
+        super(new AntPathRequestMatcher("/api/v1/admin/login", "POST")); //  관리자 로그인 경로
         this.authenticationManager = authenticationManager;
         this.adminJwtTokenProvider = adminJwtTokenProvider;
     }

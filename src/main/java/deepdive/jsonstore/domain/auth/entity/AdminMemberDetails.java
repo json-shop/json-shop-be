@@ -40,7 +40,7 @@ public class AdminMemberDetails implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return !admin.getIsDeleted(); }
+    public boolean isEnabled() { return !admin.getDeleted(); }
 
     public Admin getAdmin() {
         return admin;

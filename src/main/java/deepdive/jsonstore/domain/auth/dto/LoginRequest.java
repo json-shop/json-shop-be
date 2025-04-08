@@ -8,4 +8,11 @@ import lombok.NoArgsConstructor;
 public class LoginRequest {
     private String email;
     private String password;
+
+
+    //LoginTest를 위해 생성
+    public LoginRequest(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
 }
