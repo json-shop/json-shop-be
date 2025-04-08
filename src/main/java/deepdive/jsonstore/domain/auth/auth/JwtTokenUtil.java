@@ -3,35 +3,46 @@ package deepdive.jsonstore.domain.auth.auth;
 import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import io.jsonwebtoken.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtTokenUtil {
 
-    private final long validityInMilliseconds = 86400000; // 24시간
+    private final long validityInMilliseconds = 1000 * 60 * 60 * 24; // 24시간
 
+    /**
+     * JWT 서명용 키 생성 (HMAC-SHA256)
+     */
+    public Key getSigningKey(String secretKey) {
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.getJcaName());
+    }
+
+    /**
+     * 인증 객체 기반으로 JWT Access Token 생성
+     */
     public JwtTokenDto generateToken(Authentication authentication, Key key) {
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + validityInMilliseconds);
+        long now = System.currentTimeMillis();
+        Date expiryDate = new Date(now + validityInMilliseconds);
 
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
-                .setExpiration(accessTokenExpiresIn)
+                .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -41,18 +52,28 @@ public class JwtTokenUtil {
                 .build();
     }
 
-    public Claims parseClaims(String accessToken, Key key) {
+    /**
+     * JWT Claims 파싱
+     */
+    public Claims parseClaims(String token, Key key) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(accessToken)
+                    .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            return e.getClaims();
+            log.warn("Expired JWT token: {}", e.getMessage());
+            return e.getClaims(); // 만료됐지만 Claims 반환
+        } catch (JwtException e) {
+            log.error("Invalid JWT token: {}", e.getMessage());
+            throw new AuthException.InvalidTokenException();
         }
     }
 
+    /**
+     * JWT 유효성 검사
+     */
     public boolean validateToken(String token, Key key) {
         try {
             Jwts.parserBuilder()
@@ -61,12 +82,16 @@ public class JwtTokenUtil {
                     .parseClaimsJws(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
+            log.error("Invalid JWT signature or malformed: {}", e.getMessage());
             throw new AuthException.InvalidTokenException();
         } catch (ExpiredJwtException e) {
+            log.warn("Expired JWT token: {}", e.getMessage());
             throw new AuthException.ExpiredTokenException();
         } catch (UnsupportedJwtException e) {
+            log.error("Unsupported JWT token: {}", e.getMessage());
             throw new AuthException.UnsupportedTokenException();
         } catch (IllegalArgumentException e) {
+            log.error("JWT token is empty: {}", e.getMessage());
             throw new AuthException.EmptyTokenException();
         }
     }
