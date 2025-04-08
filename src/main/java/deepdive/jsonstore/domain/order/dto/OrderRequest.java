@@ -10,10 +10,10 @@ import java.util.UUID;
 public record OrderRequest(
 
         // 주문번호
-        UUID orderUuid,
+        UUID orderUid,
 
         // 주문자
-        UUID memberUuid,
+        UUID memberUid,
 
         // 주문할 상품
         List<OrderProductRequest> orderProductRequests,
