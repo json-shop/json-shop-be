@@ -32,6 +32,12 @@ public class DeliveryController {
 
     }
 
+    @GetMapping("/delivery")
+    public ResponseEntity<?> getDelivery(String email){
+
+        return ResponseEntity.ok(deliveryService.getDelivery(email));
+  }
+  
     @PutMapping("/delivery/{uid}")
     public ResponseEntity<?> deliveryUpdate(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO, @PathVariable UUID uid){
         deliveryService.updateDelivery(email, uid, deliveryRegDTO);
