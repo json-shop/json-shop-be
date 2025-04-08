@@ -57,14 +57,6 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
-    @ExceptionHandler(S3Exception.class)
-    public ResponseEntity<ErrorResponse> s3ExceptionHandler(S3Exception ex) {
-        log.error(ex.awsErrorDetails().errorCode(), ex.awsErrorDetails().errorMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorResponse(JsonStoreErrorCode.S3_ERROR.getHttpStatus().name(),
-                JsonStoreErrorCode.S3_ERROR.getMessage()));
-    }
-
 
     @ExceptionHandler(S3Exception.class)
     public ResponseEntity<ErrorResponse> s3ExceptionHandler(S3Exception ex) {
