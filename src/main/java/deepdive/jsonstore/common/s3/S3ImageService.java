@@ -20,7 +20,6 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 public class S3ImageService {
 	private final S3Client s3Client;
 
-	// application.yml 또는 properties에 설정한 버킷명
 	@Value("${spring.cloud.aws.s3.bucket}")
 	private String bucketName;
 	@Value("${spring.cloud.aws.region.static}")

@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.admin.dto;
 
 import java.util.UUID;
 
+import deepdive.jsonstore.domain.admin.entity.Admin;
 import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.Product;
 
@@ -13,9 +14,10 @@ public record CreateProductRequest(
 	int stock
 ) {
 
-	public Product toProduct(String url) {
+	public Product toProduct(String url, Admin admin) {
 		return Product.builder()
 			.uid(UUID.randomUUID())
+			.admin(admin)
 			.name(productName)
 			.category(category)
 			.detail(productDetail)
