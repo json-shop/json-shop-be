@@ -1,10 +1,10 @@
 document.getElementById('sendButton').addEventListener('click', async () => {
-  const userId = document.getElementById('notifUserId').value.trim();
+  const memberId = document.getElementById('notifMemberId').value.trim();
   const title = document.getElementById('title').value.trim();
   const message = document.getElementById('message').value.trim();
   const sendStatus = document.getElementById('sendStatus');
 
-  if (!userId || !title || !message) {
+  if (!memberId || !title || !message) {
     sendStatus.textContent = '모든 항목을 입력해주세요.';
     return;
   }
@@ -13,7 +13,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     const response = await fetch('/api/v1/notifications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, title, message }),
+      body: JSON.stringify({ memberId: Number(memberId), title, message }),
     });
 
     sendStatus.textContent = response.ok
