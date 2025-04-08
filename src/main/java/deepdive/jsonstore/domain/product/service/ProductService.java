@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductService {
 
 	private final ProductValidationService productValidationService;
-	private final ProductRepository productRepository;
 
 	@Transactional(readOnly = true)
 	public ActiveProductResponse getActiveProductDetail(UUID id) {
