@@ -58,7 +58,7 @@ class NotificationServiceTest {
     class SaveToken {
 
         @Test
-        @DisplayName("성공 케이스")
+        @DisplayName("성공")
         void success() {
             Long memberId = 1L;
             String token = "abc123";
@@ -70,7 +70,7 @@ class NotificationServiceTest {
         }
 
         @Test
-        @DisplayName("Redis 저장 중 예기치 않은 예외 발생 시 NotificationException 반환")
+        @DisplayName("실패 - Redis 저장 중 예외 발생")
         void fail_unexpectedError() {
             Long memberId = 1L;
             String token = "abc123";
@@ -89,7 +89,7 @@ class NotificationServiceTest {
     class SendNotification {
 
         @Test
-        @DisplayName("성공 케이스")
+        @DisplayName("성공")
         void success() throws Exception {
             Long memberId = 1L;
             String title = "Test Title";
@@ -109,7 +109,7 @@ class NotificationServiceTest {
         }
 
         @Test
-        @DisplayName("Firebase 메시지 전송 중 예외 발생 시 InternalServerException 발생")
+        @DisplayName("실패 - Firebase 메시지 전송 중 예외 발생")
         void fail_sendException() throws Exception {
             Long memberId = 1L;
             String title = "Fail Title";
