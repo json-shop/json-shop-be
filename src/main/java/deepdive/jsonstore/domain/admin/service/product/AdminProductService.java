@@ -45,6 +45,18 @@ public class AdminProductService {
 		product.updateProduct(updateProductRequest, image);
 	}
 
+	@Transactional
+	public void activateProduct(UUID adminUid, UUID productUid) {
+		Product product = productValidationService.findProductByIdAndAdmin(productUid, adminUid);
+		product.activate();
+	}
+
+	@Transactional
+	public void deactivateProduct(UUID adminUid, UUID productUid) {
+		Product product = productValidationService.findProductByIdAndAdmin(productUid, adminUid);
+		product.deactivate();
+	}
+
 	public void tempSave() {
 		adminRepository.save(Admin.builder()
 			.username("admin")

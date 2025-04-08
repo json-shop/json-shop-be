@@ -60,4 +60,11 @@ public class Product extends BaseEntity {
 		this.detail = updateProductRequest.productDetail();
 		this.category = updateProductRequest.category();
 	}
+
+	public void activate() {
+		this.active = true;
+	}
+	public void deactivate() {
+		this.active = false;
+	}
 }
