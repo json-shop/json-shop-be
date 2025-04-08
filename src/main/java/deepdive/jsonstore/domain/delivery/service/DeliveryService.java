@@ -26,26 +26,23 @@ public class DeliveryService{
     private final DeliveryValidationService deliveryValidationService;
 
 
-    public UUID deliveryReg(String email, DeliveryRegRequestDTO dto) {
-        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException());
+    public void createDelivery(String email, DeliveryRegRequestDTO dto) {
+        Member member = memberRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
 
         Delivery delivery = dto.toDelivery(member);
 
-        if (!deliveryValidationService.validateZipcode(dto.zipCode())) {
-            throw new DeliveryException.AddressNotFoundException(dto.zipCode());
+        if (!deliveryValidationService.validateZipCode(dto.zipCode())) {
+            throw new DeliveryException.AddressNotFoundException();
         }
 
         deliveryRepository.save(delivery);
-
-        return delivery.getUid();
 
     }
 
     public void deleteDelivery(String email, UUID uid) {
         Optional<Delivery> optionalDelivery = deliveryRepository.findByUid(uid);
 
-        Delivery delivery = optionalDelivery.orElseThrow(() ->
-                new DeliveryException.DeliveryNotFoundException(uid));
+        Delivery delivery = optionalDelivery.orElseThrow(DeliveryException.DeliveryNotFoundException::new);
 
         if (!delivery.getMember().getEmail().equals(email)) {
             throw new DeliveryException.DeliveryAccessDeniedException();
@@ -66,15 +63,15 @@ public class DeliveryService{
 
 
     public void updateDelivery(String email, UUID uid, DeliveryRegRequestDTO dto) {
-        Delivery delivery = deliveryRepository.findByUid(uid).orElseThrow(()->new DeliveryException.DeliveryNotFoundException(uid));
+        Delivery delivery = deliveryRepository.findByUid(uid).orElseThrow(DeliveryException.DeliveryNotFoundException::new);
 
         if (!delivery.getMember().getEmail().equals(email)) {
             throw new DeliveryException.DeliveryAccessDeniedException();
         }
 
         //우편번호 유효성 검사
-        if (!deliveryValidationService.validateZipcode(dto.zipCode())) {
-            throw new DeliveryException.AddressNotFoundException(dto.zipCode());
+        if (!deliveryValidationService.validateZipCode(dto.zipCode())) {
+            throw new DeliveryException.AddressNotFoundException();
         }
 
         delivery.setAddress(dto.address());

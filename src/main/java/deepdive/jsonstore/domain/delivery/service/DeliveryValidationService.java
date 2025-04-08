@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.delivery.service;
 
+import deepdive.jsonstore.common.exception.DeliveryException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,30 +15,38 @@ public class DeliveryValidationService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    private static final String BASE_URL = "https://www.juso.go.kr/addrlink/addrLinkApi.do";
 
     @Value("${external.api.address.key:dummy-key}")
     private String ADDRESS_API_KEY;
 
-    public boolean validateZipcode(String zipcode) {
-        try {
-            String url = UriComponentsBuilder.fromHttpUrl("https://www.juso.go.kr/addrlink/addrLinkApi.do")
-                    .queryParam("currentPage", 1)
-                    .queryParam("countPerPage", 1)
-                    .queryParam("keyword", zipcode)
-                    .queryParam("confmKey", ADDRESS_API_KEY)
-                    .queryParam("resultType", "json")
-                    .toUriString();
+    public boolean validateZipCode(String zipcode) {
+        String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
+                .queryParam("currentPage", 1)
+                .queryParam("countPerPage", 1)
+                .queryParam("keyword", zipcode)
+                .queryParam("confmKey", ADDRESS_API_KEY)
+                .queryParam("resultType", "json")
+                .toUriString();
 
-            String response = restTemplate.getForObject(url, String.class);
+        String response = restTemplate.getForObject(url, String.class);
 
-            JSONObject json = new JSONObject(response);
-            JSONArray address = json.getJSONObject("results").getJSONArray("juso");
+        JSONObject json = new JSONObject(response);
 
-            return address.length() > 0;
+        JSONObject results = json.getJSONObject("results");
+        JSONObject common = results.getJSONObject("common");
+        String errorCode = common.getString("errorCode");
+        String errorMessage = common.getString("errorMessage");
 
-        }catch (Exception e){ //나중에 수정
-            return false;
+        //api key 또는 api 서버 문제
+        if ("E0001".equals(errorCode) || "-999".equals(errorCode)) {
+            log.warn("Address API returned error. code={}, message={}", errorCode, errorMessage);
+            throw new DeliveryException.AddressAPIException();
         }
+
+        JSONArray address = results.getJSONArray("juso");
+
+        return address.length() > 0;
 
     }
 
