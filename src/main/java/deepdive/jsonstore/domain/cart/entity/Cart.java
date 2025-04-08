@@ -2,7 +2,7 @@ package deepdive.jsonstore.domain.cart.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
 import deepdive.jsonstore.domain.member.entity.Member;
-import deepdive.jsonstore.domain.product.model.Product;
+import deepdive.jsonstore.domain.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.*;
 

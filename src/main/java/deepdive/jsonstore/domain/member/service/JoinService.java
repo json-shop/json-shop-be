@@ -1,7 +1,8 @@
 package deepdive.jsonstore.domain.member.service;
 
-import deepdive.jsonstore.domain.member.dto.JoinResponse;
-import deepdive.jsonstore.domain.member.model.Member;
+import deepdive.jsonstore.domain.member.dto.JoinRequest;
+import deepdive.jsonstore.domain.member.dto.MemberDto;
+import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,22 +17,20 @@ public class JoinService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JoinValidationService joinValidationService;
 
-    public void joinProcess(@Valid JoinResponse joinResponse) {
+    public void joinProcess(@Valid JoinRequest joinRequest) {
         // 회원 가입 전 검증 수행
-        joinValidationService.validateJoinRequest(joinResponse);
+        joinValidationService.validateJoinRequest(joinRequest);
 
         // 회원 정보 저장
-        Member member = new Member(
-                null, // ID는 자동 생성
-                null, // UUID 생성
-                joinResponse.username(),
-                bCryptPasswordEncoder.encode(joinResponse.password()),
-                joinResponse.email(),
-                joinResponse.phone(),
-                false, // isDeleted 초기값 설정
-                null // deletedAt 초기값 설정
+        MemberDto memberDto = new MemberDto(
+                null,
+                joinRequest.username(),
+                joinRequest.email(),
+                joinRequest.phone(),
+                false
         );
 
+        Member member = memberDto.toEntity(bCryptPasswordEncoder.encode(joinRequest.password()));
         memberRepository.save(member);
     }
 }

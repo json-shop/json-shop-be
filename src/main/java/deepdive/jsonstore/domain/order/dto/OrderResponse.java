@@ -30,7 +30,7 @@ public record OrderResponse(
                 .collect(Collectors.toList());
         return OrderResponse.builder()
                 .orderUid(order.getUid())
-                .memberUid(order.getMember().getUuid())
+                .memberUid(order.getMember().getUid())
                 .orderStatus(order.getOrderStatus())
                 .recipient(order.getRecipient())
                 .phone(order.getPhone())

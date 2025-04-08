@@ -1,6 +1,6 @@
 package deepdive.jsonstore.domain.member.controller;
 
-import deepdive.jsonstore.domain.member.dto.JoinResponse;
+import deepdive.jsonstore.domain.member.dto.JoinRequest;
 import deepdive.jsonstore.domain.member.service.JoinService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +15,8 @@ public class JoinController {
     private final JoinService joinService;
 
     @PostMapping("/join")
-    public ResponseEntity<String> join(@Valid @RequestBody JoinResponse joinResponse) {
-        joinService.joinProcess(joinResponse);
+    public ResponseEntity<String> join(@Valid @RequestBody JoinRequest joinRequest) {
+        joinService.joinProcess(joinRequest);
         return ResponseEntity.ok("회원가입이 완료되었습니다.");
     }
 }

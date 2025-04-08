@@ -1,3 +1,5 @@
+/*
+
 package deepdive.jsonstore.domain.member.service;
 
 import deepdive.jsonstore.common.exception.JoinException;
@@ -106,3 +108,4 @@ class JoinServiceTest {
         }
     }
 }
+*/

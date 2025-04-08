@@ -1,11 +1,8 @@
 package deepdive.jsonstore.common.advice;
 
 import deepdive.jsonstore.common.dto.ErrorResponse;
-import deepdive.jsonstore.common.exception.CommonException;
-import deepdive.jsonstore.common.exception.JoinException;
-import deepdive.jsonstore.common.exception.DeliveryException;
-import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
-import deepdive.jsonstore.common.exception.OrderException;
+import deepdive.jsonstore.common.exception.*;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -48,6 +45,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DeliveryException.class)
     public ResponseEntity<ErrorResponse> deliveryExceptionHandler(DeliveryException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleJpaEntityNotFound(EntityNotFoundException ex) {
+        ErrorResponse response = new ErrorResponse(
+                JsonStoreErrorCode.ENTITY_NOT_FOUND.name(),
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(response, JsonStoreErrorCode.ENTITY_NOT_FOUND.getHttpStatus());
+    }
+
+    @ExceptionHandler(AuthException.AdminLoginFailedException.class)
+    public ResponseEntity<ErrorResponse> adminLoginFailedExceptionHandler(AuthException.AdminLoginFailedException ex) {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }

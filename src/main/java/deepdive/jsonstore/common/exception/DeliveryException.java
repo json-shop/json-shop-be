@@ -33,4 +33,10 @@ public class DeliveryException extends RuntimeException {
     }
   }
 
+  public static class AddressNotFoundException extends DeliveryException {
+    public AddressNotFoundException(String zipCode) {
+      super(JsonStoreErrorCode.ZIPCODE_NOT_VALID, "유효하지 않은 우편번호입니다. " + zipCode);
+    }
+  }
+
 }
