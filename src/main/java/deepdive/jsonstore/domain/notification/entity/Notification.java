@@ -19,7 +19,10 @@ public class Notification extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, length = 255)
-    private String content;
+    private String title;
+
+    @Column(nullable = false, length = 255)
+    private String body;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

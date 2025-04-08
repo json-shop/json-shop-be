@@ -19,4 +19,17 @@ public record MemberDto(
                 member.getIsDeleted()
         );
     }
+
+    public Member toEntity(String encodedPassword) {
+        return new Member(
+                null, // ID는 자동 생성
+                UUID.randomUUID(), // UUID 생성
+                this.username,
+                encodedPassword,
+                this.email,
+                this.phone,
+                false, // isDeleted 초기값 설정
+                null // deletedAt 초기값 설정
+        );
+    }
 }
