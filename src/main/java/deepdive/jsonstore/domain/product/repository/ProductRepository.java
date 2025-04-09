@@ -6,6 +6,7 @@ import java.util.UUID;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import deepdive.jsonstore.domain.product.entity.Product;
 
@@ -14,12 +15,12 @@ import org.springframework.data.jpa.repository.Query;
 
 import deepdive.jsonstore.domain.product.entity.ProductStatus;
 
-
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
 	Optional<Product> findByUidAndStatusIsNot(UUID uuid, ProductStatus status);
 
-	Optional<Product> findByUid(UUID productUid);
+	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.uid = :productUid")
+	Optional<Product> findByUid(@Param("productUid") UUID productUid);
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("SELECT p FROM Product p WHERE p.id = :id")
