@@ -9,15 +9,9 @@ import deepdive.jsonstore.domain.order.entity.Order;
 import deepdive.jsonstore.domain.order.entity.OrderProduct;
 import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
-import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
-import io.portone.sdk.server.errors.WebhookVerificationException;
-import io.portone.sdk.server.webhook.Webhook;
-import io.portone.sdk.server.webhook.WebhookTransaction;
-import io.portone.sdk.server.webhook.WebhookVerifier;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +20,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -78,9 +71,7 @@ public class OrderService {
     @Transactional
     public UUID createOrder(UUID memberId, OrderRequest orderRequest) {
 
-        //TODO : 커밋 시에 변경
-//        var member = memberValidationService.findByUid(memberId);
-        Member member = null;
+        var member = memberValidationService.findByUid(memberId);
 
         List<OrderProduct> orderProducts = new ArrayList<>();
         int total = 0;
@@ -91,9 +82,6 @@ public class OrderService {
             int quantity = orderProductReq.quantity();
             int price = product.getPrice();
 
-            // 재고 1차 검증(2차는 승인 때)
-            // productService.checkStock(product);
-            // TODO : 먼저 검증 반복문 추가할 것
             // TODO : 재고가 부족한 목록을 에러로 반환할 것. 익셉션에 T extra 추가
             if (product.getStock() < quantity) {
                 throw new OrderException.OrderOutOfStockException();
@@ -190,6 +178,8 @@ public class OrderService {
         - 관리자 콘솔에서 결제 취소되었을 때 - (status : cancelled)
          */
 
+        /* new WebhookVerifier() */
+
         var order= orderValidationService.findByUid(UUID.fromString(webhookRequest.orderUid()));
         if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
             order.changeToExpired();
@@ -200,10 +190,10 @@ public class OrderService {
         switch (webhookRequest.status()) {
             case "paid" : // committed
                 order.changeToPaid();
-//                notificationService.sendNotification(order.getMember().getId(), "결제 성공", "결제 성공입니다~");
+                notificationService.sendNotification(order.getMember().getId(), "결제 성공", "결제 성공입니다~");
                 break;
             default :
-                //
+                // 재고 릴리즈
                 for (var orderProduct : order.getProducts()) {
                     var productId = orderProduct.getProduct().getId();
                     var quantity = orderProduct.getQuantity();
