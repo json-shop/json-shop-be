@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+@Table(name = "order_product")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -20,9 +21,10 @@ public class OrderProduct {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Builder.Default
 //    @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
-    @Column(unique = true, columnDefinition = "CHAR(36)", nullable = false)
-    private UUID uuid;
+    @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
+    private UUID uid = UUID.randomUUID();
 
     @ManyToOne
     @JoinColumn(name = "order_id",foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))

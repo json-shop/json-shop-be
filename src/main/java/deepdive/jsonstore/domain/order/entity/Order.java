@@ -24,8 +24,9 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, columnDefinition = "CHAR(36)", nullable = false)
-    private UUID uid;
+    @Builder.Default
+    @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
+    private UUID uid = UUID.randomUUID();
 
     @ManyToOne
     @JoinColumn(name = "member_id")
@@ -59,5 +60,9 @@ public class Order extends BaseEntity {
 
     public void expire() {
         this.orderStatus = OrderStatus.EXPIRED;
+    }
+
+    public void changeToPaid() {
+        this.orderStatus = OrderStatus.PAID;
     }
 }

@@ -19,7 +19,7 @@ public record OrderProductResponse(
         int amount = orderProduct.getPrice();
         int subTotal =  quantity * amount;
         return OrderProductResponse.builder()
-                .productUid(orderProduct.getUuid())
+                .productUid(orderProduct.getUid())
                 .productName(orderProduct.getProduct().getName())
                 .productImageUrl(orderProduct.getProduct().getImage())
                 .quantity(quantity)
