@@ -17,7 +17,8 @@ import deepdive.jsonstore.domain.product.entity.ProductStatus;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-	Optional<Product> findByUidAndStatusIsNot(UUID uuid, ProductStatus status);
+	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.uid = :uid AND p.status != :status")
+	Optional<Product> findByUidAndStatusIsNot(@Param("uid") UUID uid, @Param("status") ProductStatus status);
 
 	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.uid = :productUid")
 	Optional<Product> findByUid(@Param("productUid") UUID productUid);
