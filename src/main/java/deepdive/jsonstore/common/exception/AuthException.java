@@ -54,4 +54,5 @@ public class AuthException extends RuntimeException {
             super(JsonStoreErrorCode.ADMIN_LOGIN_FAILED);
         }
     }
+
 }

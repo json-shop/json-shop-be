@@ -94,5 +94,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 
+    @ExceptionHandler(MemberException.class)
+    public ResponseEntity<ErrorResponse> memberExceptionHandler(MemberException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
+
 
 }

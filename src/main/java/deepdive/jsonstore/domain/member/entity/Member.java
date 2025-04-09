@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.member.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
+import deepdive.jsonstore.common.exception.MemberException;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import jakarta.persistence.*;
 import lombok.*;
@@ -72,6 +73,10 @@ public class Member extends BaseEntity {
 
     // 회원 삭제 처리 메서드
     public void deleteMember() {
+        if (Boolean.TRUE.equals(this.isDeleted)) {
+            throw new MemberException.AlreadyDeletedException();
+        }
+
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();
     }
