@@ -108,7 +108,7 @@ public class OrderService {
 
         // 주문 생성 및 저장
         Order order = Order.builder()
-                .orderStatus(OrderStatus.PENDING_PAYMENT)
+                .orderStatus(OrderStatus.CREATED)
                 .member(member)
                 .phone(orderRequest.phone())
                 .recipient(orderRequest.recipient())
@@ -124,40 +124,30 @@ public class OrderService {
         return savedOrder.getUid();
     }
 
-    // 요청을 검증합니다.
-    public void verifyPgWebhook(String rawBody, String msgId, String signature, String timestamp) {
-        var verifier = new WebhookVerifier(key);
-        Webhook webhook;
-        try {
-            webhook = verifier.verify(rawBody, msgId, signature, timestamp);
-        } catch (WebhookVerificationException e) {
-            throw new RuntimeException("변조" + e.getLocalizedMessage());
-        }
-        if (!(webhook instanceof WebhookTransaction)) {
-            throw new RuntimeException("웹훅트랜젝션이 아님");
-        }
-    }
+//    // 요청을 검증합니다.
+//    public void verifyPgWebhook(String rawBody, String msgId, String signature, String timestamp) {
+//        var verifier = new WebhookVerifier(key);
+//        Webhook webhook;
+//        try {
+//            webhook = verifier.verify(rawBody, msgId, signature, timestamp);
+//        } catch (WebhookVerificationException e) {
+//            throw new RuntimeException("변조" + e.getLocalizedMessage());
+//        }
+//        if (!(webhook instanceof WebhookTransaction)) {
+//            throw new RuntimeException("웹훅트랜젝션이 아님");
+//        }
+//    }
 
+    /**
+     *
+     * @param confirmRequest
+     * @return 컨펌프로세스 결과를 반환합니다.
+     */
     @Transactional
     public ConfirmReason confirmOrder(ConfirmRequest confirmRequest) {
-//        /*
-//        paymentId: 고객사에서 채번한 결제건의 고유 주문 번호입니다.
-//        transactionId: 포트원에서 채번한 결제건의 고유 거래 번호입니다.
-//        totalAmount: 결제건의 결제 요청 금액입니다.
-//         */
-//        var orderUid = confirmRequest.data().paymentId();
-//        Order order;
-//        try {
-//           order = orderValidationService.findByUid(orderUid);
-//        } catch (OrderException.OrderNotFound e) {
-//            return ConfirmReason.NOT_FOUND;
-//        }
-//        if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
-//            return ConfirmReason.EXPIRED_ORDER;
-//        }
-//        if (confirmRequest.data().totalAmount() != order.getTotal()) {
-//            return ConfirmReason.TOTAL_MISMATCH;
-//        }
+
+        /* new WebhookVerifier() */
+
         var orderUid = UUID.fromString(confirmRequest.merchant_uid());
         Order order;
         try {
