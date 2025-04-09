@@ -22,7 +22,6 @@ public class OrderProduct {
     private Long id;
 
     @Builder.Default
-//    @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
     @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
     private UUID uid = UUID.randomUUID();
 
@@ -31,7 +30,7 @@ public class OrderProduct {
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id",foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Product product;
 
     private int price; // 실결제 금액
@@ -43,6 +42,5 @@ public class OrderProduct {
                 .price(product.getPrice())
                 .quantity(quantity)
                 .build();
-
     }
 }
