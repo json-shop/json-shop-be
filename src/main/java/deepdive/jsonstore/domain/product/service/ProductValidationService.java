@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import deepdive.jsonstore.domain.product.entity.ProductStatus;
 import deepdive.jsonstore.domain.product.exception.ProductException;
 import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.repository.ProductRepository;
@@ -20,7 +21,8 @@ public class ProductValidationService {
 	private final ProductRepository productRepository;
 
 	public Product findActiveProductById(UUID id) {
-		return productRepository.findByUidAndActiveIsTrue(id).orElseThrow(ProductException.ProductNotFoundException::new);
+		return productRepository.findByUidAndStatusIsNot(id, ProductStatus.DISCONTINUED)
+			.orElseThrow(ProductException.ProductNotFoundException::new);
 	}
 
 	public Product findProductByIdAndAdmin(UUID productId, UUID adminId) {

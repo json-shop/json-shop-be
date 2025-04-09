@@ -42,8 +42,7 @@ public class Product extends BaseEntity {
 	private String detail;
 	@Enumerated(EnumType.STRING)
 	private Category category;
-	@Column(name = "isActive")
-	private boolean active;
+	private ProductStatus status;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(
@@ -59,5 +58,6 @@ public class Product extends BaseEntity {
 		this.image = image;
 		this.detail = updateProductRequest.productDetail();
 		this.category = updateProductRequest.category();
+		this.status = updateProductRequest.status();
 	}
 }
