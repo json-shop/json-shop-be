@@ -1,15 +1,12 @@
 package deepdive.jsonstore.domain.product.service;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import deepdive.jsonstore.domain.product.dto.ActiveProductResponse;
-import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
+import deepdive.jsonstore.domain.product.dto.ProductResponse;
 import deepdive.jsonstore.domain.product.entity.Product;
-import deepdive.jsonstore.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,9 +18,9 @@ public class ProductService {
 	private final ProductValidationService productValidationService;
 
 	@Transactional(readOnly = true)
-	public ActiveProductResponse getActiveProductDetail(UUID id) {
+	public ProductResponse getActiveProductDetail(UUID id) {
 		Product product = productValidationService.findActiveProductById(id);
-		return ActiveProductResponse.toActiveProductResponse(product);
+		return ProductResponse.toProductResponse(product);
 	}
 
 }

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ProductErrorCode {
 
-	PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 상품을 찾을 수 없습니다."),
+	PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "없는 상품이거나, 판매가 중지 되었습니다."),
 	PRODUCT_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 상품에 접근할 수 없습니다.");
 
 	private final HttpStatus httpStatus;

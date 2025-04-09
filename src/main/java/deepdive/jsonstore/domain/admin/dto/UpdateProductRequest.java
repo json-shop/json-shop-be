@@ -3,6 +3,7 @@ package deepdive.jsonstore.domain.admin.dto;
 import java.util.UUID;
 
 import deepdive.jsonstore.domain.product.entity.Category;
+import deepdive.jsonstore.domain.product.entity.ProductStatus;
 
 public record UpdateProductRequest(
 	UUID uid,
@@ -11,6 +12,7 @@ public record UpdateProductRequest(
 	Category category,
 	int price,
 	int stock,
-	String image
+	String image,
+	ProductStatus status
 ) {
 }

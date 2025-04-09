@@ -11,9 +11,9 @@ import deepdive.jsonstore.domain.admin.dto.UpdateProductRequest;
 import deepdive.jsonstore.domain.admin.entity.Admin;
 import deepdive.jsonstore.domain.admin.repository.AdminRepository;
 import deepdive.jsonstore.domain.admin.service.AdminValidationService;
+import deepdive.jsonstore.domain.product.dto.ProductResponse;
 import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.repository.ProductRepository;
-import deepdive.jsonstore.domain.product.service.ProductService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,12 +37,13 @@ public class AdminProductService {
 		return product.getUid().toString();
 	}
 
-	@Transactional
-	public void updateProduct(UUID adminUid, MultipartFile productImage, UpdateProductRequest updateProductRequest) {
+	public ProductResponse updateProduct(UUID adminUid, MultipartFile productImage, UpdateProductRequest updateProductRequest) {
 		Product product = productValidationService.findProductByIdAndAdmin(updateProductRequest.uid(), adminUid);
 		String image = updateProductRequest.image();
 		if(image == null) image = s3ImageService.uploadImage(productImage);
 		product.updateProduct(updateProductRequest, image);
+		productRepository.save(product);
+		return ProductResponse.toProductResponse(product);
 	}
 
 	public void tempSave() {
