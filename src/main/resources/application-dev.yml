@@ -26,7 +26,7 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6379
+      port: ${REDIS_PORT:6379}
 
   cloud:
     aws:
@@ -46,3 +46,7 @@ logging:
 fcm:
   credentials:
     file: classpath:firebaseAccessKey.json
+
+portone:
+  webhook:
+      secret-key: ${PORTONE_WEBHOOK_SECRET_KEY}
