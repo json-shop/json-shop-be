@@ -1,7 +1,6 @@
 package deepdive.jsonstore.domain.order.service;
 
-import deepdive.jsonstore.common.exception.OrderException;
-import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.member.service.MemberValidationService;
 import deepdive.jsonstore.domain.notification.service.NotificationService;
 import deepdive.jsonstore.domain.order.dto.*;
