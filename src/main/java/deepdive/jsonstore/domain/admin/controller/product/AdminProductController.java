@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
 import deepdive.jsonstore.domain.admin.dto.UpdateProductRequest;
 import deepdive.jsonstore.domain.admin.service.product.AdminProductService;
+import deepdive.jsonstore.domain.product.dto.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,23 +42,11 @@ public class AdminProductController {
 	}
 
 	@PutMapping
-	public ResponseEntity<Void> updateProduct(@RequestPart("image") MultipartFile productImage,
+	public ResponseEntity<ProductResponse> updateProduct(@RequestPart("image") MultipartFile productImage,
 		@RequestPart("id") String adminId, //TODO 임시로 id받음
 		@RequestPart("productRequest") UpdateProductRequest updateProductRequest) {
-		adminProductService.updateProduct(UUID.fromString(adminId), productImage, updateProductRequest);
-		return ResponseEntity.noContent().build();
-	}
-
-	@PatchMapping("/{productId}:activate")
-	public ResponseEntity<Void> activateProduct(@PathVariable UUID productId, @RequestParam String adminId) { //TODO 임시로 adminId 받음
-		adminProductService.activateProduct(UUID.fromString(adminId), productId);
-		return ResponseEntity.noContent().build();
-	}
-
-	@PatchMapping("/{productId}:deactivate")
-	public ResponseEntity<Void> deactivateProduct(@PathVariable UUID productId, @RequestParam String adminId) { //TODO 임시로 adminId 받음
-		adminProductService.deactivateProduct(UUID.fromString(adminId), productId);
-		return ResponseEntity.noContent().build();
+		ProductResponse res = adminProductService.updateProduct(UUID.fromString(adminId), productImage, updateProductRequest);
+		return ResponseEntity.ok().body(res);
 	}
 
 	@PostMapping("/temp")

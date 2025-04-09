@@ -1,24 +1,29 @@
 package deepdive.jsonstore.domain.product.dto;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.Product;
+import deepdive.jsonstore.domain.product.entity.ProductStatus;
 import lombok.Builder;
 
 @Builder
-public record ActiveProductResponse(
+public record ProductResponse(
 	UUID uid,
 	String productName,
 	String image,
 	String productDetail,
 	Category category,
 	int price,
-	int stock
+	int stock,
+	ProductStatus status,
+	LocalDateTime createdAt,
+	LocalDateTime updatedAt
 ) {
 
-	public static ActiveProductResponse toActiveProductResponse(Product product) {
-		return ActiveProductResponse.builder()
+	public static ProductResponse toProductResponse(Product product) {
+		return ProductResponse.builder()
 			.uid(product.getUid())
 			.productName(product.getName())
 			.productDetail(product.getDetail())
@@ -26,6 +31,9 @@ public record ActiveProductResponse(
 			.category(product.getCategory())
 			.price(product.getPrice())
 			.stock(product.getStock())
+			.status(product.getStatus())
+			.createdAt(product.getCreatedAt())
+			.updatedAt(product.getUpdatedAt())
 			.build();
 	}
 }
