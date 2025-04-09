@@ -173,7 +173,7 @@ public class OrderService {
             order.changeToFailed();
             return ConfirmReason.TOTAL_MISMATCH;
         }
-        if (isAnyOutOfStock(order)) {
+        if (order.isAnyOutOfStock()) {
             return ConfirmReason.OUT_OF_STOCK;
         }
 
@@ -186,17 +186,6 @@ public class OrderService {
 
         // 결제 승인
         return ConfirmReason.CONFIRM;
-    }
-
-    private boolean isAnyOutOfStock(Order order) {
-        for (var orderProduct : order.getProducts()) {
-            var product = orderProduct.getProduct();
-            var quantity = orderProduct.getQuantity();
-            if (product.getStock() < quantity) {
-                return true;
-            }
-        }
-        return false;
     }
 
     // 웹훅이 결제 완료인지 판별

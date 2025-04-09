@@ -65,4 +65,10 @@ public class Order extends BaseEntity {
     public void changeToPaid() { this.orderStatus = OrderStatus.PAID; }
     public void changeToFailed() { this.orderStatus = OrderStatus.FAILED; }
     public void changeToExpired() { this.orderStatus = OrderStatus.EXPIRED; }
+
+    public boolean isAnyOutOfStock() {
+        return this.products.stream()
+                .anyMatch(p -> p.getProduct().getStock() < p.getQuantity());
+    }
+
 }
