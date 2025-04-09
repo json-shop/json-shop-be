@@ -19,6 +19,9 @@ public class ProductStockService {
         var product = productRepository.findWithLockById(productId)
                 .orElseThrow((ProductException.ProductForbiddenException::new));
         product.decreaseStock(quantity);
+        if (product.getStock() == 0) {
+            // change state
+        }
     }
 
     // 리저브 반환
@@ -26,5 +29,7 @@ public class ProductStockService {
         var product = productRepository.findWithLockById(productId)
                 .orElseThrow((ProductException.ProductForbiddenException::new));
         product.increaseStock(quantity);
+
+        /* 상태가 재고없음인데 릴리즈된다면 상태 변경 */
     }
 }
