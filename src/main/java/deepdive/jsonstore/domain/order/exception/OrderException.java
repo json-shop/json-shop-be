@@ -1,28 +1,35 @@
-package deepdive.jsonstore.common.exception;
+package deepdive.jsonstore.domain.order.exception;
 
+import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
 public class OrderException extends RuntimeException {
-    private final JsonStoreErrorCode errorCode;
+    private final OrderErrorCode errorCode;
 
     public static class OrderTimeOutException extends OrderException {
         public OrderTimeOutException() {
-            super(JsonStoreErrorCode.TIMEOUT);
+            super(OrderErrorCode.TIMEOUT);
         }
     }
 
     public static class OrderNotFound extends OrderException {
         public OrderNotFound() {
-            super(JsonStoreErrorCode.ORDER_NOT_FOUND);
+            super(OrderErrorCode.ORDER_NOT_FOUND);
         }
     }
 
     public static class OrderExpiredException extends OrderException {
         public OrderExpiredException() {
-            super(JsonStoreErrorCode.ORDER_EXPIRED);
+            super(OrderErrorCode.ORDER_EXPIRED);
+        }
+    }
+
+    public static class OrderOutOfStockException extends OrderException {
+        public OrderOutOfStockException() {
+            super(OrderErrorCode.ORDER_OUT_OF_STOCK);
         }
     }
 }
