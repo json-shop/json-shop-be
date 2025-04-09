@@ -32,8 +32,8 @@ public class Admin extends BaseEntity {
     @Column(length = 255)
     private String phone;
 
-    @Column(nullable = false)
-    private Boolean isDeleted;
+    @Column(nullable = false, name="isDeleted")
+    private Boolean deleted;
 
     @Column
     private java.time.LocalDateTime deletedAt;

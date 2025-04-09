@@ -8,7 +8,7 @@ document.getElementById('historyButton').addEventListener('click', async () => {
   }
 
   try {
-    const response = await fetch(`/api/v1/notifications/${userId}`);
+    const response = await fetch(`/api/v1/notifications?memberId=${userId}`);
     if (!response.ok) {
       notificationHistory.innerHTML = `<p style="color:red;">조회 실패: ${await response.text()}</p>`;
       return;

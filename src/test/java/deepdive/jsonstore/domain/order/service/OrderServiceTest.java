@@ -66,7 +66,7 @@ class OrderServiceTest {
                     .build();
 
             Product product = Product.builder()
-                    .uuid(productUid)
+                    .uid(productUid)
                     .price(10000)
                     .stock(10)
                     .build();
@@ -121,7 +121,7 @@ class OrderServiceTest {
                     .build();
 
             Product product = Product.builder()
-                    .uuid(productUid)
+                    .uid(productUid)
                     .price(10000)
                     .stock(1)
                     .build();

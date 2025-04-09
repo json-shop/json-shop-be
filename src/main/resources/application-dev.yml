@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: optional:file:local.env[.properties]
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://localhost:3306/json_store}
@@ -7,8 +10,6 @@ spring:
 
   jwt:
     secret-key: "${SECRET_KEY}"
-
-
 
   jpa:
     hibernate:

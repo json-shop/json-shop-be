@@ -18,9 +18,12 @@ import org.mockito.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -128,6 +131,46 @@ class NotificationServiceTest {
             CommonException ex = assertThrows(CommonException.InternalServerException.class,
                     () -> notificationService.sendNotification(memberId, title, body));
             assertEquals(JsonStoreErrorCode.SERVER_ERROR, ex.getErrorCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("getNotificationHistory 테스트")
+    class GetNotificationHistory {
+
+        @Test
+        @DisplayName("성공 - 알림 내역이 존재할 경우")
+        void success_whenNotificationExists() {
+            // given
+            Long memberId = 1L;
+            List<Notification> expectedNotifications = List.of(
+                    new Notification(), new Notification() // 필요 시 필드 채워도 돼
+            );
+            when(notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId))
+                    .thenReturn(expectedNotifications);
+
+            // when
+            List<Notification> actualNotifications = notificationService.getNotificationHistory(memberId);
+
+            // then
+            assertThat(actualNotifications).isEqualTo(expectedNotifications);
+            verify(notificationRepository, times(1)).findByMemberIdOrderByCreatedAtDesc(memberId);
+        }
+
+        @Test
+        @DisplayName("성공 - 알림 내역이 없는 경우")
+        void success_whenNotificationIsEmpty() {
+            // given
+            Long memberId = 2L;
+            when(notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId))
+                    .thenReturn(Collections.emptyList());
+
+            // when
+            List<Notification> actualNotifications = notificationService.getNotificationHistory(memberId);
+
+            // then
+            assertThat(actualNotifications).isEqualTo(Collections.emptyList());
+            verify(notificationRepository, times(1)).findByMemberIdOrderByCreatedAtDesc(memberId);
         }
     }
 }

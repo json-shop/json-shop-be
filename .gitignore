@@ -38,3 +38,5 @@ out/
 
 local.env
 .env
+
+/src/main/resources/FirebaseAccessKey.json
