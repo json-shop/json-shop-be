@@ -5,7 +5,7 @@ import deepdive.jsonstore.common.exception.*;
 import jakarta.persistence.EntityNotFoundException;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.common.exception.JoinException;
-import deepdive.jsonstore.common.exception.DeliveryException;
+import deepdive.jsonstore.domain.delivery.exception.DeliveryException;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import deepdive.jsonstore.common.exception.OrderException;
 import lombok.extern.slf4j.Slf4j;
