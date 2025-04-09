@@ -23,6 +23,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID uid;
 
+    @Setter
     @Column(nullable = false, unique = true, length = 255)
     private String username;
 
@@ -32,6 +33,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
+    @Setter
     @Column(length = 255)
     private String phone;
 

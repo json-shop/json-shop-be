@@ -1,26 +1,23 @@
 package deepdive.jsonstore.domain.order.service;
 
-import deepdive.jsonstore.common.exception.OrderException;
+import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.service.MemberValidationService;
-import deepdive.jsonstore.domain.order.dto.OrderProductRequest;
-import deepdive.jsonstore.domain.order.dto.OrderRequest;
-import deepdive.jsonstore.domain.order.dto.OrderResponse;
+import deepdive.jsonstore.domain.order.dto.*;
 import deepdive.jsonstore.domain.order.entity.Order;
+import deepdive.jsonstore.domain.order.entity.OrderProduct;
 import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.entity.Product;
+import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,6 +45,9 @@ class OrderServiceTest {
 
     @Mock
     private MemberValidationService memberValidationService;
+
+    @Mock
+    private ProductStockService productStockService;
 
 
     @Nested
@@ -203,4 +203,40 @@ class OrderServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("컨펌 프로세스")
+    class confirmOrder {
+        @Test
+        @DisplayName("성공")
+        void confirmOrder_성공() {
+            //given
+            var product = Product.builder()
+                    .stock(10)
+                    .build();
+
+            List<OrderProduct> products = List.of(OrderProduct.builder()
+                    .product(product)
+                    .quantity(1)
+                    .build());
+
+            var order = Order.builder()
+                    .id(1L)
+                    .expiredAt(LocalDateTime.now().plusMinutes(1))
+                    .products(products)
+                    .total(100)
+                    .build();
+
+            var confirmRequest = ConfirmRequest.builder()
+                    .merchant_uid(order.getUid().toString())
+                    .amount(100)
+                    .build();
+
+            //when
+            when(orderValidationService.findByUid(order.getUid())).thenReturn(order);
+            //then
+            var reason = orderService.confirmOrder(confirmRequest);
+            assertThat(reason).isEqualTo(ConfirmReason.CONFIRM);
+            verify(orderValidationService, times(1)).findByUid(order.getUid());
+        }
+    }
 }

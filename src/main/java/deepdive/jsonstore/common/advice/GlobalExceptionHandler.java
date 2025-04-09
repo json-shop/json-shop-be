@@ -6,9 +6,9 @@ import deepdive.jsonstore.domain.product.exception.ProductException;
 import jakarta.persistence.EntityNotFoundException;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.common.exception.JoinException;
-import deepdive.jsonstore.common.exception.DeliveryException;
+import deepdive.jsonstore.domain.delivery.exception.DeliveryException;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
-import deepdive.jsonstore.common.exception.OrderException;
+import deepdive.jsonstore.domain.order.exception.OrderException;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 

@@ -1,10 +1,11 @@
 package deepdive.jsonstore.domain.delivery.service;
 
-import deepdive.jsonstore.common.exception.DeliveryException;
+import deepdive.jsonstore.domain.delivery.exception.DeliveryException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -13,9 +14,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class DeliveryValidationService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     private static final String BASE_URL = "https://www.juso.go.kr/addrlink/addrLinkApi.do";
+
+    public DeliveryValidationService(RestTemplateBuilder builder) {
+        this.restTemplate = builder.build(); // 테스트에서 주입 가능
+    }
 
     @Value("${external.api.address.key:dummy-key}")
     private String ADDRESS_API_KEY;
