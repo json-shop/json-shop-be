@@ -49,6 +49,12 @@ dependencies {
 
     // firebase
     implementation 'com.google.firebase:firebase-admin:9.4.3'
+    // env
+    implementation 'io.github.cdimascio:dotenv-java:2.3.2'
+
+    //portOne sdk (결제연동)
+    implementation 'io.portone:server-sdk:0.17.1-beta1'
+
 
     //aws s3
     implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.1.1'
