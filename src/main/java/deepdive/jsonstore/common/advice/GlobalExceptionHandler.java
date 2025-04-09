@@ -88,5 +88,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 
+    @ExceptionHandler(AuthException.AdminLoginFailedException.class)
+    public ResponseEntity<ErrorResponse> adminLoginFailedExceptionHandler(AuthException.AdminLoginFailedException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
 
 }

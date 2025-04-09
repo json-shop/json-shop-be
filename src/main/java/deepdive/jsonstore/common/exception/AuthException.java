@@ -48,4 +48,10 @@ public class AuthException extends RuntimeException {
             super(JsonStoreErrorCode.EMPTY_TOKEN);
         }
     }
+
+    public static class AdminLoginFailedException extends AuthException {
+        public AdminLoginFailedException() {
+            super(JsonStoreErrorCode.ADMIN_LOGIN_FAILED);
+        }
+    }
 }
