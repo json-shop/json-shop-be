@@ -60,4 +60,14 @@ public class Product extends BaseEntity {
 		this.detail = updateProductRequest.productDetail();
 		this.category = updateProductRequest.category();
 	}
+
+
+	public void increaseStock(int quantity) {
+		this.stock += quantity;
+	}
+
+	public void decreaseStock(int quantity) {
+		this.stock -= quantity;
+	}
+
 }
