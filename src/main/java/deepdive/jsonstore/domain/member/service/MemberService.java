@@ -3,6 +3,7 @@ package deepdive.jsonstore.domain.member.service;
 import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.common.exception.MemberException;
 import deepdive.jsonstore.domain.member.dto.ResetPasswordRequestDTO;
+import deepdive.jsonstore.domain.member.dto.UpdateMemberRequestDTO;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
@@ -25,11 +25,19 @@ public class MemberService {
         if (!dto.newPassword().equals(dto.newPasswordConfirm())) {
             throw new MemberException.PasswordMismatchException();
         }
-        if (!passwordEncoder.matches(dto.newPassword(), member.getPassword())) {
+        if (!passwordEncoder.matches(dto.currentPassword(), member.getPassword())) {
             throw new MemberException.CurrentPasswordIncorrectException();
         }
 
-        member.resetPassword(bCryptPasswordEncoder.encode(dto.newPassword()));
+        member.resetPassword(passwordEncoder.encode(dto.newPassword()));
 
+    }
+
+    @Transactional
+    public void updateMember(String email, UpdateMemberRequestDTO dto) {
+        Member member = memberRepository.findByEmail(email).orElseThrow(AuthException.UserNotFoundException::new);
+
+        member.setUsername(dto.username());
+        member.setPhone(dto.phone());
     }
 }
