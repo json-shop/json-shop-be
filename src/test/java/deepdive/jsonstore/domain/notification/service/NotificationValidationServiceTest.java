@@ -3,6 +3,7 @@ package deepdive.jsonstore.domain.notification.service;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
+import deepdive.jsonstore.domain.notification.exception.NotificationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

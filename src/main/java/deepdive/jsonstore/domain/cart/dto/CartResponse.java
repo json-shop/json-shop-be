@@ -1,8 +1,12 @@
 package deepdive.jsonstore.domain.cart.dto;
 
 import deepdive.jsonstore.domain.cart.entity.Cart;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class CartResponse {
     private Long id;

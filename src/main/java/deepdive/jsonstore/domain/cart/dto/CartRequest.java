@@ -1,8 +1,10 @@
 package deepdive.jsonstore.domain.cart.dto;
 
 import jakarta.validation.constraints.*;
-import lombok.Data;
+import lombok.*;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class CartRequest {
     @NotNull(message = "memberId를 입력해주세요.")
