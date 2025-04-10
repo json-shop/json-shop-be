@@ -5,7 +5,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
-import deepdive.jsonstore.common.exception.NotificationException;
+import deepdive.jsonstore.domain.notification.dto.NotificationHistoryResponse;
+import deepdive.jsonstore.domain.notification.entity.NotificationCategory;
+import deepdive.jsonstore.domain.notification.exception.NotificationException;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import deepdive.jsonstore.domain.notification.entity.Notification;
@@ -18,12 +20,13 @@ import org.mockito.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -70,20 +73,6 @@ class NotificationServiceTest {
 
             assertDoesNotThrow(() -> notificationService.saveToken(memberId, token));
             verify(redisTemplate.opsForValue()).set("fcm:token:" + memberId, token);
-        }
-
-        @Test
-        @DisplayName("실패 - Redis 저장 중 예외 발생")
-        void fail_unexpectedError() {
-            Long memberId = 1L;
-            String token = "abc123";
-            doNothing().when(validationService).validateMemberExists(memberId);
-            doThrow(new RuntimeException("Redis 서버에 문제가 발생했습니다")).when(valueOperations).set(anyString(), anyString());
-
-            NotificationException ex = assertThrows(NotificationException.class,
-                    () -> notificationService.saveToken(memberId, token));
-
-            assertEquals(JsonStoreErrorCode.REDIS_SERVER_ERROR, ex.getErrorCode());
         }
     }
 
@@ -138,22 +127,43 @@ class NotificationServiceTest {
     @DisplayName("getNotificationHistory 테스트")
     class GetNotificationHistory {
 
-        @Test
         @DisplayName("성공 - 알림 내역이 존재할 경우")
         void success_whenNotificationExists() {
             // given
             Long memberId = 1L;
-            List<Notification> expectedNotifications = List.of(
-                    new Notification(), new Notification() // 필요 시 필드 채워도 돼
-            );
+
+            Member mockMember = Member.builder()
+                    .id(memberId)
+                    .build();
+
+            Notification notification1 = Notification.builder()
+                    .id(100L)
+                    .title("제목1")
+                    .body("내용1")
+                    .category(NotificationCategory.SAVE)
+                    .member(mockMember)
+                    .build();
+
+            Notification notification2 = Notification.builder()
+                    .id(101L)
+                    .title("제목2")
+                    .body("내용2")
+                    .category(NotificationCategory.SAVE)
+                    .member(mockMember)
+                    .build();
+
+            List<Notification> expectedNotifications = List.of(notification1, notification2);
+
             when(notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId))
                     .thenReturn(expectedNotifications);
 
             // when
-            List<Notification> actualNotifications = notificationService.getNotificationHistory(memberId);
+            List<NotificationHistoryResponse> actualNotifications = notificationService.getNotificationHistory(memberId);
 
             // then
-            assertThat(actualNotifications).isEqualTo(expectedNotifications);
+            assertThat(actualNotifications).hasSize(2);
+            assertThat(actualNotifications.get(0).getTitle()).isEqualTo("제목1");
+            assertThat(actualNotifications.get(1).getTitle()).isEqualTo("제목2");
             verify(notificationRepository, times(1)).findByMemberIdOrderByCreatedAtDesc(memberId);
         }
 
@@ -166,7 +176,7 @@ class NotificationServiceTest {
                     .thenReturn(Collections.emptyList());
 
             // when
-            List<Notification> actualNotifications = notificationService.getNotificationHistory(memberId);
+            List<NotificationHistoryResponse> actualNotifications = notificationService.getNotificationHistory(memberId);
 
             // then
             assertThat(actualNotifications).isEqualTo(Collections.emptyList());

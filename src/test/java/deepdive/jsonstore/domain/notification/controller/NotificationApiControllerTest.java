@@ -3,6 +3,7 @@ package deepdive.jsonstore.domain.notification.controller;
 import com.google.gson.Gson;
 import deepdive.jsonstore.common.advice.GlobalExceptionHandler;
 import deepdive.jsonstore.domain.notification.dto.FcmTokenRequest;
+import deepdive.jsonstore.domain.notification.dto.NotificationHistoryResponse;
 import deepdive.jsonstore.domain.notification.dto.NotificationRequest;
 import deepdive.jsonstore.domain.notification.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -310,7 +311,16 @@ class NotificationApiControllerTest {
         void success() throws Exception {
             // given
             Long memberId = 1L;
-            List<Notification> mockHistory = List.of(new Notification()); // 필요 시 필드 채우기
+            List<NotificationHistoryResponse> mockHistory = List.of(
+                    new NotificationHistoryResponse(
+                            1L,
+                            "제목",
+                            "내용",
+                            NotificationCategory.SAVE, // enum 값 예시
+                            memberId,
+                            LocalDateTime.now()
+                    )
+            );
 
             when(notificationService.getNotificationHistory(memberId)).thenReturn(mockHistory);
 
@@ -351,7 +361,7 @@ class NotificationApiControllerTest {
         void success_emptyNotificationHistory() throws Exception {
             // given
             Long memberId = 1L;
-            List<Notification> emptyHistory = Collections.emptyList();
+            List<NotificationHistoryResponse> emptyHistory = Collections.emptyList();
 
             when(notificationService.getNotificationHistory(memberId)).thenReturn(emptyHistory);
 

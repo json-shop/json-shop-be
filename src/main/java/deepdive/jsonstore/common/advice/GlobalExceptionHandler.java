@@ -2,6 +2,8 @@ package deepdive.jsonstore.common.advice;
 
 import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.*;
+import deepdive.jsonstore.domain.cart.exception.CartException;
+import deepdive.jsonstore.domain.notification.exception.NotificationException;
 import deepdive.jsonstore.domain.product.exception.ProductException;
 import jakarta.persistence.EntityNotFoundException;
 import deepdive.jsonstore.common.exception.CommonException;
@@ -69,6 +71,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotificationException.class)
     public ResponseEntity<ErrorResponse> notificationExceptionHandler(NotificationException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(CartException.class)
+    public ResponseEntity<ErrorResponse> cartExceptionHandler(CartException ex) {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
