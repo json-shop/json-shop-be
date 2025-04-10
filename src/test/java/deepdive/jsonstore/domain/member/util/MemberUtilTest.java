@@ -59,7 +59,7 @@ public class MemberUtilTest {
     void getCurrentMember_실패_테스트() {
         // given: 비정상 사용자
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("anonymous", null)
+                new UsernamePasswordAuthenticationToken("other", null)
         );
 
         // when & then
