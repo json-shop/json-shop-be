@@ -9,6 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-messaging-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth-compat.js"></script>
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 
   <link rel="stylesheet" href="./css/style.css" />
 </head>
@@ -53,11 +54,40 @@
     <button id="historyButton">내역 조회</button>
     <div id="notificationHistory"></div>
   </div>
+
+  <div class="card">
+    <h2>💳 PortOne 결제 테스트</h2>
+
+    <div>
+      <label>💼 Store ID:</label>
+      <input type="text" id="storeId" placeholder="ex) store-..." value="store-c345fb5e-fd57-47cb-882c-c49d9f5401b7"/><br/><br/>
+
+      <label>🔐 Channel Key:</label>
+      <input type="text" id="channelKey" placeholder="ex) chnl-..."  value="channel-key-b53057ab-df6b-484e-bab4-68c8a9f3a8f2"/><br/><br/>
+
+      <label>🧾 Payment ID:</label>
+      <input type="text" id="paymentId" placeholder="ex) order-..." /><br/><br/>
+
+      <label>📦 Order Name:</label>
+      <input type="text" id="orderName" placeholder="ex) 상품명" value="test"/><br/><br/>
+
+      <label>💰 Total Amount (₩):</label>
+      <input type="number" id="totalAmount" value="101" /><br/><br/>
+
+      <label>🔗 Confirm URL:</label>
+      <input type="text" id="confirmUrl" value="https://60a7-175-118-135-217.ngrok-free.app/api/v1/orders/confirm" /><br/><br/>
+
+      <button id="payBtn">🚀 결제하기</button>
+    </div>
+  </div>
 </div>
 
+<script src="./js/requestPayment.js"></script>
 <script src="./js/firebase-init.js"></script>
 <script src="./js/register-token.js"></script>
 <script src="./js/send-notification.js"></script>
 <script src="./js/history-fetcher.js"></script>
 </body>
 </html>
+
+

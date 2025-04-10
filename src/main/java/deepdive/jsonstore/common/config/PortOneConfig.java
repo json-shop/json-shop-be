@@ -2,6 +2,7 @@ package deepdive.jsonstore.common.config;
 
 import io.portone.sdk.server.PortOneClient;
 import io.portone.sdk.server.payment.PaymentClient;
+import io.portone.sdk.server.webhook.WebhookVerifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,15 +26,23 @@ public class PortOneConfig {
     @Value("${portone.api-secret}")
     private String API_SECRET;
 
+    @Value("${portone.webhook.secret-key}")
+    private String webhookKey;
+
     @Bean
     public PaymentClient paymentClient(PortOneClient portOneClient) {
-//        return new PaymentClient(API_KEY, API_BASE, STORE_ID);
+
         return portOneClient.getPayment();
     }
 
     @Bean
     public PortOneClient portOneClient() {
         return new PortOneClient(API_SECRET, API_BASE, STORE_ID);
+    }
+
+    @Bean
+    public WebhookVerifier webhookVerifier() {
+        return new WebhookVerifier(webhookKey);
     }
 
 }

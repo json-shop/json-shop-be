@@ -13,9 +13,7 @@ import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import io.portone.sdk.server.payment.PaymentClient;
-import io.portone.sdk.server.webhook.WebhookTransaction;
-import io.portone.sdk.server.webhook.WebhookTransactionData;
-import io.portone.sdk.server.webhook.WebhookTransactionDataConfirm;
+import io.portone.sdk.server.webhook.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -161,44 +159,35 @@ public class OrderService {
     }
 
     // 웹훅이 결제 완료인지 판별
-//    public void webhook(WebhookTransaction webhookTransaction) {
     @Transactional
-    public void webhook(WebhookRequest webhookRequest) {
-        /*
-        - 결제가 승인되었을 때(모든 결제 수단) - (status : paid)
-        - 가상계좌가 발급되었을 때 - (status : ready)
-        - 가상계좌에 결제 금액이 입금되었을 때 - (status : paid)
-        - 예약결제가 시도되었을 때 - (status : paid or failed)
-        - 관리자 콘솔에서 결제 취소되었을 때 - (status : cancelled)
-         */
+    public void webhook(WebhookTransactionData webhookTransactionData) {
 
-        /* new WebhookVerifier() */
+        var orderUid = UUID.fromString(webhookTransactionData.getPaymentId());
+        var order= orderValidationService.findByUid(orderUid);
 
-        var order= orderValidationService.findByUid(UUID.fromString(webhookRequest.orderUid()));
         if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
             order.expire();
         }
 
         // 결제 상태 변경
         // 웹훅보다 브라우저의 처리가 먼저 되는 경우도 있음
-        switch (webhookRequest.status()) {
-            case "paid" : // committed
-                order.changeState(OrderStatus.PAID);
-                try {
-                    notificationService.sendNotification(order.getMember().getId(), "결제 성공", "결제 성공입니다~");
-                } catch (Exception e) {
-                    log.info("발송 실패");
-                }
-                break;
-            default :
-                // 재고 릴리즈
-                for (var orderProduct : order.getProducts()) {
-                    var productId = orderProduct.getProduct().getId();
-                    var quantity = orderProduct.getQuantity();
-                    productStockService.releaseStock(productId, quantity);
-                }
-                order.changeState(OrderStatus.FAILED);
-                break;
+        if (webhookTransactionData instanceof WebhookTransactionDataPaid) {
+            order.changeState(OrderStatus.PAID);
+            try {
+                notificationService.sendNotification(order.getMember().getId(), "결제 성공", "결제 성공입니다~");
+            } catch (Exception e) {
+                log.info("발송 실패");
+            }
+        } else if (webhookTransactionData instanceof WebhookTransactionDataConfirm){
+            System.out.println("컨펌이여유?");
+        } else {
+            // 재고 릴리즈
+            for (var orderProduct : order.getProducts()) {
+                var productId = orderProduct.getProduct().getId();
+                var quantity = orderProduct.getQuantity();
+                productStockService.releaseStock(productId, quantity);
+            }
+            order.changeState(OrderStatus.FAILED);
         }
     }
 

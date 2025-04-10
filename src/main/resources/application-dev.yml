@@ -51,6 +51,7 @@ portone:
   store-id: ${PORTONE_STORE_ID}
   api-key: ${PORTONE_API_KEY}
   api-base: ${PORTONE_API_BASE}
+  api-secret: ${PORTONE_API_SECRET}
   webhook:
     secret-key: ${PORTONE_WEBHOOK_SECRET_KEY}
 

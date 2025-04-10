@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.order.controller;
 
 import deepdive.jsonstore.domain.order.dto.*;
 import deepdive.jsonstore.domain.order.service.OrderService;
+import deepdive.jsonstore.domain.order.service.WebhookVerificationService;
 import io.portone.sdk.server.webhook.WebhookTransactionDataConfirm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+    private final WebhookVerificationService webhookverificationSerivce;
 
     // 1. 주문 생성
     @PostMapping
@@ -73,17 +75,38 @@ public class OrderController {
     // 결제 상태 변경 수신
     // PG사로부터 요청
     @PostMapping("/webhook")
-    public ResponseEntity<?> pgWebhook(@RequestBody WebhookRequest webhookRequest) {
-        orderService.webhook(webhookRequest);
-        switch (webhookRequest.status()) {
-            case "paid" :
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("status", "success", "reason", "test", "message", "일반 결제 성공"));
-            default :
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("status", "success", "reason", "test", "message", "실패"));
+//    public ResponseEntity<String> handleWebhook(
+//            @RequestHeader Map<String, String> headers,
+//            @RequestBody String body
+//    ) {
+//        headers.forEach((k, v) -> {
+//            System.out.println(k + ": " + v);
+//        });
+//
+//        return ResponseEntity.ok("ok");
+//    }
+//    public ResponseEntity<?> pgWebhook(@RequestBody WebhookRequest webhookRequest) {
+    public ResponseEntity<?> pgWebhook(
+            @RequestBody String rawBody,
+            @RequestHeader("webhook-id") String msgId,
+            @RequestHeader("webhook-signature") String signature,
+            @RequestHeader("webhook-timestamp") String timestamp
 
-        }
+    ) {
+        var test = webhookverificationSerivce.verify(rawBody, msgId, signature, timestamp);
+        log.info(test.toString());
+        log.info(test.getData().toString());
+        orderService.webhook(test.getData());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "fail", "reason", "test", "message", "일반 결제 성공"));
+//        switch (webhookRequest.status()) {
+//            case "paid" :
+//                return ResponseEntity.status(HttpStatus.OK)
+//                        .body(Map.of("status", "fail", "reason", "test", "message", "일반 결제 성공"));
+//            default :
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                        .body(Map.of("status", "fail", "reason", "test", "message", "실패", "errorMessage", "ㅋㅋㅋㅋㅋ"));
+//        }
     }
 
     @PostMapping("{orderUid}/cancel")
