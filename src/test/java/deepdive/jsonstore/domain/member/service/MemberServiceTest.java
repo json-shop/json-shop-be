@@ -1,92 +1,95 @@
 package deepdive.jsonstore.domain.member.service;
 
-import deepdive.jsonstore.common.exception.MemberException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import deepdive.jsonstore.common.config.FirebaseConfig;
 import deepdive.jsonstore.common.config.RedisTestService;
+import deepdive.jsonstore.common.exception.MemberException;
 import deepdive.jsonstore.domain.member.dto.ResetPasswordRequestDTO;
 import deepdive.jsonstore.domain.member.dto.UpdateMemberRequestDTO;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.exception.MemberErrorCode;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import deepdive.jsonstore.domain.member.util.MemberUtil;
-import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.given;
 
-@SpringBootTest
-@Transactional
-@Rollback
-@Import(MemberServiceTest.TestConfig.class)
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
+
+
+@ExtendWith(MockitoExtension.class)
 @DisplayName("MemberService 테스트")
 class MemberServiceTest {
 
-    @MockitoBean
+    @Mock
     private FirebaseConfig firebaseConfig;
 
-    @MockitoBean
+    @Mock
     private RedisTestService redisTestService;
 
-    @MockitoBean
+    @Mock
     private FirebaseMessaging firebaseMessaging;
 
-    @Autowired
-    private MemberService memberService;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
+    @Mock
     private MemberUtil memberUtil;
 
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public MemberUtil memberUtil() {
-            return Mockito.mock(MemberUtil.class);
-        }
-    }
+    @Mock
+    private MemberRepository memberRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+
+    private MemberService memberService;
+
+    @BeforeEach
+    void setUp() {
+        memberService = new MemberService(
+                memberRepository,
+                passwordEncoder,
+                memberUtil
+        );
+    }
 
     @Test
     @DisplayName("비밀번호 변경 성공")
     void resetPassword_success() {
         // given
+        String currentPassword = "pass";  // 현재 비밀번호
+        String newPassword = "newpass";   // 새 비밀번호
+
+        // passwordEncoder로 현재 비밀번호 암호화
+        String encodedCurrentPassword = passwordEncoder.encode(currentPassword);
+
         Member member = Member.builder()
                 .email("test@example.com")
                 .username("testuser")
-                .password(passwordEncoder.encode("pass"))
+                .password(encodedCurrentPassword)  // 저장된 암호화된 비밀번호
                 .isDeleted(false)
                 .build();
 
-        memberRepository.save(member);
+        when(memberRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(member)); //findByEmail 호출되면 db에 접근하는게 아니라 위에 만든 member 객체를 넘겨줌
 
-        ResetPasswordRequestDTO dto = new ResetPasswordRequestDTO("pass","newpass", "newpass");
+        ResetPasswordRequestDTO dto = new ResetPasswordRequestDTO(currentPassword, newPassword, newPassword);
 
         // when
         memberService.resetPW("test@example.com", dto);
 
         // then
-        Member updated = memberRepository.findByEmail("test@example.com").orElseThrow();
-        assertThat(passwordEncoder.matches("newpass", updated.getPassword())).isTrue();
+        assertThat(passwordEncoder.matches(newPassword, member.getPassword())).isTrue();
     }
+
+
+
 
     @Test
     @DisplayName("회원 정보 수정 성공")
@@ -100,7 +103,8 @@ class MemberServiceTest {
                 .isDeleted(false)
                 .build();
 
-        memberRepository.save(member);
+        given(memberRepository.findByEmail("test@example.com"))
+                .willReturn(Optional.of(member));
 
         UpdateMemberRequestDTO dto = new UpdateMemberRequestDTO("New Name", "010-1234-5678");
 
@@ -108,11 +112,10 @@ class MemberServiceTest {
         memberService.updateMember("test@example.com", dto);
 
         // then
-        Member updated = memberRepository.findByEmail("test@example.com").orElseThrow();
-
-        assertThat(updated.getUsername()).isEqualTo("New Name");
-        assertThat(updated.getPhone()).isEqualTo("010-1234-5678");
+        assertThat(member.getUsername()).isEqualTo("New Name");
+        assertThat(member.getPhone()).isEqualTo("010-1234-5678");
     }
+
 
     @Test
     @DisplayName("성공 - 현재 로그인한 사용자를 소프트 삭제")
@@ -161,5 +164,4 @@ class MemberServiceTest {
         assertThat(thrown).isInstanceOf(MemberException.AlreadyDeletedException.class);
         assertThat(((MemberException) thrown).getErrorCode()).isEqualTo(MemberErrorCode.ALREADY_DELETED);
     }
-
 }

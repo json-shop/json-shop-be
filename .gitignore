@@ -36,7 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 
-local.env
+src/main/resources/.env
 .env
 
 /src/main/resources/FirebaseAccessKey.json

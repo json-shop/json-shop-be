@@ -16,13 +16,12 @@ import java.io.IOException;
 
 public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    private final AuthenticationManager authenticationManager;
     private final AdminJwtTokenProvider adminJwtTokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AdminLoginAuthenticationFilter(AuthenticationManager authenticationManager, AdminJwtTokenProvider adminJwtTokenProvider) {
-        super(new AntPathRequestMatcher("/api/v1/admin/login", "POST")); //  관리자 로그인 경로
-        this.authenticationManager = authenticationManager;
+        super(new AntPathRequestMatcher("/api/v1/admin/login", "POST")); // 관리자 로그인 경로
+        setAuthenticationManager(authenticationManager);
         this.adminJwtTokenProvider = adminJwtTokenProvider;
     }
 
@@ -33,7 +32,7 @@ public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProces
         UsernamePasswordAuthenticationToken authRequest =
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-        return authenticationManager.authenticate(authRequest);
+        return getAuthenticationManager().authenticate(authRequest);
     }
 
     @Override
