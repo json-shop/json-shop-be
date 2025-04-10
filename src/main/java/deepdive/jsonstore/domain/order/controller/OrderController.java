@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.order.controller;
 
 import deepdive.jsonstore.domain.order.dto.*;
 import deepdive.jsonstore.domain.order.service.OrderService;
+import io.portone.sdk.server.webhook.WebhookTransactionDataConfirm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,6 @@ public class OrderController {
             @RequestBody OrderRequest orderRequest) {
         var memberId = 1L;
         var orderUid = orderService.createOrder(memberId, orderRequest);
-        log.info("test");
         return ResponseEntity.created(
                 URI.create("/api/v1/orders/" + orderUid.toString())
         ).build();
@@ -47,14 +47,14 @@ public class OrderController {
     // 타임아웃 발생시? PG측 트랜젝션 실패 처리 -> 서버도 10초 타임아웃 필요? tx_id만 바뀜
     @PostMapping("/confirm")
     public ResponseEntity<Map<String,String>> pgConfirmPayment(
-            @RequestBody ConfirmRequest confirmRequest
+            @RequestBody WebhookTransactionDataConfirm webhookTransactionDataConfirm
 //            HttpServletRequest request,
 //            @RequestBody String rawBody,
 //            @RequestHeader("X-PORTONE-ID") String msgId,
 //            @RequestHeader("X-PORTONE-SIGNATURE") String signature,
 //            @RequestHeader("X-PORTONE-TIMESTAMP") String timestamp
     ) {
-        ConfirmReason confirmReason =  orderService.confirmOrder(confirmRequest);
+        ConfirmReason confirmReason =  orderService.confirmOrder(webhookTransactionDataConfirm);
         log.debug(confirmReason.getStatus().toString());
         return ResponseEntity.status(confirmReason.getStatus())
                 .body(Map.of("reason", confirmReason.getReason()));

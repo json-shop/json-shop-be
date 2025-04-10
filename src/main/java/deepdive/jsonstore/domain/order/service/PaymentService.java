@@ -2,10 +2,12 @@ package deepdive.jsonstore.domain.order.service;
 
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.domain.order.entity.OrderStatus;
+import io.portone.sdk.server.PortOneClient;
 import io.portone.sdk.server.payment.PaymentClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,14 +18,16 @@ import java.util.UUID;
 public class PaymentService {
 
     private final PaymentClient paymentClient;
+//    private final PortOneClient portOneClient;
 
+    @Transactional
     public void cancelFullAmount(UUID paymentUid) {
         /* 포트원 결제 취소 API */
         // 전액 환불
-        var paymentClient = new PaymentClient("","","");
         // CompletebleFuture : js의 프로미스 콜백같은것
+//        portOneClient.getPayment().cancelPayment(
         paymentClient.cancelPayment(
-                "test", // 주문 uid
+                paymentUid.toString(), // 주문 uid
                 null, // 금액
                 null, // 면세 금액
                 null, // vat 금액

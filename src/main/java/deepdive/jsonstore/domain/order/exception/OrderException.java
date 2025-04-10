@@ -38,4 +38,10 @@ public class OrderException extends RuntimeException {
             super(OrderErrorCode.ORDER_ALREADY_IN_DELIVERY);
         }
     }
+
+    public static class NotPaidException extends OrderException {
+        public NotPaidException() {
+            super(OrderErrorCode.ORDER_NOT_PAID);
+        }
+    }
 }

@@ -13,6 +13,9 @@ import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import io.portone.sdk.server.payment.PaymentClient;
+import io.portone.sdk.server.webhook.WebhookTransaction;
+import io.portone.sdk.server.webhook.WebhookTransactionData;
+import io.portone.sdk.server.webhook.WebhookTransactionDataConfirm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,15 +118,17 @@ public class OrderService {
 
     /**
      *
-     * @param confirmRequest
+     * @param webhookTransactionDataConfirm
      * @return 컨펌프로세스 결과를 반환합니다.
      */
     @Transactional
-    public ConfirmReason confirmOrder(ConfirmRequest confirmRequest) {
+    public ConfirmReason confirmOrder(WebhookTransactionDataConfirm webhookTransactionDataConfirm) {
+
+        log.info("accepted");
 
         /* new WebhookVerifier() */
 
-        var orderUid = UUID.fromString(confirmRequest.merchant_uid());
+        var orderUid = UUID.fromString(webhookTransactionDataConfirm.getPaymentId());
         Order order;
         try {
            order = orderValidationService.findByUid(orderUid);
@@ -134,7 +139,7 @@ public class OrderService {
             order.changeState(OrderStatus.EXPIRED);
             return ConfirmReason.EXPIRED_ORDER;
         }
-        if (confirmRequest.amount() != order.getTotal()) {
+        if (webhookTransactionDataConfirm.getTotalAmount() != order.getTotal()) {
             order.changeState(OrderStatus.FAILED);
             return ConfirmReason.TOTAL_MISMATCH;
         }
@@ -202,6 +207,11 @@ public class OrderService {
     public void cancelOrderBeforeShipment(UUID orderUid) {
         var order = orderValidationService.findByUid(orderUid);
         var currentStatus = order.getOrderStatus();
+
+        // 결제 전 주문
+        if (currentStatus.ordinal() <= OrderStatus.PAYMENT_PENDING.ordinal()) {
+            throw new OrderException.NotPaidException();
+        }
 
         // 만료된 주문
         if (currentStatus.ordinal() >= OrderStatus.CANCELLED.ordinal()) {

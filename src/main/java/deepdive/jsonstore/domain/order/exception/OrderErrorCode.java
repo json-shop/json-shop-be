@@ -12,7 +12,8 @@ public enum OrderErrorCode {
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
     ORDER_EXPIRED(HttpStatus.GONE, "만료된 주문입니다."),
     ORDER_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "상품 재고가 없습니다."),
-    ORDER_ALREADY_IN_DELIVERY(HttpStatus.BAD_REQUEST, "이미 배송 중 입니다.");
+    ORDER_ALREADY_IN_DELIVERY(HttpStatus.BAD_REQUEST, "이미 배송 중 입니다."),
+    ORDER_NOT_PAID(HttpStatus.BAD_REQUEST, "결제하지 않은 주문입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

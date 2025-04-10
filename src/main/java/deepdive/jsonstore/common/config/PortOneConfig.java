@@ -1,5 +1,6 @@
 package deepdive.jsonstore.common.config;
 
+import io.portone.sdk.server.PortOneClient;
 import io.portone.sdk.server.payment.PaymentClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PortOneConfig {
 
-    @Value("${portone.api-key}")
+    @Value("${portone.api-key}") // v1용
     private String API_KEY;
 
     @Value("${portone.api-base}")
@@ -21,14 +22,18 @@ public class PortOneConfig {
     @Value("${portone.store-id}")
     private String STORE_ID;
 
+    @Value("${portone.api-secret}")
+    private String API_SECRET;
+
     @Bean
-    public PaymentClient paymentClient() {
-        return new PaymentClient(API_KEY, API_BASE, STORE_ID);
+    public PaymentClient paymentClient(PortOneClient portOneClient) {
+//        return new PaymentClient(API_KEY, API_BASE, STORE_ID);
+        return portOneClient.getPayment();
     }
 
-//    @Bean
-//    public PortOneClient portOneClient() {
-//
-//    }
+    @Bean
+    public PortOneClient portOneClient() {
+        return new PortOneClient(API_SECRET, API_BASE, STORE_ID);
+    }
 
 }
