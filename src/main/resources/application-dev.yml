@@ -1,6 +1,6 @@
 spring:
   config:
-    import: optional:file:local.env[.properties]
+    import: optional:file:.env[.properties]
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -48,5 +48,10 @@ fcm:
     file: classpath:firebaseAccessKey.json
 
 portone:
+  store-id: ${PORTONE_STORE_ID}
+  api-key: ${PORTONE_API_KEY}
+  api-base: ${PORTONE_API_BASE}
   webhook:
-      secret-key: ${PORTONE_WEBHOOK_SECRET_KEY}
+    secret-key: ${PORTONE_WEBHOOK_SECRET_KEY}
+
+
