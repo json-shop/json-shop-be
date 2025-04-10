@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,11 +24,11 @@ public class OrderController {
     // 1. 주문 생성
     @PostMapping
     public ResponseEntity<Void> createOrder(
-//            @AuthencitaitonPrincipal(expression"Member=member.id")
-//            UUID memberId,
+//            @AuthenticationPrincipal(expression="Member=member.id") Long memberId,
             @RequestBody OrderRequest orderRequest) {
-        var memberId = UUID.randomUUID();
+        var memberId = 1L;
         var orderUid = orderService.createOrder(memberId, orderRequest);
+        log.info("test");
         return ResponseEntity.created(
                 URI.create("/api/v1/orders/" + orderUid.toString())
         ).build();
@@ -83,5 +84,11 @@ public class OrderController {
                         .body(Map.of("status", "success", "reason", "test", "message", "실패"));
 
         }
+    }
+
+    @PostMapping("{orderUid}/cancel")
+    public ResponseEntity<?> cancel(@PathVariable("orderUid") UUID orderUid) {
+        orderService.cancelOrderBeforeShipment(orderUid);
+        return ResponseEntity.ok().build();
     }
 }
