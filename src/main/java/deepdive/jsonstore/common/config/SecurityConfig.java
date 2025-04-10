@@ -29,13 +29,11 @@ public class SecurityConfig {
     private final MemberJwtTokenProvider memberJwtTokenProvider;
     private final AdminJwtTokenProvider adminJwtTokenProvider;
 
-    // 패스워드 인코더
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 회원 인증 Provider
     @Bean
     public AuthenticationProvider memberAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -44,7 +42,6 @@ public class SecurityConfig {
         return provider;
     }
 
-    // 관리자 인증 Provider
     @Bean
     public AuthenticationProvider adminAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -53,32 +50,34 @@ public class SecurityConfig {
         return provider;
     }
 
-    // SecurityFilterChain 설정
+    // ✅ AuthenticationManager를 명시적으로 Bean으로 등록
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http
+                .getSharedObject(AuthenticationManager.class);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationManager authenticationManager) throws Exception {
 
         // 인증 프로바이더 등록
         http.authenticationProvider(memberAuthenticationProvider());
         http.authenticationProvider(adminAuthenticationProvider());
 
-        // authenticationManager 생성 (빌드 전에만 사용 가능)
-        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-
-        // member 로그인 필터
+        //  Member 로그인 필터 설정
         MemberLoginAuthenticationFilter memberLoginAuthenticationFilter =
                 new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider);
-        memberLoginAuthenticationFilter.setFilterProcessesUrl("/api/v1/member/login");
+        memberLoginAuthenticationFilter.setFilterProcessesUrl("/api/v1/login");
 
-        // admin 로그인 필터
+        //  Admin 로그인 필터 설정
         AdminLoginAuthenticationFilter adminLoginAuthenticationFilter =
                 new AdminLoginAuthenticationFilter(authenticationManager, adminJwtTokenProvider);
         adminLoginAuthenticationFilter.setFilterProcessesUrl("/api/v1/admin/login");
 
-        // member JWT 인증 필터
+        //  JWT 인증 필터들
         MemberJwtAuthenticationFilter memberJwtAuthenticationFilter =
                 new MemberJwtAuthenticationFilter(memberJwtTokenProvider, authenticationManager);
-
-        // admin JWT 인증 필터
         AdminJwtAuthenticationFilter adminJwtAuthenticationFilter =
                 new AdminJwtAuthenticationFilter(adminJwtTokenProvider, authenticationManager);
 
@@ -86,7 +85,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/member/login", "/api/v1/admin/login", "/api/v1/member/signup").permitAll()
+                        .requestMatchers("/api/v1/member/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(memberLoginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
