@@ -71,9 +71,9 @@ public class OrderService {
      * @param orderRequest 주문 요청 Dto
      * @return 주문서 Dto
      */
-    public UUID createOrder(UUID memberId, OrderRequest orderRequest) {
+    public UUID createOrder(Long memberId, OrderRequest orderRequest) {
 
-        var member = memberValidationService.findByUid(memberId);
+        var member = memberValidationService.findById(memberId);
         List<OrderProduct> orderProducts = new ArrayList<>();
         int total = 0;
 
