@@ -5,8 +5,8 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushNotification;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
-import deepdive.jsonstore.common.exception.NotificationException;
 import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.notification.dto.NotificationHistoryResponse;
 import deepdive.jsonstore.domain.notification.entity.Notification;
 import deepdive.jsonstore.domain.notification.entity.NotificationCategory;
 import deepdive.jsonstore.common.exception.CommonException;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,15 +33,11 @@ public class NotificationService {
     private final FirebaseMessaging firebaseMessaging;
 
     public void saveToken(Long memberId, String token) {
+        // 멤버 검증
         validationService.validateMemberExists(memberId);
 
-        try {
-            redisTemplate.opsForValue().set("fcm:token:" + memberId, token);
-            log.info("FCM Token saved successfully for member: {}", memberId);
-        } catch (Exception e) {
-            log.error("Redis 저장 중 오류 발생: {}", e.getMessage(), e);
-            throw new NotificationException(JsonStoreErrorCode.REDIS_SERVER_ERROR);
-        }
+        // redis에 토큰 저장
+        redisTemplate.opsForValue().set("fcm:token:" + memberId, token);
     }
 
     // 알림 전송
@@ -87,7 +84,16 @@ public class NotificationService {
     }
 
     // 사용자별 알림 내역 조회
-    public List<Notification> getNotificationHistory(Long memberId) {
-        return notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+    public List<NotificationHistoryResponse> getNotificationHistory(Long memberId) {
+        return notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
+                .map(notification -> new NotificationHistoryResponse(
+                        notification.getId(),
+                        notification.getTitle(),
+                        notification.getBody(),
+                        notification.getCategory(),
+                        notification.getMember().getId(),  // 여기서 ID만 추출
+                        notification.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 }
