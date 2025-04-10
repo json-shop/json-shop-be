@@ -8,9 +8,9 @@ import deepdive.jsonstore.domain.product.exception.ProductException;
 import jakarta.persistence.EntityNotFoundException;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.common.exception.JoinException;
-import deepdive.jsonstore.common.exception.DeliveryException;
+import deepdive.jsonstore.domain.delivery.exception.DeliveryException;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
-import deepdive.jsonstore.common.exception.OrderException;
+import deepdive.jsonstore.domain.order.exception.OrderException;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -101,6 +101,13 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
+
+    @ExceptionHandler(MemberException.class)
+    public ResponseEntity<ErrorResponse> memberExceptionHandler(MemberException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
 
 
 }

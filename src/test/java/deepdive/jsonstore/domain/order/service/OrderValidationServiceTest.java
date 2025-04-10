@@ -1,6 +1,6 @@
 package deepdive.jsonstore.domain.order.service;
 
-import deepdive.jsonstore.common.exception.OrderException;
+import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.order.entity.Order;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import org.junit.jupiter.api.Test;

@@ -61,4 +61,14 @@ public class Product extends BaseEntity {
 		this.category = updateProductRequest.category();
 		this.status = updateProductRequest.status();
 	}
+
+
+	public void increaseStock(int quantity) {
+		this.stock += quantity;
+	}
+
+	public void decreaseStock(int quantity) {
+		this.stock -= quantity;
+	}
+
 }

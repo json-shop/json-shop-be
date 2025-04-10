@@ -19,4 +19,5 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
             "WHERE d.member.email = :email")
     List<DeliveryResponseDTO> findByMemberEmailAsDTO(@Param("email") String email);
 
+    boolean existsByUid(UUID uid);
 }

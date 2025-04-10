@@ -17,4 +17,11 @@ public class MemberException extends RuntimeException {
         public PasswordMismatchException() {super(MemberErrorCode.PASSWORD_MISMATCH);}
     }
 
+    public static class AlreadyDeletedException extends MemberException {
+        public AlreadyDeletedException() {
+            super(MemberErrorCode.ALREADY_DELETED);
+        }
+    }
+
+
 }
