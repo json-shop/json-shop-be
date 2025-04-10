@@ -11,7 +11,7 @@ public enum JsonStoreErrorCode {
     //common
     INVALID_INPUT_PARAMETER(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
-    SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "시스템에 문제가 발생했습니다."),
+    SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "시스템에 문제가 발생했습니다. 관리자에게 문의해주십시오"),
 
     // notification
     MISSING_FCM_TOKEN(HttpStatus.BAD_REQUEST, "FCM 토큰이 없습니다."),
