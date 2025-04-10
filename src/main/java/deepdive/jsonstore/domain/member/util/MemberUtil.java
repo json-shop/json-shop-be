@@ -16,6 +16,6 @@ public class MemberUtil {
             return ((CustomMemberDetails) principal).getMember();
         }
 
-        throw new AuthException.ForbiddenAccessException();
+        throw new AuthException.UnauthenticatedAccessException();
     }
 }

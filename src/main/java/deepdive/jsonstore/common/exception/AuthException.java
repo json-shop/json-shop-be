@@ -76,7 +76,7 @@ public class AuthException extends RuntimeException {
         }
     }
 
-    // 추가된 부분: 권한 없음 오류 핸들러용 예외 추가
+    //  다른 사용자 리소스 접근 시
     public static class ForbiddenAccessException extends AuthException {
         public ForbiddenAccessException() {
             super(JsonStoreErrorCode.FORBIDDEN_ACCESS);

@@ -55,7 +55,7 @@ public class MemberUtilTest {
     }
 
     @Test
-    @DisplayName("인증되지 않은 사용자는 ForbiddenAccessException이 발생")
+    @DisplayName("인증되지 않은 사용자는 UnauthenticatedAccessException이 발생")
     void getCurrentMember_실패_테스트() {
         // given: 비정상 사용자
         SecurityContextHolder.getContext().setAuthentication(
@@ -63,7 +63,7 @@ public class MemberUtilTest {
         );
 
         // when & then
-        assertThrows(AuthException.ForbiddenAccessException.class, () -> {
+        assertThrows(AuthException.UnauthenticatedAccessException.class, () -> {
             memberUtil.getCurrentMember();
         });
     }
