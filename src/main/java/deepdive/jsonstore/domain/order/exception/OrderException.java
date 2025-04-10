@@ -32,4 +32,10 @@ public class OrderException extends RuntimeException {
             super(OrderErrorCode.ORDER_OUT_OF_STOCK);
         }
     }
+
+    public static class AlreadyInDeliveryException extends OrderException {
+        public AlreadyInDeliveryException() {
+            super(OrderErrorCode.ORDER_ALREADY_IN_DELIVERY);
+        }
+    }
 }
