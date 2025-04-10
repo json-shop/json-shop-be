@@ -3,13 +3,12 @@ package deepdive.jsonstore.domain.auth.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
+import deepdive.jsonstore.common.exception.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -40,7 +39,7 @@ class MemberLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("회원 로그인 시도 테스트")
+    @DisplayName("회원 로그인 성공 테스트")
     void testAttemptAuthentication() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -62,8 +61,8 @@ class MemberLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("회원 로그인 실패 테스트")
-    void testAttemptAuthenticationWithWrongPassword() throws IOException {
+    @DisplayName("회원 로그인 실패 시 AuthException 발생 테스트")
+    void testAttemptAuthenticationWithInvalidCredentials() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
@@ -74,9 +73,9 @@ class MemberLoginAuthenticationFilterTest {
                 new UsernamePasswordAuthenticationToken("member@example.com", "wrongpassword");
 
         when(authenticationManager.authenticate(authRequest))
-                .thenThrow(new AuthenticationException("Bad credentials") {});
+                .thenThrow(new AuthException.MemberLoginFailedException());
 
-        assertThrows(AuthenticationException.class, () -> {
+        assertThrows(AuthException.MemberLoginFailedException.class, () -> {
             filter.attemptAuthentication(request, new MockHttpServletResponse());
         });
 
@@ -84,7 +83,7 @@ class MemberLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("회원 인증 성공 테스트")
+    @DisplayName("회원 인증 성공 후 JWT 응답 테스트")
     void testSuccessfulAuthentication() throws IOException, ServletException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -101,16 +100,14 @@ class MemberLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("회원 인증 실패 테스트")
-    void testUnsuccessfulAuthentication() throws IOException {
+    @DisplayName("회원 인증 실패 시 AuthException 발생 테스트")
+    void testUnsuccessfulAuthentication_throwsException() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         AuthenticationException exception = mock(AuthenticationException.class);
 
-        filter.unsuccessfulAuthentication(request, response, exception);
-
-        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
-        assertEquals("application/json", response.getContentType());
-        assertEquals("{\"error\": \"Login failed\"}", response.getContentAsString());
+        assertThrows(AuthException.MemberLoginFailedException.class, () -> {
+            filter.unsuccessfulAuthentication(request, response, exception);
+        });
     }
 }

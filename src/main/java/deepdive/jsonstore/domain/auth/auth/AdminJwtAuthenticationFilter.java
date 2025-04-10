@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.auth.auth;
 
+import deepdive.jsonstore.common.exception.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +13,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
 @RequiredArgsConstructor
 public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -27,9 +27,13 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = adminJwtTokenProvider.resolveToken(request);
 
-        if (StringUtils.hasText(token) && adminJwtTokenProvider.validateToken(token)) {
-            Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (StringUtils.hasText(token)) {
+            if (adminJwtTokenProvider.validateToken(token)) {
+                Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                throw new AuthException.UnauthenticatedAccessException();
+            }
         }
 
         filterChain.doFilter(request, response);
