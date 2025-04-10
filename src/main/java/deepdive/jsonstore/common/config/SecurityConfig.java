@@ -90,7 +90,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/member/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
+                        .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(memberLoginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
