@@ -5,6 +5,7 @@ import deepdive.jsonstore.domain.notification.dto.NotificationHistoryRequest;
 import deepdive.jsonstore.domain.notification.dto.NotificationHistoryResponse;
 import deepdive.jsonstore.domain.notification.dto.NotificationRequest;
 import deepdive.jsonstore.domain.notification.entity.Notification;
+import deepdive.jsonstore.domain.notification.entity.NotificationCategory;
 import deepdive.jsonstore.domain.notification.service.NotificationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -28,7 +29,7 @@ public class NotificationApiController {
     // FCM token 저장
     @PostMapping("/fcm-tokens")
     public ResponseEntity<String> registerToken(@Valid @RequestBody FcmTokenRequest request) {
-        notificationService.saveToken(request.getMemberId(), request.getToken());
+        notificationService.saveToken(request.getMemberUid(), request.getToken());
         return ResponseEntity.ok("FCM token registered successfully");
     }
 
@@ -36,9 +37,10 @@ public class NotificationApiController {
     @PostMapping("/notifications")
     public ResponseEntity<String> sendNotification(@Valid @RequestBody NotificationRequest request) {
         notificationService.sendNotification(
-                request.getMemberId(),
+                request.getMemberUid(),
                 request.getTitle(),
-                request.getMessage()
+                request.getMessage(),
+                NotificationCategory.SAVE
         );
         return ResponseEntity.ok("Notification sent successfully");
     }
@@ -46,7 +48,7 @@ public class NotificationApiController {
     // 특정 멤버 알림 내역 조회
     @GetMapping("/notifications")
     public ResponseEntity<List<NotificationHistoryResponse>> getNotificationHistory(@Valid NotificationHistoryRequest request) {
-        List<NotificationHistoryResponse> history = notificationService.getNotificationHistory(request.getMemberId());
+        List<NotificationHistoryResponse> history = notificationService.getNotificationHistory(request.getMemberUid());
         return ResponseEntity.ok(history);
     }
 }
