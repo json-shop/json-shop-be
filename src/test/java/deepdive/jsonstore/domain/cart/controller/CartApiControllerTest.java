@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -126,10 +127,13 @@ class CartApiControllerTest {
             // when & then
             mockMvc.perform(delete("/api/v1/carts")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(invalidJson))
-          }
+                            .content(invalidJson));
+
+            Mockito.verify(cartService, never()).deleteCartByCartId(anyLong());
+        }
     }
 
+    @Nested
     @DisplayName("getCartByMemberId API 테스트")
     class GetCartByMemberId {
 
@@ -155,6 +159,8 @@ class CartApiControllerTest {
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].id").value(1L))
                     .andExpect(jsonPath("$[0].amount").value(2));
+
+            Mockito.verify(cartService).getCartByMemberId(1L);
         }
 
         @Test

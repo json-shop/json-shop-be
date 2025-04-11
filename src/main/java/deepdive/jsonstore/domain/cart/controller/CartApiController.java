@@ -33,6 +33,7 @@ public class CartApiController {
     public ResponseEntity<?> deleteCartByMemberId(@Valid @RequestBody CartDeleteRequest request) {
         cartService.deleteCartByCartId(request.getCartId());
         return ResponseEntity.noContent().build();
+    }
 
     // 특정 멤버 카트 상품 조회
     @GetMapping

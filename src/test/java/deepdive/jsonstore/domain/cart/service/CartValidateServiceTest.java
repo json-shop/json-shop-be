@@ -190,6 +190,7 @@ class CartValidateServiceTest {
         }
     }
 
+    @Nested
     @DisplayName("validateCart 메서드")
     class ValidateCart {
 
