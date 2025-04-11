@@ -50,6 +50,7 @@ public class CartValidateService {
         return sumAmount;
     }
 
+    // 장바구니가 있는지 조회
     public void validateCart(Long cartId) {
         cartRepository.findById(cartId)
                 .orElseThrow(CartException.CartNotFoundException::new);
