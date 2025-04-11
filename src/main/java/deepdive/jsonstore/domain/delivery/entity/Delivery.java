@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.delivery.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
+import deepdive.jsonstore.domain.delivery.dto.DeliveryRegRequestDTO;
 import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,5 +45,11 @@ public class Delivery extends BaseEntity {
     )
     private Member member;
 
+    public void updateDelivery(DeliveryRegRequestDTO dto) {
+        this.address = dto.address();
+        this.zipCode = dto.zipCode();
+        this.phone = dto.phone();
+        this.recipient = dto.recipient();
+    }
 
 }
