@@ -16,6 +16,5 @@ public class CartRequest {
     private Long productId;
 
     @NotNull(message = "수량을 입력해주세요.")
-    @Positive(message = "수량은 0보다 커야 합니다.")
     private Long amount;
 }

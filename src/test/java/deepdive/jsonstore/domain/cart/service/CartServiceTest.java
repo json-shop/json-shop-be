@@ -10,8 +10,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class CartServiceTest {
@@ -132,6 +133,46 @@ class CartServiceTest {
             // then
             assertThat(result).isNull();
             verify(cartRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("getCartByMemberId 메서드")
+    class GetCartByMemberId {
+
+        @Test
+        @DisplayName("성공 - 유효한 memberId로 카트 목록 조회")
+        void success() {
+            // given
+            Long memberId = 1L;
+
+            List<Cart> mockCarts = List.of(
+                    Cart.builder()
+                            .id(1L)
+                            .member(Member.builder().id(memberId).build())
+                            .product(Product.builder().id(10L).build())
+                            .amount(2L)
+                            .build(),
+                    Cart.builder()
+                            .id(2L)
+                            .member(Member.builder().id(memberId).build())
+                            .product(Product.builder().id(20L).build())
+                            .amount(1L)
+                            .build()
+            );
+
+            when(cartRepository.findByMemberId(memberId)).thenReturn(mockCarts);
+
+            // when
+            List<Cart> result = cartService.getCartByMemberId(memberId);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).getId()).isEqualTo(1L);
+            assertThat(result.get(1).getProduct().getId()).isEqualTo(20L);
+
+            verify(cartRepository).findByMemberId(memberId);
+            verify(validateService).validateCartList(mockCarts);
         }
     }
 }

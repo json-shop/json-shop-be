@@ -14,9 +14,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -157,6 +159,39 @@ class CartValidateServiceTest {
 
             assertThrows(CartException.ProductOutOfStockException.class,
                     () -> cartValidateService.validateAmount(cart, product, addAmount));
+        }
+    }
+
+    @Nested
+    @DisplayName("validateCart 메서드")
+    class ValidateCart {
+
+        @Test
+        @DisplayName("성공 - 카트 목록이 존재하면 예외를 던지지 않는다")
+        void success() {
+            // given
+            List<Cart> carts = List.of(
+                    Cart.builder()
+                            .id(1L)
+                            .member(Member.builder().id(1L).build())
+                            .product(Product.builder().id(10L).build())
+                            .amount(2L)
+                            .build()
+            );
+
+            // when & then
+            assertDoesNotThrow(() -> cartValidateService.validateCartList(carts));
+        }
+
+        @Test
+        @DisplayName("실패 - 카트 목록이 비어있으면 CartNotFoundException 예외 발생")
+        void fail_emptyCartList() {
+            // given
+            List<Cart> emptyCarts = List.of();
+
+            // when & then
+            assertThatThrownBy(() -> cartValidateService.validateCartList(emptyCarts))
+                    .isInstanceOf(CartException.CartNotFoundException.class);
         }
     }
 }
