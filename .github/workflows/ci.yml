@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [ "ci-test" ]
+    branches: [ "ci-test2" ]
   pull_request:
 
 permissions:
@@ -28,6 +28,15 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout branch
@@ -39,9 +48,14 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Set environment variables
+      - name: Create firebaseAccessKey.json
         run: |
-          echo "${{ secrets.SPRING_ENV_TEST }}" >> ./local.env
+          echo "${{ secrets.FIREBASE_KEY_BASE64 }}" | base64 -d > src/main/resources/firebaseAccessKey.json
+
+      - name: Debug firebaseAccessKey.json
+        run: |
+          ls -al src/main/resources/
+          cat src/main/resources/firebaseAccessKey.json || echo "firebaseAccessKey.json 없음"
 
       - name: Setup Gradle permission
         run: chmod +x ./gradlew
@@ -54,6 +68,17 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/testdb
           SPRING_DATASOURCE_USERNAME: testuser
           SPRING_DATASOURCE_PASSWORD: testpass
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY}}
+          AWS_SECRET_KEY: ${{secrets.AWS_SECRET_KEY}}
+          REGION: ${{secrets.REGION}}
+          BUCKET_NAME: ${{secrets.BUCKET_NAME}}
+          REDIS_PORT: ${{secrets.REDIS_PORT}}
+          PORTONE_WEBHOOK_SECRET_KEY: ${{secrets.PORTONE_WEBHOOK_SECRET_KEY}}
+          API_KEY: ${{secrets.API_KEY}}
         run: ./gradlew test
 
       - name: Publish Test Results
@@ -80,7 +105,7 @@ jobs:
           mv build/reports/jacoco/test/html/* report/
 
       - name: Upload JaCoCo report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           path: report

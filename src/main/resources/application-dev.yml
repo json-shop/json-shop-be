@@ -50,3 +50,7 @@ fcm:
 portone:
   webhook:
       secret-key: ${PORTONE_WEBHOOK_SECRET_KEY}
+external:
+  api:
+    address:
+      key: ${API_KEY}
