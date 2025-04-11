@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.auth.auth;
 
+import deepdive.jsonstore.common.exception.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +13,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
 @RequiredArgsConstructor
 public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -27,10 +27,13 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = memberJwtTokenProvider.resolveToken(request);
 
-        if (StringUtils.hasText(token) && memberJwtTokenProvider.validateToken(token)) {
-            Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
-            // SecurityContext에 인증 정보 등록
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (StringUtils.hasText(token)) {
+            if (memberJwtTokenProvider.validateToken(token)) {
+                Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                throw new AuthException.UnauthenticatedAccessException();
+            }
         }
 
         filterChain.doFilter(request, response);

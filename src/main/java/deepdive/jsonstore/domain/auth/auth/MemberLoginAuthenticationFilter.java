@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.auth.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
 import jakarta.servlet.FilterChain;
@@ -20,13 +21,14 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
 
     public MemberLoginAuthenticationFilter(AuthenticationManager authenticationManager,
                                            MemberJwtTokenProvider memberJwtTokenProvider) {
-        super(new AntPathRequestMatcher("/api/v1/login", "POST")); // 요청 경로 설정
+        super(new AntPathRequestMatcher("/api/v1/login", "POST"));
         setAuthenticationManager(authenticationManager);
         this.memberJwtTokenProvider = memberJwtTokenProvider;
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Authentication attemptAuthentication(HttpServletRequest request,
+                                                HttpServletResponse response) throws IOException {
         LoginRequest loginRequest = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
 
         UsernamePasswordAuthenticationToken authRequest =
@@ -53,8 +55,7 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
                                               HttpServletResponse response,
                                               org.springframework.security.core.AuthenticationException failed)
             throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\": \"Login failed\"}");
+        // 실패 시 예외 던지기
+        throw new AuthException.MemberLoginFailedException();
     }
 }

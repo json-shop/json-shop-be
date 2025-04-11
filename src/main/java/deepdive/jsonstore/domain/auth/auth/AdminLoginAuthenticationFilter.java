@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.auth.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
 import jakarta.servlet.FilterChain;
@@ -9,18 +10,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
-
 public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private final AdminJwtTokenProvider adminJwtTokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AdminLoginAuthenticationFilter(AuthenticationManager authenticationManager, AdminJwtTokenProvider adminJwtTokenProvider) {
-        super(new AntPathRequestMatcher("/api/v1/admin/login", "POST")); // 관리자 로그인 경로
+        super(new AntPathRequestMatcher("/api/v1/admin/login", "POST"));
         setAuthenticationManager(authenticationManager);
         this.adminJwtTokenProvider = adminJwtTokenProvider;
     }
@@ -51,10 +52,9 @@ public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProces
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
-                                              org.springframework.security.core.AuthenticationException failed)
+                                              AuthenticationException failed)
             throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\": \"Admin login failed\"}");
+
+        throw new AuthException.AdminLoginFailedException();
     }
 }
