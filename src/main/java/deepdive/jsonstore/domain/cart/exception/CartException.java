@@ -27,6 +27,18 @@ public class CartException extends RuntimeException {
 		}
 	}
 
+	public static class CartNotFoundException extends CartException {
+		public CartNotFoundException() {
+			super(CartErrorCode.CART_NOT_FOUND);
+		}
+	}
+
+	public static class InvalidAmountException extends CartException {
+		public InvalidAmountException() {
+			super(CartErrorCode.INVALID_AMOUNT);
+		}
+	}
+
 	public static class MemberNotFoundException extends CartException {
 		public MemberNotFoundException() {
 			super(CartErrorCode.MEMBER_NOT_FOUND);
