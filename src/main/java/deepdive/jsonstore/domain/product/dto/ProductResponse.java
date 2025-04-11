@@ -18,6 +18,7 @@ public record ProductResponse(
 	int price,
 	int stock,
 	ProductStatus status,
+	String adminName,
 	LocalDateTime createdAt,
 	LocalDateTime updatedAt
 ) {
@@ -32,6 +33,7 @@ public record ProductResponse(
 			.price(product.getPrice())
 			.stock(product.getStock())
 			.status(product.getStatus())
+			.adminName(product.getAdmin().getUsername())
 			.createdAt(product.getCreatedAt())
 			.updatedAt(product.getUpdatedAt())
 			.build();

@@ -26,6 +26,7 @@ public record CreateProductRequest(
 			.stock(stock)
 			.image(url)
 			.status(ProductStatus.ON_SALE)
+			.soldCount(0)
 			.build();
 	}
 }
