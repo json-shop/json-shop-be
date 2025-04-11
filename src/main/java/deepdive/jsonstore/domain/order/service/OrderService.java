@@ -1,7 +1,5 @@
 package deepdive.jsonstore.domain.order.service;
 
-import deepdive.jsonstore.common.exception.CommonException;
-import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.member.service.MemberValidationService;
 import deepdive.jsonstore.domain.notification.service.NotificationService;
@@ -12,8 +10,6 @@ import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
-import io.portone.sdk.server.payment.PaymentClient;
-import io.portone.sdk.server.webhook.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,7 +32,6 @@ public class OrderService {
     private final NotificationService notificationService;
     private final PaymentService paymentService;
     @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
-    @Value("${portone.webhook.secret-key}") private String key;
 
     /**
      * 주문서 조회
@@ -104,11 +97,13 @@ public class OrderService {
                 .recipient(orderRequest.recipient())
                 .address(orderRequest.address())
                 .zipCode(orderRequest.zipCode())
-                .products(orderProducts)
                 .total(total)
                 .expiredAt(LocalDateTime.now().plusMinutes(ORDER_EXPIRE_TIME))
                 .build();
 
+        // 주문 상품 등록
+        // TODO : 리펙토링?
+        orderProducts.forEach(order::addProduct);
         var savedOrder = orderRepository.save(order);
 
         return savedOrder.getUid();
@@ -116,33 +111,29 @@ public class OrderService {
 
     /**
      *
-     * @param webhookTransactionDataConfirm
+     * @param confirmRequest
      * @return 컨펌프로세스 결과를 반환합니다.
      */
     @Transactional
-    public ConfirmReason confirmOrder(WebhookTransactionDataConfirm webhookTransactionDataConfirm) {
+    public void confirmOrder(ConfirmRequest confirmRequest) {
+        var orderUid = UUID.fromString(confirmRequest.orderId());
+        var order = orderValidationService.findByUid(orderUid);
 
-        log.info("accepted");
-
-        /* new WebhookVerifier() */
-
-        var orderUid = UUID.fromString(webhookTransactionDataConfirm.getPaymentId());
-        Order order;
-        try {
-           order = orderValidationService.findByUid(orderUid);
-        } catch (OrderException.OrderNotFound e) {
-            return ConfirmReason.NOT_FOUND;
-        }
         if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
             order.changeState(OrderStatus.EXPIRED);
-            return ConfirmReason.EXPIRED_ORDER;
+            throw new OrderException.OrderExpiredException();
         }
-        if (webhookTransactionDataConfirm.getTotalAmount() != order.getTotal()) {
+//        if () {
+//            /* 통화 검사 */
+//        }
+
+        if (confirmRequest.amount() != order.getTotal()) {
             order.changeState(OrderStatus.FAILED);
-            return ConfirmReason.TOTAL_MISMATCH;
+            //TODO : 실패시 리디렉션?
+            throw new OrderException.OrderTotalMismatchException();
         }
         if (order.isAnyOutOfStock()) {
-            return ConfirmReason.OUT_OF_STOCK;
+            throw new OrderException.OrderOutOfStockException();
         }
 
         // 재고 예약
@@ -152,43 +143,40 @@ public class OrderService {
             productStockService.reserveStock(productId, quantity); // 예약
         }
 
-        order.changeState(OrderStatus.PAYMENT_PENDING);
+        // 결제 대기 상태
+        // order.changeState(OrderStatus.PAYMENT_PENDING);
 
-        // 결제 승인
-        return ConfirmReason.CONFIRM;
+        // 주문 승인 및 결제키 등록
+        var paymentResponse = paymentService.confirm(confirmRequest);
+        var paymentKey = paymentResponse.get("paymentKey").toString();
+        order.setPaymentKey(paymentKey);
+
+        var sb = new StringBuilder();
+        var title = order.getTitle();
+
+        sb.append(title).append("\n");
+        sb.append(order.getTotal()).append("원 결제성공");
+        var notificationBody = sb.toString();
+
+        // 성공 알림 발송
+        try {
+            notificationService.sendNotification(order.getMember().getId(), "결제 성공", notificationBody);
+        } catch (Exception e) {
+            // 재발송 전략?
+            log.info("발송 실패");
+        }
+
+        // 주문 상태 "결제"로 변경
+        order.changeState(OrderStatus.PAID);
+
     }
 
     // 웹훅이 결제 완료인지 판별
     @Transactional
-    public void webhook(WebhookTransactionData webhookTransactionData) {
-
-        var orderUid = UUID.fromString(webhookTransactionData.getPaymentId());
-        var order= orderValidationService.findByUid(orderUid);
-
-        if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
-            order.expire();
-        }
-
-        // 결제 상태 변경
-        // 웹훅보다 브라우저의 처리가 먼저 되는 경우도 있음
-        if (webhookTransactionData instanceof WebhookTransactionDataPaid) {
-            order.changeState(OrderStatus.PAID);
-            try {
-                notificationService.sendNotification(order.getMember().getId(), "결제 성공", "결제 성공입니다~");
-            } catch (Exception e) {
-                log.info("발송 실패");
-            }
-        } else if (webhookTransactionData instanceof WebhookTransactionDataConfirm){
-            System.out.println("컨펌이여유?");
-        } else {
-            // 재고 릴리즈
-            for (var orderProduct : order.getProducts()) {
-                var productId = orderProduct.getProduct().getId();
-                var quantity = orderProduct.getQuantity();
-                productStockService.releaseStock(productId, quantity);
-            }
-            order.changeState(OrderStatus.FAILED);
-        }
+    public void webhook() {
+        // 주문 완료
+        // 주문 실패
+        // 주문 취소
     }
 
     // 발송 전에 결제 취소 기능
@@ -213,10 +201,20 @@ public class OrderService {
         }
 
         // 전액 환불
-        paymentService.cancelFullAmount(orderUid);
-        // 취소 발송
+        String reason = "사용자 요청";
+        paymentService.cancelFullAmount(order.getPaymentKey(), reason);
+
+
+        // 알림 메시지 작성
+        var sb = new StringBuilder();
+        var title = order.getTitle();
+
+        sb.append(title).append("\n");
+        var notificationBody = sb.toString();
+
+        // 취소 성공 발송
         try {
-            notificationService.sendNotification(order.getMember().getId(), "결제 취소", "결제 취소입니다~");
+            notificationService.sendNotification(order.getMember().getId(), "결제 취소", notificationBody);
         } catch (Exception e) {
             log.info("발송 실패");
         }

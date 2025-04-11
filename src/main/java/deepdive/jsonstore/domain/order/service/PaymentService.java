@@ -1,47 +1,76 @@
 package deepdive.jsonstore.domain.order.service;
 
 import deepdive.jsonstore.common.exception.CommonException;
-import deepdive.jsonstore.domain.order.entity.OrderStatus;
-import io.portone.sdk.server.PortOneClient;
-import io.portone.sdk.server.payment.PaymentClient;
+import deepdive.jsonstore.domain.order.dto.CancelRequest;
+import deepdive.jsonstore.domain.order.dto.ConfirmRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Base64;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
 
-    private final PaymentClient paymentClient;
-//    private final PortOneClient portOneClient;
+    @Value("${tosspayments.api-base}")
+    private String apiBase;
+
+    @Value("${tosspayments.api-secret}")
+    private String secretKey;
 
     @Transactional
-    public void cancelFullAmount(UUID paymentUid) {
-        /* 포트원 결제 취소 API */
-        // 전액 환불
-        // CompletebleFuture : js의 프로미스 콜백같은것
-//        portOneClient.getPayment().cancelPayment(
-        paymentClient.cancelPayment(
-                paymentUid.toString(), // 주문 uid
-                null, // 금액
-                null, // 면세 금액
-                null, // vat 금액
-                " 주문자 취소 요청 ("+ LocalDateTime.now()+")", // 취소 사유 및 일자 임시 저장
-                null, // 요청자
-                null, //promotionDiscontRetainOption
-                null, //취소가능 금액
-                null // 환불 계좌
-        ).thenAccept((response)->{
-            log.info("[주문취소] p_uid: "+ paymentUid);
-        }).exceptionally((e) -> {
-            log.info(e.getMessage());
-            throw new CommonException.InternalServerException();
-        });
+    public void cancelFullAmount(String paymentKey, String reason) {
+        String url = apiBase + "/v1/payments/" + paymentKey +"/cancel";
+        String auth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic " + auth);
+
+        var cancelRequest = CancelRequest.builder()
+                .cancelReason(reason)
+                .build();
+
+        HttpEntity<CancelRequest> entity = new HttpEntity<>(cancelRequest, headers);
+
+        restTemplate.postForObject(url, entity, String.class);
     }
 
+    @Transactional
+    public Map<String, Object> confirm(ConfirmRequest confirmRequest) {
+        String url = apiBase + "/v1/payments/confirm";
+        String auth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic " + auth);
+
+        HttpEntity<ConfirmRequest> entity = new HttpEntity<>(confirmRequest, headers);
+
+        // Payment 객체를 응답합니다.
+        // https://docs.tosspayments.com/reference
+        try {
+            Map<String, Object> paymentResponse = restTemplate.postForObject(url, entity, Map.class);
+            return paymentResponse;
+        }catch (HttpClientErrorException e) {
+            log.info(e.getLocalizedMessage());
+            throw new CommonException.InternalServerException();
+        }
+
+
+    }
 }

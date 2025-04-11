@@ -3,10 +3,7 @@ package deepdive.jsonstore.domain.order.entity;
 import deepdive.jsonstore.common.entity.BaseEntity;
 import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -54,9 +51,22 @@ public class Order extends BaseEntity {
     @Column
     private String recipient; // 수령인
 
+    @Column
+    @Setter
+    private String paymentKey; // 토스페이먼츠 주문키
+
+    @Builder.Default
+    @Column
+    private String currency = "KRW"; // 통화
+
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderProduct> products= new ArrayList<>();
+    private List<OrderProduct> products = new ArrayList<>();
+
+    public void addProduct(OrderProduct orderProduct) {
+        products.add(orderProduct);
+        orderProduct.setOrder(this);
+    }
 
     public void expire() {
         this.orderStatus = OrderStatus.EXPIRED;
@@ -71,4 +81,12 @@ public class Order extends BaseEntity {
                 .anyMatch(p -> p.getProduct().getStock() < p.getQuantity());
     }
 
+    // TODO : N + 1?
+    public String getTitle() {
+        if (products == null || products.isEmpty())
+            return "";
+        String firstName = products.getFirst().getProduct().getName();
+        int rest = products.size() - 1;
+        return rest > 0 ? firstName + " 외 " + rest + "개" : firstName;
+    }
 }

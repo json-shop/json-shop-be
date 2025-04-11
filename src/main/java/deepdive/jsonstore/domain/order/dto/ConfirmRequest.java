@@ -15,9 +15,9 @@ import java.util.UUID;
 
 @Builder
 public record ConfirmRequest (
-        String imp_uid,
-        String merchant_uid,
-        int amount
+       String paymentKey,
+       String orderId,
+       Long amount
 ){
 
 }

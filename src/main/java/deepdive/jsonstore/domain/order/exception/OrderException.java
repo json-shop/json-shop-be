@@ -44,4 +44,15 @@ public class OrderException extends RuntimeException {
             super(OrderErrorCode.ORDER_NOT_PAID);
         }
     }
+
+    public static class OrderTotalMismatchException extends OrderException {
+        public OrderTotalMismatchException() {
+            super(OrderErrorCode.ORDER_TOTAL_MISMATCH);
+        }
+    }
+        public static class OrderCurrencyMismatchException extends OrderException {
+        public OrderCurrencyMismatchException() {
+            super(OrderErrorCode.ORDER_CURRENCY_MISMATCH);
+        }
+    }
 }

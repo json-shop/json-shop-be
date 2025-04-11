@@ -1,34 +1,62 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const payBtn = document.getElementById("payBtn");
+document.addEventListener("DOMContentLoaded", main);
 
-  payBtn.addEventListener("click", async () => {
-    const storeId = document.getElementById("storeId").value;
-    const channelKey = document.getElementById("channelKey").value;
-    const paymentId = document.getElementById("paymentId").value || "order-" + Date.now();
-    const orderName = document.getElementById("orderName").value;
-    const totalAmount = Number(document.getElementById("totalAmount").value);
-    const confirmUrl = document.getElementById("confirmUrl").value;
+async function main() {
+  const button = document.getElementById("payment-button");
+  const coupon = document.getElementById("coupon-box");
+  const orderIdInput = document.getElementById("order-id");
+  const orderPriceInput = document.getElementById("order-price");
+  const couponPriceInput = document.getElementById("coupon-price");
+  const successUrlInput = document.getElementById("success-url");
+  const failUrlInput = document.getElementById("fail-url");
 
-    try {
-      const response = await PortOne.requestPayment({
-        storeId: storeId,
-        channelKey: channelKey,
-        paymentId: paymentId,
-        orderName: orderName,
-        totalAmount: totalAmount,
-        currency: 'CURRENCY_KRW',
-        payMethod: 'CARD',
-        confirmUrl: confirmUrl,
-      });
+  const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+  const tossPayments = TossPayments(clientKey);
+  const customerKey = "nZ4IJvwmV-l6l07qmn977";
 
-      // ✅ 성공 처리
-      console.log('✅ 결제 성공 응답:', response);
-      alert(`✅ 결제 성공!\n\n주문번호: ${response.paymentId}\n상태: ${response.status}`);
+  const widgets = tossPayments.widgets({ customerKey });
 
-    } catch (error) {
-      // ❌ 실패 처리
-      console.error('❌ 결제 실패:', error);
-      alert(`❌ 결제 실패: ${error.message}`);
-    }
+  // 초기 금액 세팅
+  await widgets.setAmount({
+    currency: "KRW",
+    value: parseInt(orderPriceInput.value),
   });
-});
+
+  await Promise.all([
+    widgets.renderPaymentMethods({
+      selector: "#payment-method",
+      variantKey: "DEFAULT",
+    }),
+    widgets.renderAgreement({
+      selector: "#agreement",
+      variantKey: "AGREEMENT",
+    }),
+  ]);
+
+  coupon.addEventListener("change", async () => {
+    const base = parseInt(orderPriceInput.value);
+    const discount = coupon.checked ? parseInt(couponPriceInput.value) : 0;
+
+    await widgets.setAmount({
+      currency: "KRW",
+      value: base - discount,
+    });
+  });
+
+  button.addEventListener("click", async () => {
+    const base = parseInt(orderPriceInput.value);
+    const discount = coupon.checked ? parseInt(couponPriceInput.value) : 0;
+    const amount = base - discount;
+
+    await widgets.setAmount({ currency: "KRW", value: amount });
+
+    await widgets.requestPayment({
+      orderId: orderIdInput.value,
+      orderName: "토스 티셔츠 외 2건",
+      successUrl: window.location.origin + successUrlInput.value,
+      failUrl: window.location.origin + failUrlInput.value,
+      customerEmail: "customer123@gmail.com",
+      customerName: "김토스",
+      customerMobilePhone: "01012341234",
+    });
+  });
+}
