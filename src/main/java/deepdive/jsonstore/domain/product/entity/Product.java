@@ -42,6 +42,7 @@ public class Product extends BaseEntity {
 	private String detail;
 	@Enumerated(EnumType.STRING)
 	private Category category;
+	@Enumerated(EnumType.STRING)
 	private ProductStatus status;
 
 	@ManyToOne(fetch = FetchType.LAZY)

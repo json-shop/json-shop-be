@@ -9,6 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-messaging-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth-compat.js"></script>
+  <script src="https://js.tosspayments.com/v2/standard"></script>
 
   <link rel="stylesheet" href="./css/style.css" />
 </head>
@@ -45,19 +46,36 @@
   </div>
 
   <div class="card">
-    <h2>3. 알림 내역 조회</h2>
-    <div class="form-group">
-      <label for="historyUserId">사용자 ID</label>
-      <input type="text" id="historyUserId" placeholder="알림 내역을 조회할 사용자 ID" />
+    <div>
+      <label>주문 번호: <input type="text" id="order-id" value="ORDER123" /></label><br />
+      <label>결제 금액(₩): <input type="number" id="order-price" value="50000" /></label><br />
+      <label>쿠폰 금액(₩): <input type="number" id="coupon-price" value="5000" /></label><br />
+      <label>성공 URL: <input type="text" id="success-url" value="/success.html" /></label><br />
+      <label>실패 URL: <input type="text" id="fail-url" value="/fail.html" /></label>
     </div>
-    <button id="historyButton">내역 조회</button>
-    <div id="notificationHistory"></div>
+
+    <!-- 할인 쿠폰 체크박스 -->
+    <div>
+      <input type="checkbox" id="coupon-box" />
+      <label for="coupon-box"> 쿠폰 적용 </label>
+    </div>
+
+    <!-- 결제 UI -->
+    <div id="payment-method"></div>
+    <div id="agreement"></div>
+
+    <!-- 결제 버튼 -->
+    <button id="payment-button" style="margin-top: 30px">결제하기</button>
   </div>
 </div>
 
+<script src="./js/requestPayment.js"></script>
 <script src="./js/firebase-init.js"></script>
 <script src="./js/register-token.js"></script>
 <script src="./js/send-notification.js"></script>
 <script src="./js/history-fetcher.js"></script>
+
 </body>
 </html>
+
+

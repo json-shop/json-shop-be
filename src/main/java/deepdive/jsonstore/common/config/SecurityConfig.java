@@ -1,5 +1,6 @@
 package deepdive.jsonstore.common.config;
 
+import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.auth.*;
 import deepdive.jsonstore.domain.auth.service.AdminMemberDetailsService;
 import deepdive.jsonstore.domain.auth.service.CustomMemberDetailsService;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -29,13 +32,11 @@ public class SecurityConfig {
     private final MemberJwtTokenProvider memberJwtTokenProvider;
     private final AdminJwtTokenProvider adminJwtTokenProvider;
 
-    // 패스워드 인코더
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 회원 인증 Provider
     @Bean
     public AuthenticationProvider memberAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -44,7 +45,6 @@ public class SecurityConfig {
         return provider;
     }
 
-    // 관리자 인증 Provider
     @Bean
     public AuthenticationProvider adminAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -53,46 +53,59 @@ public class SecurityConfig {
         return provider;
     }
 
-    // SecurityFilterChain 설정
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager() {
+        List<AuthenticationProvider> providers = List.of(
+                memberAuthenticationProvider(),
+                adminAuthenticationProvider()
+        );
+        return new ProviderManager(providers);
+    }
 
-        // 인증 프로바이더 등록
-        http.authenticationProvider(memberAuthenticationProvider());
-        http.authenticationProvider(adminAuthenticationProvider());
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationManager authenticationManager) throws Exception {
 
-        // authenticationManager 생성 (빌드 전에만 사용 가능)
-        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-
-        // member 로그인 필터
-        MemberLoginAuthenticationFilter memberLoginAuthenticationFilter =
+        // 로그인 필터
+        MemberLoginAuthenticationFilter memberLoginFilter =
                 new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider);
-        memberLoginAuthenticationFilter.setFilterProcessesUrl("/api/v1/member/login");
+        memberLoginFilter.setFilterProcessesUrl("/api/v1/login");
 
-        // admin 로그인 필터
-        AdminLoginAuthenticationFilter adminLoginAuthenticationFilter =
+        AdminLoginAuthenticationFilter adminLoginFilter =
                 new AdminLoginAuthenticationFilter(authenticationManager, adminJwtTokenProvider);
-        adminLoginAuthenticationFilter.setFilterProcessesUrl("/api/v1/admin/login");
+        adminLoginFilter.setFilterProcessesUrl("/api/v1/admin/login");
 
-        // member JWT 인증 필터
-        MemberJwtAuthenticationFilter memberJwtAuthenticationFilter =
+        // JWT 인증 필터
+        MemberJwtAuthenticationFilter memberJwtFilter =
                 new MemberJwtAuthenticationFilter(memberJwtTokenProvider, authenticationManager);
 
-        // admin JWT 인증 필터
-        AdminJwtAuthenticationFilter adminJwtAuthenticationFilter =
+        AdminJwtAuthenticationFilter adminJwtFilter =
                 new AdminJwtAuthenticationFilter(adminJwtTokenProvider, authenticationManager);
 
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/member/login", "/api/v1/admin/login", "/api/v1/member/signup").permitAll()
+                        .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(memberLoginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(adminLoginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(memberJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(adminJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                //  예외 발생 시 Exception 던짐
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            throw new AuthException.UnauthenticatedAccessException();
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            throw new AuthException.AccessDeniedException();
+                        })
+                )
+                // 로그인 필터는 UsernamePasswordAuthenticationFilter 위치에 정확히 지정
+                .addFilterAt(memberLoginFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(adminLoginFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // JWT 인증 필터는 로그인 필터 뒤에 실행
+                .addFilterAfter(memberJwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(adminJwtFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .build();
     }
 }

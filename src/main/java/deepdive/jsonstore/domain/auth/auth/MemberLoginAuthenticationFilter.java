@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.auth.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
 import jakarta.servlet.FilterChain;
@@ -13,27 +14,27 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
-
 public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    private final AuthenticationManager authenticationManager;
     private final MemberJwtTokenProvider memberJwtTokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public MemberLoginAuthenticationFilter(AuthenticationManager authenticationManager, MemberJwtTokenProvider memberJwtTokenProvider) {
-        super(new AntPathRequestMatcher("/api/v1/login", "POST")); // 요청 경로 설정
-        this.authenticationManager = authenticationManager;
+    public MemberLoginAuthenticationFilter(AuthenticationManager authenticationManager,
+                                           MemberJwtTokenProvider memberJwtTokenProvider) {
+        super(new AntPathRequestMatcher("/api/v1/login", "POST"));
+        setAuthenticationManager(authenticationManager);
         this.memberJwtTokenProvider = memberJwtTokenProvider;
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Authentication attemptAuthentication(HttpServletRequest request,
+                                                HttpServletResponse response) throws IOException {
         LoginRequest loginRequest = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
 
         UsernamePasswordAuthenticationToken authRequest =
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-        return authenticationManager.authenticate(authRequest);
+        return getAuthenticationManager().authenticate(authRequest);
     }
 
     @Override
@@ -54,8 +55,7 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
                                               HttpServletResponse response,
                                               org.springframework.security.core.AuthenticationException failed)
             throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\": \"Login failed\"}");
+        // 실패 시 예외 던지기
+        throw new AuthException.MemberLoginFailedException();
     }
 }

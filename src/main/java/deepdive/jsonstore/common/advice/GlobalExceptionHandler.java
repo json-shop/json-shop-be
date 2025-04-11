@@ -2,6 +2,8 @@ package deepdive.jsonstore.common.advice;
 
 import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.*;
+import deepdive.jsonstore.domain.cart.exception.CartException;
+import deepdive.jsonstore.domain.notification.exception.NotificationException;
 import deepdive.jsonstore.domain.product.exception.ProductException;
 import jakarta.persistence.EntityNotFoundException;
 import deepdive.jsonstore.common.exception.CommonException;
@@ -73,6 +75,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 
+    @ExceptionHandler(CartException.class)
+    public ResponseEntity<ErrorResponse> cartExceptionHandler(CartException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleJpaEntityNotFound(EntityNotFoundException ex) {
         ErrorResponse response = new ErrorResponse(
@@ -100,6 +108,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 
+    // 인증 실패 (로그인 안 됨)
+    @ExceptionHandler(AuthException.UnauthenticatedAccessException.class)
+    public ResponseEntity<ErrorResponse> unauthenticatedAccessHandler(AuthException.UnauthenticatedAccessException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
+    // 인가 실패 (권한 부족)
+    @ExceptionHandler(AuthException.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> accessDeniedHandler(AuthException.AccessDeniedException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
+    //접근 금지(다른 사용자 리소스 접근 시)
+    @ExceptionHandler(AuthException.ForbiddenAccessException.class)
+    public ResponseEntity<ErrorResponse> forbiddenAccessHandler(AuthException.ForbiddenAccessException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
 
 
 }

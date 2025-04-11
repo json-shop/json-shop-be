@@ -11,7 +11,7 @@ public enum JsonStoreErrorCode {
     //common
     INVALID_INPUT_PARAMETER(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
-    SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "시스템에 문제가 발생했습니다."),
+    SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "시스템에 문제가 발생했습니다. 관리자에게 문의해주십시오"),
 
     // notification
     MISSING_FCM_TOKEN(HttpStatus.BAD_REQUEST, "FCM 토큰이 없습니다."),
@@ -37,6 +37,14 @@ public enum JsonStoreErrorCode {
 
     //s3
     S3_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "s3 시스템에 문제가 발생했습니다."),
+
+    // 인증 및 인가 관련 추가
+    UNAUTHENTICATED_ACCESS(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN,"접근이 금지되었습니다. 권한이 없습니다."),
+
+    //MEMBER
+    MEMBER_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "회원 로그인에 실패했습니다."),
 
     //admin
     ADMIN_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "관리자 로그인에 실패했습니다.");
