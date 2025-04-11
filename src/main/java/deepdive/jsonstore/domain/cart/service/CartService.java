@@ -48,4 +48,12 @@ public class CartService {
         return null;
     }
 
+    // 카트 상품 목록 제거
+    public void deleteCartByCartId(Long cartId) {
+        // 카트 목록이 있는지 조회
+        validateService.validateCart(cartId);
+
+        // 카트 제거
+        cartRepository.deleteById(cartId);
+    }
 }

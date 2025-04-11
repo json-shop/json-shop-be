@@ -49,4 +49,9 @@ public class CartValidateService {
             throw new CartException.ProductOutOfStockException();
         return sumAmount;
     }
+
+    public void validateCart(Long cartId) {
+        cartRepository.findById(cartId)
+                .orElseThrow(CartException.CartNotFoundException::new);
+    }
 }
