@@ -92,4 +92,8 @@ public class DeliveryService{
         memberRepository.save(member);
 
     }
+
+    public Delivery getDeliveryByUid(UUID deliveryUid) {
+        return deliveryRepository.findByUid(deliveryUid).orElseThrow(EntityNotFoundException::new);
+    }
 }
