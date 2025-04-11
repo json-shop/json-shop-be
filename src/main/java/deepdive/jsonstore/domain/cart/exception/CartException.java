@@ -38,7 +38,7 @@ public class CartException extends RuntimeException {
 			super(CartErrorCode.INVALID_AMOUNT);
 		}
 	}
-
+  
 	public static class MemberNotFoundException extends CartException {
 		public MemberNotFoundException() {
 			super(CartErrorCode.MEMBER_NOT_FOUND);

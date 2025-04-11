@@ -163,6 +163,33 @@ class CartValidateServiceTest {
     }
 
     @Nested
+    @DisplayName("validateCart(Long cartId) 테스트")
+    class ValidateCartByCartId {
+
+        @Test
+        @DisplayName("성공 - cartId가 존재하는 경우")
+        void success() {
+            // given
+            Long cartId = 1L;
+            when(cartRepository.findById(cartId)).thenReturn(Optional.of(mock(Cart.class)));
+
+            // when & then
+            assertDoesNotThrow(() -> cartValidateService.validateCart(cartId));
+        }
+
+        @Test
+        @DisplayName("실패 - cartId가 존재하지 않는 경우")
+        void fail_notFound() {
+            // given
+            Long cartId = 2L;
+            when(cartRepository.findById(cartId)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThrows(CartException.CartNotFoundException.class,
+                    () -> cartValidateService.validateCart(cartId));
+        }
+    }
+
     @DisplayName("validateCart 메서드")
     class ValidateCart {
 

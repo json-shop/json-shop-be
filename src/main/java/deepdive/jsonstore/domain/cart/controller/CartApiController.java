@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,12 +21,18 @@ import java.util.stream.Collectors;
 public class CartApiController {
     private final CartService cartService;
 
-    // 카트에 상품 추가
+    // 장바구니에 상품 추가
     @PostMapping
     public ResponseEntity<CartResponse> addProductToCart(@Valid @RequestBody CartRequest request) {
         Cart cart = cartService.addProductToCart(request.getMemberId(), request.getProductId(), request.getAmount());
         return ResponseEntity.ok(new CartResponse(cart));
     }
+
+    // 장바구니 상품 삭제
+    @DeleteMapping
+    public ResponseEntity<?> deleteCartByMemberId(@Valid @RequestBody CartDeleteRequest request) {
+        cartService.deleteCartByCartId(request.getCartId());
+        return ResponseEntity.noContent().build();
 
     // 특정 멤버 카트 상품 조회
     @GetMapping

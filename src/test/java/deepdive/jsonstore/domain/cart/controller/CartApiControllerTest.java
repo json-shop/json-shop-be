@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.cart.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.domain.cart.dto.CartDeleteRequest;
 import deepdive.jsonstore.domain.cart.dto.CartRequest;
 import deepdive.jsonstore.domain.cart.dto.CartResponse;
 import deepdive.jsonstore.domain.cart.entity.Cart;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -97,6 +99,37 @@ class CartApiControllerTest {
     }
 
     @Nested
+    @DisplayName("deleteCartByMemberId API 테스트")
+    class DeleteCartByMemberId {
+
+        @Test
+        @DisplayName("성공 - 장바구니 항목 삭제")
+        void success() throws Exception {
+            // given
+            CartDeleteRequest request = new CartDeleteRequest(5L); // 예시 cartId
+
+            // when & then
+            mockMvc.perform(delete("/api/v1/carts")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNoContent());
+
+            Mockito.verify(cartService).deleteCartByCartId(5L);
+        }
+
+        @Test
+        @DisplayName("실패 - 유효하지 않은 요청 (cartId 누락)")
+        void fail_invalidRequest() throws Exception {
+            // given: cartId 빠진 요청
+            String invalidJson = "{}";
+
+            // when & then
+            mockMvc.perform(delete("/api/v1/carts")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(invalidJson))
+          }
+    }
+
     @DisplayName("getCartByMemberId API 테스트")
     class GetCartByMemberId {
 

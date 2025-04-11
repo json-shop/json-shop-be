@@ -137,6 +137,23 @@ class CartServiceTest {
     }
 
     @Nested
+    @DisplayName("deleteCartByCartId 테스트")
+    class DeleteCartByCartId {
+
+        @Test
+        @DisplayName("성공 - 카트 삭제")
+        void success() {
+            // given
+            Long cartId = 1L;
+
+            // when
+            cartService.deleteCartByCartId(cartId);
+
+            // then
+            verify(validateService).validateCart(cartId);
+            verify(cartRepository).deleteById(cartId);
+        }
+    }
     @DisplayName("getCartByMemberId 메서드")
     class GetCartByMemberId {
 
