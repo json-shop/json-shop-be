@@ -13,16 +13,15 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
-
 public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    private final AuthenticationManager authenticationManager;
     private final MemberJwtTokenProvider memberJwtTokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public MemberLoginAuthenticationFilter(AuthenticationManager authenticationManager, MemberJwtTokenProvider memberJwtTokenProvider) {
+    public MemberLoginAuthenticationFilter(AuthenticationManager authenticationManager,
+                                           MemberJwtTokenProvider memberJwtTokenProvider) {
         super(new AntPathRequestMatcher("/api/v1/login", "POST")); // 요청 경로 설정
-        this.authenticationManager = authenticationManager;
+        setAuthenticationManager(authenticationManager);
         this.memberJwtTokenProvider = memberJwtTokenProvider;
     }
 
@@ -33,7 +32,7 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
         UsernamePasswordAuthenticationToken authRequest =
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-        return authenticationManager.authenticate(authRequest);
+        return getAuthenticationManager().authenticate(authRequest);
     }
 
     @Override
