@@ -89,4 +89,11 @@ public class Order extends BaseEntity {
         int rest = products.size() - 1;
         return rest > 0 ? firstName + " 외 " + rest + "개" : firstName;
     }
+
+    public void updateDelivery(String address, String zipCode, String phone, String recipient) {
+        this.address = address;
+        this.zipCode = zipCode;
+        this.phone = phone;
+        this.recipient = recipient;
+    }
 }

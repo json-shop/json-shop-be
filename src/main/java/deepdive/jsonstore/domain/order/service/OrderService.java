@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.order.service;
 
+import deepdive.jsonstore.domain.delivery.service.DeliveryService;
 import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.member.service.MemberValidationService;
 import deepdive.jsonstore.domain.notification.service.NotificationService;
@@ -13,6 +14,8 @@ import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +32,7 @@ public class OrderService {
     private final ProductStockService productStockService;
     private final OrderValidationService orderValidationService;
     private final MemberValidationService memberValidationService;
+    private final DeliveryService deliveryService;
     private final NotificationService notificationService;
     private final PaymentService paymentService;
     @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
@@ -57,6 +61,10 @@ public class OrderService {
         return OrderResponse.from(foundOrder);
     }
 
+    public Page<OrderResponse> getOrdersByPage(Long memberId, Pageable pageable) {
+        return orderRepository.findByMemberId(memberId, pageable)
+                .map(OrderResponse::from);
+    }
 
     /**
      * 재고를 확인하고 주문서를 생성합니다.
@@ -77,7 +85,7 @@ public class OrderService {
             int quantity = orderProductReq.quantity();
             int price = product.getPrice();
 
-            // TODO : 재고가 부족한 목록을 에러로 반환할 것. 익셉션에 T extra 추가
+            // 재고가 부족한 목록을 에러로 반환할 것. 익셉션에 T extra 추가
             if (product.getStock() < quantity) {
                 throw new OrderException.OrderOutOfStockException();
             }
@@ -123,13 +131,9 @@ public class OrderService {
             order.changeState(OrderStatus.EXPIRED);
             throw new OrderException.OrderExpiredException();
         }
-//        if () {
-//            /* 통화 검사 */
-//        }
 
         if (confirmRequest.amount() != order.getTotal()) {
             order.changeState(OrderStatus.FAILED);
-            //TODO : 실패시 리디렉션?
             throw new OrderException.OrderTotalMismatchException();
         }
         if (order.isAnyOutOfStock()) {
@@ -219,5 +223,30 @@ public class OrderService {
             log.info("발송 실패");
         }
         order.expire();
+    }
+
+
+    @Transactional
+    public void updateOrderDeliveryBeforeShipment(UUID orderUid, UUID deliveryUid) {
+        var order = orderValidationService.findByUid(orderUid);
+        var delivery = deliveryService.getDeliveryByUid(deliveryUid);
+        var currentStatus = order.getOrderStatus();
+
+        // 만료된 주문
+        if (currentStatus.ordinal() >= OrderStatus.CANCELLED.ordinal()) {
+            throw new OrderException.OrderExpiredException();
+        }
+
+        // 이미 배송 중
+        if (currentStatus.ordinal() >= OrderStatus.IN_DELIVERY.ordinal()) {
+            throw new OrderException.AlreadyInDeliveryException();
+        }
+
+        order.updateDelivery(
+                delivery.getAddress(),
+                delivery.getZipCode(),
+                delivery.getPhone(),
+                delivery.getRecipient()
+        );
     }
 }
