@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,13 +67,13 @@ class NotificationServiceTest {
         @Test
         @DisplayName("성공")
         void success() {
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
             String token = "abc123";
 
-            doNothing().when(validationService).validateMemberExists(memberId);
+            doNothing().when(validationService).validateMemberExists(memberUid);
 
-            assertDoesNotThrow(() -> notificationService.saveToken(memberId, token));
-            verify(redisTemplate.opsForValue()).set("fcm:token:" + memberId, token);
+            assertDoesNotThrow(() -> notificationService.saveToken(memberUid, token));
+            verify(redisTemplate.opsForValue()).set("fcm:token:" + memberUid, token);
         }
     }
 
@@ -83,42 +84,42 @@ class NotificationServiceTest {
         @Test
         @DisplayName("성공")
         void success() throws Exception {
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
             String title = "Test Title";
             String body = "Test Body";
             String token = "validToken";
-            Member member = Member.builder().id(memberId).build();
+            Member member = Member.builder().uid(memberUid).build();
 
             ApiFuture<String> future = mock(ApiFuture.class);
             when(future.get()).thenReturn("messageId");
 
-            when(validationService.validateAndGetFcmToken(memberId)).thenReturn(token);
-            when(validationService.validateAndGetMember(memberId)).thenReturn(member);
+            when(validationService.validateAndGetFcmToken(memberUid)).thenReturn(token);
+            when(validationService.validateAndGetMember(memberUid)).thenReturn(member);
             when(firebaseMessaging.sendAsync(any(Message.class))).thenReturn(future);
 
-            assertDoesNotThrow(() -> notificationService.sendNotification(memberId, title, body));
+            assertDoesNotThrow(() -> notificationService.sendNotification(memberUid, title, body, NotificationCategory.SAVE));
             verify(notificationRepository).save(any(Notification.class));
         }
 
         @Test
         @DisplayName("실패 - Firebase 메시지 전송 중 예외 발생")
         void fail_sendException() throws Exception {
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
             String title = "Fail Title";
             String body = "Fail Body";
             String token = "token";
-            Member member = Member.builder().id(memberId).build();
+            Member member = Member.builder().uid(memberUid).build();
 
             ApiFuture<String> future = mock(ApiFuture.class);
             when(future.get()).thenThrow(new ExecutionException(new RuntimeException("Firebase error")));
 
-            when(validationService.validateAndGetFcmToken(memberId)).thenReturn(token);
-            when(validationService.validateAndGetMember(memberId)).thenReturn(member);
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(validationService.validateAndGetFcmToken(memberUid)).thenReturn(token);
+            when(validationService.validateAndGetMember(memberUid)).thenReturn(member);
+            when(memberRepository.findByUid(memberUid)).thenReturn(Optional.of(member));
             when(firebaseMessaging.sendAsync(any(Message.class))).thenReturn(future);
 
             CommonException ex = assertThrows(CommonException.InternalServerException.class,
-                    () -> notificationService.sendNotification(memberId, title, body));
+                    () -> notificationService.sendNotification(memberUid, title, body, NotificationCategory.SAVE));
             assertEquals(JsonStoreErrorCode.SERVER_ERROR, ex.getErrorCode());
         }
     }
@@ -127,17 +128,17 @@ class NotificationServiceTest {
     @DisplayName("getNotificationHistory 테스트")
     class GetNotificationHistory {
 
+        @Test
         @DisplayName("성공 - 알림 내역이 존재할 경우")
         void success_whenNotificationExists() {
-            // given
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
 
             Member mockMember = Member.builder()
-                    .id(memberId)
+                    .uid(memberUid)
                     .build();
 
             Notification notification1 = Notification.builder()
-                    .id(100L)
+                    .id(1L)
                     .title("제목1")
                     .body("내용1")
                     .category(NotificationCategory.SAVE)
@@ -145,7 +146,7 @@ class NotificationServiceTest {
                     .build();
 
             Notification notification2 = Notification.builder()
-                    .id(101L)
+                    .id(1L)
                     .title("제목2")
                     .body("내용2")
                     .category(NotificationCategory.SAVE)
@@ -154,33 +155,28 @@ class NotificationServiceTest {
 
             List<Notification> expectedNotifications = List.of(notification1, notification2);
 
-            when(notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId))
+            when(notificationRepository.findByMember_UidOrderByCreatedAtDesc(memberUid))
                     .thenReturn(expectedNotifications);
 
-            // when
-            List<NotificationHistoryResponse> actualNotifications = notificationService.getNotificationHistory(memberId);
+            List<NotificationHistoryResponse> actualNotifications = notificationService.getNotificationHistory(memberUid);
 
-            // then
             assertThat(actualNotifications).hasSize(2);
             assertThat(actualNotifications.get(0).getTitle()).isEqualTo("제목1");
             assertThat(actualNotifications.get(1).getTitle()).isEqualTo("제목2");
-            verify(notificationRepository, times(1)).findByMemberIdOrderByCreatedAtDesc(memberId);
+            verify(notificationRepository, times(1)).findByMember_UidOrderByCreatedAtDesc(memberUid);
         }
 
         @Test
         @DisplayName("성공 - 알림 내역이 없는 경우")
         void success_whenNotificationIsEmpty() {
-            // given
-            Long memberId = 2L;
-            when(notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId))
+            UUID memberUid = UUID.randomUUID();
+            when(notificationRepository.findByMember_UidOrderByCreatedAtDesc(memberUid))
                     .thenReturn(Collections.emptyList());
 
-            // when
-            List<NotificationHistoryResponse> actualNotifications = notificationService.getNotificationHistory(memberId);
+            List<NotificationHistoryResponse> actualNotifications = notificationService.getNotificationHistory(memberUid);
 
-            // then
             assertThat(actualNotifications).isEqualTo(Collections.emptyList());
-            verify(notificationRepository, times(1)).findByMemberIdOrderByCreatedAtDesc(memberId);
+            verify(notificationRepository, times(1)).findByMember_UidOrderByCreatedAtDesc(memberUid);
         }
     }
 }

@@ -218,8 +218,8 @@ class OrderServiceTest {
                     .build();
 
             var confirmRequest = ConfirmRequest.builder()
-                    .merchant_uid(order.getUid().toString())
-                    .amount(100)
+                    .paymentKey(order.getUid().toString())
+                    .amount(100L)
                     .build();
 
             //when

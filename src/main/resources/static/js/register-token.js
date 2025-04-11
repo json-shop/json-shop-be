@@ -1,9 +1,9 @@
 document.getElementById('registerButton').addEventListener('click', async () => {
-  const memberId = document.getElementById('memberId').value.trim();
+  const memberUid = document.getElementById('memberUid').value.trim();
   const tokenStatus = document.getElementById('tokenStatus');
 
-  if (!memberId) {
-    tokenStatus.textContent = '사용자 ID를 입력해주세요.';
+  if (!memberUid) {
+    tokenStatus.textContent = '사용자 UID를 입력해주세요.';
     return;
   }
 
@@ -25,12 +25,12 @@ document.getElementById('registerButton').addEventListener('click', async () => 
     const response = await fetch('/api/v1/fcm-tokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ memberId: Number(memberId), token }),
+      body: JSON.stringify({ memberUid, token }),
     });
 
     tokenStatus.textContent = response.ok
-      ? '푸시 알림이 성공적으로 등록되었습니다.'
-      : '서버에 토큰 등록 실패: ' + await response.text();
+        ? '푸시 알림이 성공적으로 등록되었습니다.'
+        : '서버에 토큰 등록 실패: ' + await response.text();
   } catch (error) {
     console.error('푸시 등록 오류:', error);
     tokenStatus.textContent = '푸시 등록 중 오류가 발생했습니다: ' + error.message;
