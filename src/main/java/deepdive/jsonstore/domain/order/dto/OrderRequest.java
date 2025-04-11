@@ -9,9 +9,6 @@ import java.util.UUID;
 @Builder
 public record OrderRequest(
 
-        // 주문자
-        UUID memberUid,
-
         // 주문할 상품
         List<OrderProductRequest> orderProductRequests,
 

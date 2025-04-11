@@ -3,13 +3,12 @@ package deepdive.jsonstore.domain.auth.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
+import deepdive.jsonstore.common.exception.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -62,7 +61,7 @@ class AdminLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("잘못된 비밀번호로 로그인 시도 테스트")
+    @DisplayName("잘못된 비밀번호로 로그인 시도 시 예외 발생 테스트")
     void testAttemptAuthenticationWithWrongPassword() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -74,9 +73,9 @@ class AdminLoginAuthenticationFilterTest {
                 new UsernamePasswordAuthenticationToken("admin@example.com", "wrongpassword");
 
         when(authenticationManager.authenticate(authRequest))
-                .thenThrow(new AuthenticationException("Bad credentials") {});
+                .thenThrow(new AuthException.AdminLoginFailedException());
 
-        assertThrows(AuthenticationException.class, () -> {
+        assertThrows(AuthException.AdminLoginFailedException.class, () -> {
             filter.attemptAuthentication(request, new MockHttpServletResponse());
         });
 
@@ -84,7 +83,7 @@ class AdminLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("인증 성공 테스트")
+    @DisplayName("인증 성공 시 JWT 응답 테스트")
     void testSuccessfulAuthentication() throws IOException, ServletException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -101,16 +100,14 @@ class AdminLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("인증 실패 테스트")
-    void testUnsuccessfulAuthentication() throws IOException {
+    @DisplayName("인증 실패 시 AuthException 발생 테스트")
+    void testUnsuccessfulAuthentication_throwsException() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         AuthenticationException exception = mock(AuthenticationException.class);
 
-        filter.unsuccessfulAuthentication(request, response, exception);
-
-        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
-        assertEquals("application/json", response.getContentType());
-        assertEquals("{\"error\": \"Admin login failed\"}", response.getContentAsString());
+        assertThrows(AuthException.AdminLoginFailedException.class, () -> {
+            filter.unsuccessfulAuthentication(request, response, exception);
+        });
     }
 }

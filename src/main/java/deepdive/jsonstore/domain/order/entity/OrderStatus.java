@@ -2,11 +2,12 @@ package deepdive.jsonstore.domain.order.entity;
 
 public enum OrderStatus {
     CREATED, // 생성
-    PENDING_PAYMENT, // 결제 대기단계, 재고 점유 상태
+    PAYMENT_PENDING, // 결제 대기단계, 재고 점유 상태
     PAID,
+    PREPARING_SHIPMENT,
     IN_DELIVERY,
-    DONE,
-    CANCELED,
-    FAILED,
-    EXPIRED // 결제 시간 초과시 실패시 만료
+    DONE, // 배송완료
+    CANCELLED, // 주문 취소
+    FAILED, // 위변조
+    EXPIRED // 만료된 주문(사용자취소, 시간 만료),
 }

@@ -55,4 +55,32 @@ public class AuthException extends RuntimeException {
         }
     }
 
+    public static class MemberLoginFailedException extends AuthException {
+        public MemberLoginFailedException() {
+            super(JsonStoreErrorCode.MEMBER_LOGIN_FAILED);
+        }
+    }
+
+
+    // 인증되지 않은 사용자 (로그인하지 않음)
+    public static class UnauthenticatedAccessException extends AuthException {
+        public UnauthenticatedAccessException() {
+            super(JsonStoreErrorCode.UNAUTHENTICATED_ACCESS);
+        }
+    }
+
+    // 권한 부족한 사용자 (로그인했지만 접근 권한 없음)
+    public static class AccessDeniedException extends AuthException {
+        public AccessDeniedException() {
+            super(JsonStoreErrorCode.ACCESS_DENIED);
+        }
+    }
+
+    //  다른 사용자 리소스 접근 시
+    public static class ForbiddenAccessException extends AuthException {
+        public ForbiddenAccessException() {
+            super(JsonStoreErrorCode.FORBIDDEN_ACCESS);
+        }
+    }
+
 }

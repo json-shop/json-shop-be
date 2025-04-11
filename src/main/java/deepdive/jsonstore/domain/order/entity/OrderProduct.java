@@ -2,10 +2,7 @@ package deepdive.jsonstore.domain.order.entity;
 
 import deepdive.jsonstore.domain.product.entity.Product;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -25,6 +22,7 @@ public class OrderProduct {
     @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
     private UUID uid = UUID.randomUUID();
 
+    @Setter
     @ManyToOne
     @JoinColumn(name = "order_id",foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Order order;
