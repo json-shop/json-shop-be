@@ -3,6 +3,8 @@ package deepdive.jsonstore.domain.delivery.service;
 import com.google.firebase.messaging.FirebaseMessaging;
 import deepdive.jsonstore.common.config.FirebaseConfig;
 import deepdive.jsonstore.common.config.RedisTestService;
+import deepdive.jsonstore.common.exception.CommonException;
+import deepdive.jsonstore.common.exception.MemberException;
 import deepdive.jsonstore.domain.delivery.dto.DeliveryRegRequestDTO;
 import deepdive.jsonstore.domain.delivery.dto.DeliveryResponseDTO;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
@@ -10,13 +12,11 @@ import deepdive.jsonstore.domain.delivery.exception.DeliveryException;
 import deepdive.jsonstore.domain.delivery.repository.DeliveryRepository;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
@@ -28,6 +28,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 
 @SpringBootTest
 @Transactional
@@ -37,6 +39,9 @@ class DeliveryServiceTest {
 
     @Autowired
     private DeliveryService deliveryService;
+
+    @MockitoBean
+    private DeliveryAddressValidationService deliveryAddressValidationService;
 
     @MockitoBean
     private FirebaseConfig firebaseConfig;
@@ -50,8 +55,6 @@ class DeliveryServiceTest {
     @MockitoBean
     private FirebaseMessaging firebaseMessaging;
 
-    @MockitoBean
-    private DeliveryValidationService deliveryValidationService;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -107,10 +110,10 @@ class DeliveryServiceTest {
                 Delivery delivery = createDelivery(member, "기본 배송지 정상 설정");
 
                 // when
-                deliveryService.setDeliveryDefault(member.getEmail(), delivery.getUid());
+                deliveryService.setDeliveryDefault(member.getUid(), delivery.getUid());
 
                 // then
-                Member result = memberRepository.findByEmail(member.getEmail()).orElseThrow();
+                Member result = memberRepository.findByUid(member.getUid()).orElseThrow();
                 assertThat(result.getDefaultDelivery().getUid()).isEqualTo(delivery.getUid());
             }
         }
@@ -129,7 +132,7 @@ class DeliveryServiceTest {
 
                 // when & then
                 assertThatThrownBy(() ->
-                        deliveryService.setDeliveryDefault(unknown.getEmail(), delivery.getUid())
+                        deliveryService.setDeliveryDefault(unknown.getUid(), delivery.getUid())
                 ).isInstanceOf(DeliveryException.DeliveryAccessDeniedException.class);
             }
 
@@ -141,8 +144,8 @@ class DeliveryServiceTest {
 
                 // when & then
                 assertThatThrownBy(() ->
-                        deliveryService.setDeliveryDefault(member.getEmail(), nonExistentUid)
-                ).isInstanceOf(EntityNotFoundException.class);
+                        deliveryService.setDeliveryDefault(member.getUid(), nonExistentUid)
+                ).isInstanceOf(DeliveryException.DeliveryNotFoundException.class);
             }
         }
     }
@@ -165,10 +168,10 @@ class DeliveryServiceTest {
                 );
 
                 // mock: zipCode 유효성 검사 성공하도록 처리
-                Mockito.when(deliveryValidationService.validateZipCode("12345")).thenReturn(true);
+                doNothing().when(deliveryAddressValidationService).validateZipCode("12345");
 
                 // when
-                deliveryService.createDelivery(member.getEmail(), dto);
+                deliveryService.createDelivery(member.getUid(), dto);
 
                 // then
                 List<Delivery> deliveries = deliveryRepository.findAll();
@@ -191,7 +194,7 @@ class DeliveryServiceTest {
             @DisplayName("존재하지 않는 회원의 경우 예외 발생")
             void createDelivery_notExistingMember() {
                 // given
-                String notExistingEmail = "test123@example.com";
+                UUID nonExistentUid = UUID.randomUUID();
 
                 DeliveryRegRequestDTO dto = new DeliveryRegRequestDTO(
                         "서울",
@@ -202,8 +205,8 @@ class DeliveryServiceTest {
 
                 // when & then
                 assertThatThrownBy(() ->
-                        deliveryService.createDelivery(notExistingEmail, dto)
-                ).isInstanceOf(EntityNotFoundException.class);
+                        deliveryService.createDelivery(nonExistentUid, dto)
+                ).isInstanceOf(CommonException.class);
             }
 
             @Test
@@ -218,11 +221,13 @@ class DeliveryServiceTest {
                 );
 
                 // mock: zipCode 유효성 검사 성공하도록 처리
-                Mockito.when(deliveryValidationService.validateZipCode("12345")).thenReturn(false);
+                doThrow(new DeliveryException.AddressNotFoundException())
+                        .when(deliveryAddressValidationService)
+                        .validateZipCode("12345");
 
                 //when & then
                 assertThatThrownBy(() ->
-                        deliveryService.createDelivery(member.getEmail(), dto)
+                        deliveryService.createDelivery(member.getUid(), dto)
                 ).isInstanceOf(DeliveryException.AddressNotFoundException.class);
             }
 
@@ -243,7 +248,7 @@ class DeliveryServiceTest {
                 Delivery delivery = createDelivery(member, "배송지 삭제 성공");
 
                 //when
-                deliveryService.deleteDelivery(member.getEmail(), delivery.getUid());
+                deliveryService.deleteDelivery(member.getUid(), delivery.getUid());
 
                 //then
                 boolean exists = deliveryRepository.existsByUid(delivery.getUid());
@@ -265,7 +270,7 @@ class DeliveryServiceTest {
 
                 //when & then
                 assertThatThrownBy(() ->
-                        deliveryService.deleteDelivery(member2.getEmail(), delivery.getUid())
+                        deliveryService.deleteDelivery(member2.getUid(), delivery.getUid())
                 ).isInstanceOf(DeliveryException.DeliveryAccessDeniedException.class);
 
             }
@@ -276,7 +281,7 @@ class DeliveryServiceTest {
 
                 //when & then
                 assertThatThrownBy(() ->
-                        deliveryService.deleteDelivery(member.getEmail(), UUID.randomUUID())
+                        deliveryService.deleteDelivery(member.getUid(), UUID.randomUUID())
                 ).isInstanceOf(DeliveryException.DeliveryNotFoundException.class);
             }
 
@@ -298,7 +303,7 @@ class DeliveryServiceTest {
                 Delivery delivery2 = createDelivery(member, "배송지 조회2");
 
                 //when
-                List<DeliveryResponseDTO> result = deliveryService.getDelivery(member.getEmail());
+                List<DeliveryResponseDTO> result = deliveryService.getDelivery(member.getUid());
 
                 //then
                 assertThat(result).hasSize(2);
@@ -316,12 +321,12 @@ class DeliveryServiceTest {
             @DisplayName("존재하지 않는 회원의 경우 예외 발생")
             void getDelivery_MemberNotFound() {
                 //given
-                String invalidEmail = "test12345@example.com";
+                UUID invalidUid = UUID.randomUUID();
 
                 //when & then
                 assertThatThrownBy(()->
-                        deliveryService.getDelivery(invalidEmail))
-                        .isInstanceOf(DeliveryException.DeliveryAccessDeniedException.class);
+                        deliveryService.getDelivery(invalidUid))
+                        .isInstanceOf(MemberException.MemberNotFound.class);
             }
         }
     }
@@ -346,10 +351,10 @@ class DeliveryServiceTest {
                 );
 
                 // mock: zipCode 유효성 검사 성공하도록 처리
-                Mockito.when(deliveryValidationService.validateZipCode("00000")).thenReturn(true);
+                doNothing().when(deliveryAddressValidationService).validateZipCode("00000");
 
                 //when
-                deliveryService.updateDelivery(member.getEmail(),delivery.getUid(),dto);
+                deliveryService.updateDelivery(member.getUid(),delivery.getUid(),dto);
 
                 //then
                 Delivery updated = deliveryRepository.findById(delivery.getId()).orElseThrow();
@@ -379,11 +384,13 @@ class DeliveryServiceTest {
                 );
 
                 // mock: zipCode 유효성 검사 성공하도록 처리
-                Mockito.when(deliveryValidationService.validateZipCode("00000")).thenReturn(false);
+//                doThrow(new DeliveryException.AddressNotFoundException())
+//                        .when(deliveryValidationService)
+//                        .validateZipCode("00000");
 
                 //when & then
                 assertThatThrownBy(() ->
-                        deliveryService.updateDelivery(member2.getEmail(), delivery.getUid(), dto)
+                        deliveryService.updateDelivery(member2.getUid(), delivery.getUid(), dto)
                 ).isInstanceOf(DeliveryException.DeliveryAccessDeniedException.class);
 
             }
@@ -401,12 +408,12 @@ class DeliveryServiceTest {
                 );
 
                 // mock: zipCode 유효성 검사 성공하도록 처리
-                Mockito.when(deliveryValidationService.validateZipCode("00000")).thenReturn(true);
+//                doNothing().when(deliveryValidationService).validateZipCode("00000");
 
 
                 //when & then
                 assertThatThrownBy(() ->
-                        deliveryService.updateDelivery(member.getEmail(), uuid, dto)
+                        deliveryService.updateDelivery(member.getUid(), uuid, dto)
                 ).isInstanceOf(DeliveryException.DeliveryNotFoundException.class);
 
             }

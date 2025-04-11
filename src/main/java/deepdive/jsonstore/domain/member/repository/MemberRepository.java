@@ -32,5 +32,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("DELETE FROM Member m WHERE m.isDeleted = true AND m.deletedAt <= :cutoffDate")
     void deleteAllSoftDeletedBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
 
-
 }
