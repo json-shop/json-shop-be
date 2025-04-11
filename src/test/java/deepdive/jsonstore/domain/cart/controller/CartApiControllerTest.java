@@ -24,10 +24,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -124,6 +127,42 @@ class CartApiControllerTest {
             mockMvc.perform(delete("/api/v1/carts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(invalidJson))
+          }
+    }
+
+    @DisplayName("getCartByMemberId API 테스트")
+    class GetCartByMemberId {
+
+        @Test
+        @DisplayName("성공 - 장바구니 목록 조회")
+        void success() throws Exception {
+            // given
+            Cart cart = Cart.builder()
+                    .id(1L)
+                    .member(Member.builder().id(1L).build())
+                    .product(Product.builder().id(10L).build())
+                    .amount(2L)
+                    .build();
+
+            Mockito.when(cartService.getCartByMemberId(anyLong()))
+                    .thenReturn(List.of(cart));
+
+            // when & then
+            mockMvc.perform(get("/api/v1/carts")
+                            .param("memberId", "1")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)))
+                    .andExpect(jsonPath("$[0].id").value(1L))
+                    .andExpect(jsonPath("$[0].amount").value(2));
+        }
+
+        @Test
+        @DisplayName("실패 - 유효하지 않은 요청 (memberId 누락)")
+        void fail_invalidRequest() throws Exception {
+            // when & then
+            mockMvc.perform(get("/api/v1/carts")
+                            .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }
