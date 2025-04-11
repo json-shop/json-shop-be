@@ -5,13 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class FcmTokenRequest {
-    @NotNull(message = "회원 ID를 입력해주세요.")
-    @Positive(message = "회원 ID는 0보다 커야 합니다.")
-    private Long memberId;
+
+    @NotNull(message = "회원 UUID를 입력해주세요.")
+    private UUID memberUid;
 
     @NotBlank(message = "FCM 토큰이 없습니다.")
     @Pattern(

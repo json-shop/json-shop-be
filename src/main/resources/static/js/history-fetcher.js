@@ -1,14 +1,14 @@
 document.getElementById('historyButton').addEventListener('click', async () => {
-  const userId = document.getElementById('historyUserId').value.trim();
+  const memberUid = document.getElementById('historyMemberUid').value.trim();
   const notificationHistory = document.getElementById('notificationHistory');
 
-  if (!userId) {
-    notificationHistory.innerHTML = '<p style="color:red;">사용자 ID를 입력해주세요.</p>';
+  if (!memberUid) {
+    notificationHistory.innerHTML = '<p style="color:red;">사용자 UID를 입력해주세요.</p>';
     return;
   }
 
   try {
-    const response = await fetch(`/api/v1/notifications?memberId=${userId}`);
+    const response = await fetch(`/api/v1/notifications?memberUid=${memberUid}`);
     if (!response.ok) {
       notificationHistory.innerHTML = `<p style="color:red;">조회 실패: ${await response.text()}</p>`;
       return;

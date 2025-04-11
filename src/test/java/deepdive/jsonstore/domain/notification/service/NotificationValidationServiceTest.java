@@ -14,6 +14,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,24 +46,24 @@ class NotificationValidationServiceTest {
         @Test
         @DisplayName("성공")
         void success() {
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
             String token = "abc123";
 
-            when(valueOperations.get("fcm:token:" + memberId)).thenReturn(token);
+            when(valueOperations.get("fcm:token:" + memberUid)).thenReturn(token);
 
-            String result = validationService.validateAndGetFcmToken(memberId);
+            String result = validationService.validateAndGetFcmToken(memberUid);
             assertEquals(token, result);
         }
 
         @Test
         @DisplayName("실패 - 토큰이 존재하지 않음")
         void fail_tokenMissing() {
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
 
-            when(valueOperations.get("fcm:token:" + memberId)).thenReturn(null);
+            when(valueOperations.get("fcm:token:" + memberUid)).thenReturn(null);
 
             NotificationException ex = assertThrows(NotificationException.class,
-                    () -> validationService.validateAndGetFcmToken(memberId));
+                    () -> validationService.validateAndGetFcmToken(memberUid));
             assertEquals(JsonStoreErrorCode.MISSING_FCM_TOKEN, ex.getErrorCode());
         }
     }
@@ -74,20 +75,20 @@ class NotificationValidationServiceTest {
         @Test
         @DisplayName("성공")
         void success() {
-            Long memberId = 1L;
-            when(memberRepository.existsById(memberId)).thenReturn(true);
+            UUID memberUid = UUID.randomUUID();
+            when(memberRepository.existsByUid(memberUid)).thenReturn(true);
 
-            assertDoesNotThrow(() -> validationService.validateMemberExists(memberId));
+            assertDoesNotThrow(() -> validationService.validateMemberExists(memberUid));
         }
 
         @Test
         @DisplayName("실패 - 회원이 존재하지 않음")
         void fail_notFound() {
-            Long memberId = 1L;
-            when(memberRepository.existsById(memberId)).thenReturn(false);
+            UUID memberUid = UUID.randomUUID();
+            when(memberRepository.existsByUid(memberUid)).thenReturn(false);
 
             NotificationException ex = assertThrows(NotificationException.class,
-                    () -> validationService.validateMemberExists(memberId));
+                    () -> validationService.validateMemberExists(memberUid));
             assertEquals(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND, ex.getErrorCode());
         }
     }
@@ -99,24 +100,24 @@ class NotificationValidationServiceTest {
         @Test
         @DisplayName("성공")
         void success() {
-            Long memberId = 1L;
-            Member member = Member.builder().id(memberId).build();
+            UUID memberUid = UUID.randomUUID();
+            Member member = Member.builder().uid(memberUid).build();
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(memberRepository.findByUid(memberUid)).thenReturn(Optional.of(member));
 
-            Member result = validationService.validateAndGetMember(memberId);
+            Member result = validationService.validateAndGetMember(memberUid);
             assertEquals(member, result);
         }
 
         @Test
         @DisplayName("실패 - 회원이 존재하지 않음")
         void fail_notFound() {
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+            when(memberRepository.findByUid(memberUid)).thenReturn(Optional.empty());
 
             NotificationException ex = assertThrows(NotificationException.class,
-                    () -> validationService.validateAndGetMember(memberId));
+                    () -> validationService.validateAndGetMember(memberUid));
             assertEquals(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND, ex.getErrorCode());
         }
     }
