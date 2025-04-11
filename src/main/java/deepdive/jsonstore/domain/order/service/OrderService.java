@@ -11,15 +11,15 @@ import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class OrderService {
@@ -30,10 +30,8 @@ public class OrderService {
     private final OrderValidationService orderValidationService;
     private final MemberValidationService memberValidationService;
     private final NotificationService notificationService;
-    @Value("${order.expire-minutes}")
-    private int ORDER_EXPIRE_TIME;
-    @Value("${portone.webhook.secret-key}")
-    private String key;
+    private final PaymentService paymentService;
+    @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
 
     /**
      * 주문서 조회
@@ -67,11 +65,9 @@ public class OrderService {
      * @param orderRequest 주문 요청 Dto
      * @return 주문서 Dto
      */
-    @Transactional
-    public UUID createOrder(UUID memberId, OrderRequest orderRequest) {
+    public UUID createOrder(Long memberId, OrderRequest orderRequest) {
 
-        var member = memberValidationService.findByUid(memberId);
-
+        var member = memberValidationService.findById(memberId);
         List<OrderProduct> orderProducts = new ArrayList<>();
         int total = 0;
 
@@ -101,29 +97,17 @@ public class OrderService {
                 .recipient(orderRequest.recipient())
                 .address(orderRequest.address())
                 .zipCode(orderRequest.zipCode())
-                .products(orderProducts)
                 .total(total)
                 .expiredAt(LocalDateTime.now().plusMinutes(ORDER_EXPIRE_TIME))
                 .build();
 
+        // 주문 상품 등록
+        // TODO : 리펙토링?
+        orderProducts.forEach(order::addProduct);
         var savedOrder = orderRepository.save(order);
 
         return savedOrder.getUid();
     }
-
-//    // 요청을 검증합니다.
-//    public void verifyPgWebhook(String rawBody, String msgId, String signature, String timestamp) {
-//        var verifier = new WebhookVerifier(key);
-//        Webhook webhook;
-//        try {
-//            webhook = verifier.verify(rawBody, msgId, signature, timestamp);
-//        } catch (WebhookVerificationException e) {
-//            throw new RuntimeException("변조" + e.getLocalizedMessage());
-//        }
-//        if (!(webhook instanceof WebhookTransaction)) {
-//            throw new RuntimeException("웹훅트랜젝션이 아님");
-//        }
-//    }
 
     /**
      *
@@ -131,27 +115,25 @@ public class OrderService {
      * @return 컨펌프로세스 결과를 반환합니다.
      */
     @Transactional
-    public ConfirmReason confirmOrder(ConfirmRequest confirmRequest) {
+    public void confirmOrder(ConfirmRequest confirmRequest) {
+        var orderUid = UUID.fromString(confirmRequest.orderId());
+        var order = orderValidationService.findByUid(orderUid);
 
-        /* new WebhookVerifier() */
-
-        var orderUid = UUID.fromString(confirmRequest.merchant_uid());
-        Order order;
-        try {
-           order = orderValidationService.findByUid(orderUid);
-        } catch (OrderException.OrderNotFound e) {
-            return ConfirmReason.NOT_FOUND;
-        }
         if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
-            order.changeToExpired();
-            return ConfirmReason.EXPIRED_ORDER;
+            order.changeState(OrderStatus.EXPIRED);
+            throw new OrderException.OrderExpiredException();
         }
+//        if () {
+//            /* 통화 검사 */
+//        }
+
         if (confirmRequest.amount() != order.getTotal()) {
-            order.changeToFailed();
-            return ConfirmReason.TOTAL_MISMATCH;
+            order.changeState(OrderStatus.FAILED);
+            //TODO : 실패시 리디렉션?
+            throw new OrderException.OrderTotalMismatchException();
         }
         if (order.isAnyOutOfStock()) {
-            return ConfirmReason.OUT_OF_STOCK;
+            throw new OrderException.OrderOutOfStockException();
         }
 
         // 재고 예약
@@ -161,45 +143,81 @@ public class OrderService {
             productStockService.reserveStock(productId, quantity); // 예약
         }
 
-        // 결제 승인
-        return ConfirmReason.CONFIRM;
+        // 결제 대기 상태
+        // order.changeState(OrderStatus.PAYMENT_PENDING);
+
+        // 주문 승인 및 결제키 등록
+        var paymentResponse = paymentService.confirm(confirmRequest);
+        var paymentKey = paymentResponse.get("paymentKey").toString();
+        order.setPaymentKey(paymentKey);
+
+        var sb = new StringBuilder();
+        var title = order.getTitle();
+
+        sb.append(title).append("\n");
+        sb.append(order.getTotal()).append("원 결제성공");
+        var notificationBody = sb.toString();
+
+        // 성공 알림 발송
+        try {
+            notificationService.sendNotification(order.getMember().getId(), "결제 성공", notificationBody);
+        } catch (Exception e) {
+            // 재발송 전략?
+            log.info("발송 실패");
+        }
+
+        // 주문 상태 "결제"로 변경
+        order.changeState(OrderStatus.PAID);
+
     }
 
     // 웹훅이 결제 완료인지 판별
-//    public void webhook(WebhookTransaction webhookTransaction) {
     @Transactional
-    public void webhook(WebhookRequest webhookRequest) {
-        /*
-        - 결제가 승인되었을 때(모든 결제 수단) - (status : paid)
-        - 가상계좌가 발급되었을 때 - (status : ready)
-        - 가상계좌에 결제 금액이 입금되었을 때 - (status : paid)
-        - 예약결제가 시도되었을 때 - (status : paid or failed)
-        - 관리자 콘솔에서 결제 취소되었을 때 - (status : cancelled)
-         */
+    public void webhook() {
+        // 주문 완료
+        // 주문 실패
+        // 주문 취소
+    }
 
-        /* new WebhookVerifier() */
+    // 발송 전에 결제 취소 기능
+    @Transactional
+    public void cancelOrderBeforeShipment(UUID orderUid) {
+        var order = orderValidationService.findByUid(orderUid);
+        var currentStatus = order.getOrderStatus();
 
-        var order= orderValidationService.findByUid(UUID.fromString(webhookRequest.orderUid()));
-        if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
-            order.changeToExpired();
+        // 결제 전 주문
+        if (currentStatus.ordinal() <= OrderStatus.PAYMENT_PENDING.ordinal()) {
+            throw new OrderException.NotPaidException();
         }
 
-        // 결제 상태 변경
-        // 웹훅보다 브라우저의 처리가 먼저 되는 경우도 있음
-        switch (webhookRequest.status()) {
-            case "paid" : // committed
-                order.changeToPaid();
-                notificationService.sendNotification(order.getMember().getId(), "결제 성공", "결제 성공입니다~");
-                break;
-            default :
-                // 재고 릴리즈
-                for (var orderProduct : order.getProducts()) {
-                    var productId = orderProduct.getProduct().getId();
-                    var quantity = orderProduct.getQuantity();
-                    productStockService.releaseStock(productId, quantity);
-                }
-                order.changeToFailed();
-                break;
+        // 만료된 주문
+        if (currentStatus.ordinal() >= OrderStatus.CANCELLED.ordinal()) {
+            throw new OrderException.OrderExpiredException();
         }
+
+        // 이미 배송 중
+        if (currentStatus == OrderStatus.IN_DELIVERY) {
+            throw new OrderException.AlreadyInDeliveryException();
+        }
+
+        // 전액 환불
+        String reason = "사용자 요청";
+        paymentService.cancelFullAmount(order.getPaymentKey(), reason);
+
+
+        // 알림 메시지 작성
+        var sb = new StringBuilder();
+        var title = order.getTitle();
+
+        sb.append(title).append("\n");
+        var notificationBody = sb.toString();
+
+        // 취소 성공 발송
+        try {
+            notificationService.sendNotification(order.getMember().getId(), "결제 취소", notificationBody);
+        } catch (Exception e) {
+            log.info("발송 실패");
+        }
+        order.expire();
     }
 }

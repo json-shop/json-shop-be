@@ -26,7 +26,7 @@ public class OrderController {
 //            @AuthencitaitonPrincipal(expression"Member=member.id")
 //            UUID memberId,
             @RequestBody OrderRequest orderRequest) {
-        var memberId = UUID.randomUUID();
+        var memberId = 1L;
         var orderUid = orderService.createOrder(memberId, orderRequest);
         return ResponseEntity.created(
                 URI.create("/api/v1/orders/" + orderUid.toString())
@@ -40,48 +40,21 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrder(orderUid));
     }
 
-    // 2. 컨펌프로세스
-    // 결제 최종 승인 API(포트원과 통신)
-    // POST로 요청됩니다. (Timeout : 10s)
-    // 타임아웃 발생시? PG측 트랜젝션 실패 처리 -> 서버도 10초 타임아웃 필요? tx_id만 바뀜
     @PostMapping("/confirm")
-    public ResponseEntity<Map<String,String>> pgConfirmPayment(
-            @RequestBody ConfirmRequest confirmRequest
-//            HttpServletRequest request,
-//            @RequestBody String rawBody,
-//            @RequestHeader("X-PORTONE-ID") String msgId,
-//            @RequestHeader("X-PORTONE-SIGNATURE") String signature,
-//            @RequestHeader("X-PORTONE-TIMESTAMP") String timestamp
-    ) {
-        ConfirmReason confirmReason =  orderService.confirmOrder(confirmRequest);
-        log.debug(confirmReason.getStatus().toString());
-        return ResponseEntity.status(confirmReason.getStatus())
-                .body(Map.of("reason", confirmReason.getReason()));
+    public ResponseEntity<Void> confirm(@RequestBody ConfirmRequest confirmRequest) {
+        orderService.confirmOrder(confirmRequest);
+        return ResponseEntity.ok().build();
     }
 
-    /*
-    {
-        "imp_uid": "imp_123456789012",
-        "merchant_uid": "order-20240404-0001",
-        "status": "paid",
-        "amount": 50000,
-          ...
-     }
-     */
-    // 3. 웹훅으로 상태갱신
-    // 결제 상태 변경 수신
-    // PG사로부터 요청
     @PostMapping("/webhook")
-    public ResponseEntity<?> pgWebhook(@RequestBody WebhookRequest webhookRequest) {
-        orderService.webhook(webhookRequest);
-        switch (webhookRequest.status()) {
-            case "paid" :
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("status", "success", "reason", "test", "message", "일반 결제 성공"));
-            default :
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("status", "success", "reason", "test", "message", "실패"));
+    public ResponseEntity<?> pgWebhook() {
+        log.info("webhook");
+        return null;
+    }
 
-        }
+    @PostMapping("/{orderUid}/cancel")
+    public ResponseEntity<?> cancel(@PathVariable("orderUid") UUID orderUid) {
+        orderService.cancelOrderBeforeShipment(orderUid);
+        return ResponseEntity.ok().build();
     }
 }
