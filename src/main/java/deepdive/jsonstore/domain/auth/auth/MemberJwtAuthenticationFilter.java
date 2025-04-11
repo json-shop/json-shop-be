@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 @RequiredArgsConstructor
 public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -27,15 +28,17 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = memberJwtTokenProvider.resolveToken(request);
 
-        if (StringUtils.hasText(token)) {
-            if (memberJwtTokenProvider.validateToken(token)) {
-                Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                throw new AuthException.UnauthenticatedAccessException();
-            }
+        if (!StringUtils.hasText(token)) {
+            throw new AuthException.UnauthenticatedAccessException();  // 토큰 없으면 예외 발생
         }
 
-        filterChain.doFilter(request, response);
+        if (!memberJwtTokenProvider.validateToken(token)) {
+            throw new AuthException.UnauthenticatedAccessException();  // 유효하지 않은 토큰도 막기
+        }
+
+        Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        filterChain.doFilter(request, response);  // 인증 성공 시에만 다음 필터 진행
     }
 }
