@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -19,9 +20,9 @@ public class CartService {
     private final CartValidateService validateService;
 
     // 카트에 상품 추가
-    public Cart addProductToCart(Long memberId, Long productId, Long amount) {
-        Member member = validateService.validateMember(memberId);
-        Product product = validateService.validateProduct(productId, amount);
+    public Cart addProductToCart(UUID memberUid, UUID productUid, Long amount) {
+        Member member = validateService.validateMember(memberUid);
+        Product product = validateService.validateProduct(productUid, amount);
 
         // 이미 있는 상품을 등록하려는 경우
         Cart cart = alreadyInCart(member, product, amount);
@@ -63,9 +64,9 @@ public class CartService {
     }
 
     // 카트 리스트 조회
-    public List<Cart> getCartByMemberId(Long memberId) {
+    public List<Cart> getCartByMemberId(UUID memberUid) {
         // 멤버ID 기반으로 카트 리스트 조회
-        List<Cart> carts = cartRepository.findByMemberId(memberId);
+        List<Cart> carts = cartRepository.findByMemberUid(memberUid);
 
         // 카트 리스트가 비었는지 확인
         validateService.validateCartList(carts);
