@@ -42,8 +42,9 @@ public class Order extends BaseEntity {
     @Column(nullable = true)
     private OrderStatus orderStatus;
 
+    @Builder.Default
     @Column(updatable = false)
-    private LocalDateTime expiredAt;
+    private LocalDateTime expiredAt = LocalDateTime.now().plusMinutes(15);
 
     @Column
     private String phone; // 수령인 번호

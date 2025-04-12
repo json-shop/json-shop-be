@@ -36,7 +36,6 @@ public class OrderService {
     private final DeliveryService deliveryService;
     private final NotificationService notificationService;
     private final PaymentService paymentService;
-    @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
 
     /** 주문 엔티티를 uid로 조회 */
     @Transactional
@@ -92,7 +91,6 @@ public class OrderService {
                 .address(orderRequest.address())
                 .zipCode(orderRequest.zipCode())
                 .total(total)
-                .expiredAt(LocalDateTime.now())
                 .build();
 
         // 주문 상품 등록
