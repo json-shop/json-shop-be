@@ -1,18 +1,19 @@
 package deepdive.jsonstore.domain.order.entity;
 
+import deepdive.jsonstore.common.entity.BaseEntity;
 import deepdive.jsonstore.domain.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.UUID;
 
-@Table(name = "order_product")
+@Table(name = "order_products")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
 @Entity
-public class OrderProduct {
+public class OrderProduct extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

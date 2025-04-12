@@ -26,7 +26,7 @@ public class Order extends BaseEntity {
     private UUID uid = UUID.randomUUID();
 
     @ManyToOne
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Member member;
 
     @Column
@@ -61,10 +61,10 @@ public class Order extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderProduct> products = new ArrayList<>();
+    private List<OrderProduct> orderProducts = new ArrayList<>();
 
-    public void addProduct(OrderProduct orderProduct) {
-        products.add(orderProduct);
+    public void addOrderProduct(OrderProduct orderProduct) {
+        orderProducts.add(orderProduct);
         orderProduct.setOrder(this);
     }
 
@@ -76,17 +76,14 @@ public class Order extends BaseEntity {
         this.orderStatus = status;
     }
 
-    public boolean isAnyOutOfStock() {
-        return this.products.stream()
-                .anyMatch(p -> p.getProduct().getStock() < p.getQuantity());
-    }
-
-    // TODO : N + 1?
+    // TODO : 반정규화?, 수정시 바뀌어야함
+    // service로 옮기기?
+    // n + 1
     public String getTitle() {
-        if (products == null || products.isEmpty())
+        if (orderProducts == null || orderProducts.isEmpty())
             return "";
-        String firstName = products.getFirst().getProduct().getName();
-        int rest = products.size() - 1;
+        String firstName = orderProducts.getFirst().getProduct().getName();
+        int rest = orderProducts.size() - 1;
         return rest > 0 ? firstName + " 외 " + rest + "개" : firstName;
     }
 

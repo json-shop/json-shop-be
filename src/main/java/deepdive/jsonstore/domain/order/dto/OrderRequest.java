@@ -9,19 +9,10 @@ import java.util.UUID;
 @Builder
 public record OrderRequest(
 
-        // 주문할 상품
-        List<OrderProductRequest> orderProductRequests,
-
-        // 수령인
-        String recipient,
-
-        // 전화번호
-        String phone,
-
-        // 주소
-        String address,
-
-        // 우편번호
-        String zipCode
+        List<OrderProductRequest> orderProductRequests, // 주문할 상품
+        String recipient, // 수령인
+        String phone, // 전화번호
+        String address, // 주소
+        String zipCode // 우편번호
 ) {
 }

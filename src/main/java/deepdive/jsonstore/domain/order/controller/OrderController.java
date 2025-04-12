@@ -1,19 +1,16 @@
 package deepdive.jsonstore.domain.order.controller;
 
-import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.order.dto.*;
 import deepdive.jsonstore.domain.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -40,7 +37,7 @@ public class OrderController {
     /** 주문 조회 */
     @GetMapping("/{orderUid}")
     public ResponseEntity<OrderResponse> getOrder(@PathVariable("orderUid") UUID orderUid) {
-        return ResponseEntity.ok(orderService.getOrder(orderUid));
+        return ResponseEntity.ok(orderService.getOrderResponse(orderUid));
     }
 
     /** 주문 페이지 조회 */
@@ -48,10 +45,17 @@ public class OrderController {
     public ResponseEntity<Page<OrderResponse>> getOrder(
 //            @AuthencitaitonPrincipal(expression"Member=member.id")
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "desc") String direction
+
     ) {
         var memberId = 1L; // TODO : 제거
-        return ResponseEntity.ok(orderService.getOrdersByPage(memberId, PageRequest.of(0, 10)));
+        var pageRequest = PageRequest.of(
+                0,
+                10,
+                Sort.by(direction, "createdAt")
+        );
+        return ResponseEntity.ok(orderService.getOrderResponsesByPage(memberId, pageRequest));
     }
 
     /** PG 결제 승인 요청 */
@@ -81,7 +85,7 @@ public class OrderController {
             @PathVariable("orderUid") UUID orderUid,
             @PathVariable("deliveryUid") UUID deliveryUid
     ) {
-        orderService.updateOrderDeliveryBeforeShipment(orderUid, deliveryUid);
+        orderService.updateOrderDeliveryBeforeShipping(orderUid, deliveryUid);
         return ResponseEntity.ok().build();
     }
 }

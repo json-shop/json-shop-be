@@ -14,10 +14,8 @@ public record OrderResponse(
         UUID orderUid, // 주문번호
         UUID memberUid, // 주문자
         String username,
-        List<OrderProductResponse> products, // 주문할 상품
+        List<OrderProductResponse> orderProducts, // 주문할 상품
         OrderStatus orderStatus,
-        // TODO : 딜리버리 추가
-        //  DeliveryResponse delivery,
         String recipient,
         String phone,
         String address,
@@ -26,7 +24,7 @@ public record OrderResponse(
 
 ) {
     public static OrderResponse from(Order order) {
-        var orderProductResponse = order.getProducts().stream().map(OrderProductResponse::from)
+        var orderProductResponse = order.getOrderProducts().stream().map(OrderProductResponse::from)
                 .collect(Collectors.toList());
         return OrderResponse.builder()
                 .orderUid(order.getUid())
@@ -37,7 +35,7 @@ public record OrderResponse(
                 .address(order.getAddress())
                 .zipCode(order.getZipCode())
                 .username(order.getMember().getUsername())
-                .products(orderProductResponse)
+                .orderProducts(orderProductResponse)
                 .total(order.getTotal())
                 .build();
     }

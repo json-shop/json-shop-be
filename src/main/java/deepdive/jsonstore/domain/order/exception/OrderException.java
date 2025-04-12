@@ -1,8 +1,9 @@
 package deepdive.jsonstore.domain.order.exception;
 
-import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
@@ -27,14 +28,22 @@ public class OrderException extends RuntimeException {
         }
     }
 
+    @Getter
     public static class OrderOutOfStockException extends OrderException {
+        private List<String> extra;
+
         public OrderOutOfStockException() {
             super(OrderErrorCode.ORDER_OUT_OF_STOCK);
         }
+
+        public OrderOutOfStockException(List<String> outOfStockProducts) {
+            super(OrderErrorCode.ORDER_OUT_OF_STOCK);
+            this.extra = outOfStockProducts;
+        }
     }
 
-    public static class AlreadyInDeliveryException extends OrderException {
-        public AlreadyInDeliveryException() {
+    public static class AlreadyStartDeliveryException extends OrderException {
+        public AlreadyStartDeliveryException() {
             super(OrderErrorCode.ORDER_ALREADY_IN_DELIVERY);
         }
     }
