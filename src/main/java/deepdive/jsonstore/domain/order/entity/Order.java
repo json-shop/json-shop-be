@@ -68,6 +68,10 @@ public class Order extends BaseEntity {
         orderProduct.setOrder(this);
     }
 
+    public boolean isExpired() {
+        return this.getExpiredAt().isBefore(LocalDateTime.now());
+    }
+
     public void expire() {
         this.orderStatus = OrderStatus.EXPIRED;
     }
