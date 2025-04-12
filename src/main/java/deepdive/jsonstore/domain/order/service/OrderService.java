@@ -39,26 +39,29 @@ public class OrderService {
     @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
 
     /** 주문 엔티티를 uid로 조회 */
+    @Transactional
     public Order loadByUid(UUID orderUid) {
-        var foundOrder = orderRepository.findByUid(orderUid)
+        var foundedOrder = orderRepository.findByUid(orderUid)
                 .orElseThrow(OrderException.OrderNotFound::new);
-
-        if (foundOrder.getExpiredAt().isBefore(LocalDateTime.now())) {
-            foundOrder.expire();
+        System.out.println("1 : " + foundedOrder.getOrderStatus());
+        if (foundedOrder.isExpired()) {
+            foundedOrder.expire();
+            orderRepository.save(foundedOrder);
         }
-        orderValidationService.validateExpiration(foundOrder);
-
-        return foundOrder;
+        System.out.println("2 : " + foundedOrder.getOrderStatus());
+        return foundedOrder;
     }
 
     /**
      * 주문서 조회
-     *
      * @param orderUid 주문 uid
      * @return 주문서 Dto
      */
     public OrderResponse getOrderResponse(UUID orderUid) {
-        return OrderResponse.from(this.loadByUid(orderUid));
+        var loadedOrder = loadByUid(orderUid);
+        System.out.println("3 : " + loadedOrder.getOrderStatus());
+        orderValidationService.validateExpiration(loadedOrder);
+        return OrderResponse.from(loadedOrder);
     }
 
     /** Pagenated 주문서 목록 조회 */
@@ -89,7 +92,7 @@ public class OrderService {
                 .address(orderRequest.address())
                 .zipCode(orderRequest.zipCode())
                 .total(total)
-                .expiredAt(LocalDateTime.now().plusMinutes(ORDER_EXPIRE_TIME))
+                .expiredAt(LocalDateTime.now())
                 .build();
 
         // 주문 상품 등록
