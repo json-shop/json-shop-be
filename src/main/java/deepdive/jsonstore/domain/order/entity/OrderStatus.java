@@ -7,7 +7,7 @@ public enum OrderStatus {
     PREPARING_SHIPMENT,
     IN_DELIVERY,
     DONE, // 배송완료
-    CANCELLED, // 주문 취소
+    CANCELED, // 주문 취소
     FAILED, // 위변조
     EXPIRED // 만료된 주문(사용자취소, 시간 만료),
 }
