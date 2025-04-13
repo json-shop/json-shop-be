@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.order.service;
 
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.domain.delivery.service.DeliveryService;
+import deepdive.jsonstore.domain.notification.entity.NotificationCategory;
 import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.member.service.MemberValidationService;
 import deepdive.jsonstore.domain.notification.service.NotificationService;
@@ -172,7 +173,7 @@ public class OrderService {
 
         // 성공 알림 발송
         try {
-            notificationService.sendNotification(order.getMember().getId(), "결제 성공", notificationBody);
+            notificationService.sendNotification(order.getMember().getId(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
         } catch (CommonException.InternalServerException e) {
             log.warn("발송 실패"); // 재발송 전략?
         }
@@ -213,7 +214,7 @@ public class OrderService {
 
         // 취소 성공 발송
         try {
-            notificationService.sendNotification(order.getMember().getId(), "결제 취소", notificationBody);
+            notificationService.sendNotification(order.getMember().getUid(), "결제 취소", notificationBody, NotificationCategory.CANCELED);
         } catch (Exception e) {
             log.info("발송 실패");
         }

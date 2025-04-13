@@ -251,6 +251,7 @@ class OrderServiceTest {
 
             var confirmRequest = ConfirmRequest.builder()
                     .orderId(order.getUid().toString())
+                    .paymentKey(order.getUid().toString())
                     .amount(100L)
                     .build();
 

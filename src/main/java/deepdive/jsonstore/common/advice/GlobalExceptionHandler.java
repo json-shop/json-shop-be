@@ -3,6 +3,7 @@ package deepdive.jsonstore.common.advice;
 import deepdive.jsonstore.common.dto.ErrorExtraResponse;
 import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.*;
+import deepdive.jsonstore.domain.admin.exception.AdminException;
 import deepdive.jsonstore.domain.cart.exception.CartException;
 import deepdive.jsonstore.domain.notification.exception.NotificationException;
 import deepdive.jsonstore.domain.order.exception.OrderException.OrderOutOfStockException;
@@ -105,6 +106,13 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
+
+    @ExceptionHandler(AdminException.class)
+    public ResponseEntity<ErrorResponse> AdminExceptionHandler(AdminException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
+        return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
+    }
+
 
     @ExceptionHandler(AuthException.AdminLoginFailedException.class)
     public ResponseEntity<ErrorResponse> adminLoginFailedExceptionHandler(AuthException.AdminLoginFailedException ex) {

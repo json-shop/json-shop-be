@@ -5,12 +5,12 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushNotification;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
+import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.domain.member.entity.Member;
+import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import deepdive.jsonstore.domain.notification.dto.NotificationHistoryResponse;
 import deepdive.jsonstore.domain.notification.entity.Notification;
 import deepdive.jsonstore.domain.notification.entity.NotificationCategory;
-import deepdive.jsonstore.common.exception.CommonException;
-import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import deepdive.jsonstore.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -32,19 +33,18 @@ public class NotificationService {
     private final NotificationValidationService validationService;
     private final FirebaseMessaging firebaseMessaging;
 
-    public void saveToken(Long memberId, String token) {
+    public void saveToken(UUID memberUid, String token) {
         // 멤버 검증
-        validationService.validateMemberExists(memberId);
+        validationService.validateMemberExists(memberUid);
 
-        // redis에 토큰 저장
-        redisTemplate.opsForValue().set("fcm:token:" + memberId, token);
+        // Redis에 토큰 저장
+        redisTemplate.opsForValue().set("fcm:token:" + memberUid, token);
     }
 
-    // 알림 전송
-    public void sendNotification(Long memberId, String title, String body) {
+    public void sendNotification(UUID memberUid, String title, String body, NotificationCategory category) {
         try {
-            String token = validationService.validateAndGetFcmToken(memberId);
-            Member member = validationService.validateAndGetMember(memberId);
+            String token = validationService.validateAndGetFcmToken(memberUid);
+            Member member = validationService.validateAndGetMember(memberUid);
 
             Message fcmMessage = Message.builder()
                     .setToken(token)
@@ -57,21 +57,20 @@ public class NotificationService {
                     .build();
 
             String response = firebaseMessaging.sendAsync(fcmMessage).get();
-            log.info("FCM message sent successfully to user {} with message ID: {}", memberId, response);
+            log.info("FCM message sent successfully to user {} with message ID: {}", memberUid, response);
 
-            saveNotificationRecord(member, title, body, NotificationCategory.SAVE);
+            saveNotificationRecord(member, title, body, category);
 
         } catch (InterruptedException | ExecutionException e) {
-            log.error("Error sending FCM message to user {}: {}", memberId, e.getMessage());
+            log.error("Error sending FCM message to user {}: {}", memberUid, e.getMessage());
 
-            memberRepository.findById(memberId).ifPresent(member ->
+            memberRepository.findByUid(memberUid).ifPresent(member ->
                     saveNotificationRecord(member, title, body, NotificationCategory.ERROR));
 
             throw new CommonException.InternalServerException();
         }
     }
 
-    // 메시지 전송 기록 저장
     private void saveNotificationRecord(Member member, String title, String body, NotificationCategory category) {
         Notification notification = Notification.builder()
                 .title(title)
@@ -83,15 +82,14 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    // 사용자별 알림 내역 조회
-    public List<NotificationHistoryResponse> getNotificationHistory(Long memberId) {
-        return notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
+    public List<NotificationHistoryResponse> getNotificationHistory(UUID memberUid) {
+        return notificationRepository.findByMember_UidOrderByCreatedAtDesc(memberUid).stream()
                 .map(notification -> new NotificationHistoryResponse(
                         notification.getId(),
                         notification.getTitle(),
                         notification.getBody(),
                         notification.getCategory(),
-                        notification.getMember().getId(),  // 여기서 ID만 추출
+                        notification.getMember().getUid(),
                         notification.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
