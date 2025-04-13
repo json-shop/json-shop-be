@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OrderProductRepository extends JpaRepository<OrderProduct, Long> {
 
-    Page<OrderProductResponse> findByAdminId(Long adminId, Pageable pageable);
+    Page<OrderProduct> findByAdminId(Long adminId, Pageable pageable);
 }
