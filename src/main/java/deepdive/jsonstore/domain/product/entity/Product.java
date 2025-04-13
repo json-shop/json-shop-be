@@ -44,6 +44,7 @@ public class Product extends BaseEntity {
 	private Category category;
 	@Enumerated(EnumType.STRING)
 	private ProductStatus status;
+	private long soldCount;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(
@@ -62,13 +63,16 @@ public class Product extends BaseEntity {
 		this.status = updateProductRequest.status();
 	}
 
-
 	public void increaseStock(int quantity) {
 		this.stock += quantity;
 	}
 
 	public void decreaseStock(int quantity) {
 		this.stock -= quantity;
+	}
+
+	public void updateSoldCount(long soldCount) {
+		this.soldCount = soldCount;
 	}
 
 }
