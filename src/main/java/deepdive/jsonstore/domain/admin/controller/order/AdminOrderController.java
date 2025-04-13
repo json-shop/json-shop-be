@@ -4,8 +4,6 @@ package deepdive.jsonstore.domain.admin.controller.order;
 import deepdive.jsonstore.domain.admin.dto.OrderProductSalesResponse;
 import deepdive.jsonstore.domain.admin.dto.OrderUpdateResponse;
 import deepdive.jsonstore.domain.admin.service.order.AdminOrderSerivce;
-import deepdive.jsonstore.domain.order.dto.OrderProductResponse;
-import deepdive.jsonstore.domain.order.dto.OrderRequest;
 import deepdive.jsonstore.domain.order.dto.OrderResponse;
 import deepdive.jsonstore.domain.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +47,7 @@ public class AdminOrderController {
                 10,
                 Sort.by(direction, "createdAt")
         );
-        return ResponseEntity.ok(adminOrderService.getOrderResponsesByPage(adminId, pageRequest));
+        return ResponseEntity.ok(adminOrderService.getOrderProductSalesResponsesByPage(adminId, pageRequest));
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

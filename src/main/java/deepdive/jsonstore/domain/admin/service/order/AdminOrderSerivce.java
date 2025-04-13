@@ -3,7 +3,6 @@ package deepdive.jsonstore.domain.admin.service.order;
 import deepdive.jsonstore.domain.admin.dto.OrderProductSalesResponse;
 import deepdive.jsonstore.domain.admin.dto.OrderUpdateResponse;
 import deepdive.jsonstore.domain.order.repository.OrderProductRepository;
-import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,9 +18,8 @@ public class AdminOrderSerivce {
 
     private final OrderService orderService;
     private final OrderProductRepository orderProductRepository;
-    private final OrderRepository orderRepository;
 
-    public Page<OrderProductSalesResponse> getOrderResponsesByPage(Long adminId, Pageable pageable) {
+    public Page<OrderProductSalesResponse> getOrderProductSalesResponsesByPage(Long adminId, Pageable pageable) {
         return orderProductRepository.findByProductAdminId(adminId, pageable)
                 .map(OrderProductSalesResponse::from);
     }
