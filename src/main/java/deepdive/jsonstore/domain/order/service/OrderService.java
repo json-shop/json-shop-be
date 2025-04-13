@@ -174,7 +174,7 @@ public class OrderService {
         // 성공 알림 발송
         // TODO : 트렌젝션 외부로
         try {
-            notificationService.sendNotification(order.getMember().getId(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
+            notificationService.sendNotification(order.getMember().getUid(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
         } catch (CommonException.InternalServerException e) {
             log.warn("발송 실패"); // 재발송 전략?
         }
