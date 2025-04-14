@@ -45,6 +45,7 @@ jobs:
 
       - name: Generate .env
         run: |
+          echo "SPRING_PROFILES_ACTIVE=prod" >> .env        
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "DB_URL=${{ secrets.DB_URL }}" >> .env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
