@@ -117,4 +117,5 @@ class JoinControllerTest {
                 .andExpect(jsonPath("$.code").value("PASSWORD_MISMATCH"))
                 .andExpect(jsonPath("$.message").value("비밀번호가 일치하지 않습니다."));
     }
+
 }
