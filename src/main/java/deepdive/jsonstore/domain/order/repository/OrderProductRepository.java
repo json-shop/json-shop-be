@@ -13,6 +13,6 @@ public interface OrderProductRepository extends JpaRepository<OrderProduct, Long
 
     @Query("SELECT op FROM OrderProduct op " +
             "JOIN FETCH op.product p " +
-            "WHERE p.adminId = :adminId")
-    Page<OrderProduct> findByProductAdminId(@Param("adminId")Long adminId, Pageable pageable);
+            "WHERE p.admin.id = :adminId")
+    Page<OrderProduct> findByProductAdminId(@Param("adminId") Long adminId, Pageable pageable);
 }
