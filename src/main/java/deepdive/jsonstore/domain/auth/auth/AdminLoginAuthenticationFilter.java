@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.auth.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
@@ -57,7 +58,16 @@ public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProces
         // 로그 예외 메시지
         logger.error("Authentication failed for user: " + failed.getMessage());
 
-        // 예외를 던져 GlobalExceptionHandler에서 처리
-        throw new AuthException.AdminLoginFailedException();
+        // 에러 응답 생성
+        ErrorResponse errorResponse = new ErrorResponse(
+                "ADMIN_LOGIN_FAILED", // 에러 코드
+                "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요." // 에러 메시지
+        );
+
+        // HTTP 상태와 JSON 응답 설정
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }
