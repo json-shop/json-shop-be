@@ -9,11 +9,13 @@ import java.util.UUID;
 public class AdminMemberDetails implements UserDetails {
 
     private final UUID adminUid;  // Admin의 UUID
+    private final String password; // Admin의 비밀번호
     private final Collection<? extends GrantedAuthority> authorities;
 
-    // 생성자 수정: email과 password를 제거하고, UUID와 authorities만 받도록
-    public AdminMemberDetails(UUID adminUid, Collection<? extends GrantedAuthority> authorities) {
+    // 생성자: UUID, 비밀번호, 권한을 받음
+    public AdminMemberDetails(UUID adminUid, String password, Collection<? extends GrantedAuthority> authorities) {
         this.adminUid = adminUid;
+        this.password = password;
         this.authorities = authorities;
     }
 
@@ -24,41 +26,36 @@ public class AdminMemberDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return null;  // 비밀번호는 토큰에 포함하지 않음
+        return password; // 비밀번호 반환
     }
 
     @Override
     public String getUsername() {
-        return null;  // 이메일은 토큰에 포함하지 않음
+        return adminUid.toString(); // UUID를 문자열로 반환
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return true;  // 계정이 만료되지 않음
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true;  // 계정이 잠기지 않음
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return true;  // 자격 증명이 만료되지 않음
     }
 
     @Override
     public boolean isEnabled() {
-        return true;  // 기본적으로 true를 반환 (필요에 따라 수정)
+        return true;  // 계정이 활성화 상태임
     }
 
-    // UUID만 반환 (토큰에 사용)
+    // UUID 반환
     public UUID getAdminUid() {
         return adminUid;
-    }
-
-    // 권한만 반환 (토큰에 사용)
-    public Collection<? extends GrantedAuthority> getAuthoritiesForToken() {
-        return authorities;
     }
 }

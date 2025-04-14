@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 class AdminLoginAuthenticationFilterTest {
 
     private AdminLoginAuthenticationFilter filter;
@@ -109,5 +108,20 @@ class AdminLoginAuthenticationFilterTest {
         assertThrows(AuthException.AdminLoginFailedException.class, () -> {
             filter.unsuccessfulAuthentication(request, response, exception);
         });
+    }
+
+    @Test
+    @DisplayName("인증 실패 시 에러 응답 반환 테스트")
+    void testUnsuccessfulAuthenticationErrorResponse() throws IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        AuthenticationException exception = new AuthenticationException("Invalid credentials") {};
+
+        filter.unsuccessfulAuthentication(request, response, exception);
+
+        assertEquals(401, response.getStatus());
+        assertEquals("application/json;charset=UTF-8", response.getContentType());
+        String expectedErrorMessage = "{\"code\":\"ADMIN_LOGIN_FAILED\",\"message\":\"로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요.\"}";
+        assertEquals(expectedErrorMessage, response.getContentAsString());
     }
 }
