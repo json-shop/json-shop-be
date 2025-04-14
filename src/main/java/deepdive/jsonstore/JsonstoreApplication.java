@@ -30,7 +30,7 @@ public class JsonstoreApplication {
 		return args -> redisTestService.testRedisConnection();
 	}
 
-	/*
+
 	// 테스트를 위한 관리자 계정 생성
 	@Bean
 	public CommandLineRunner insertAdminAccount(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
@@ -67,6 +67,6 @@ public class JsonstoreApplication {
 		};
 	}
 
-	 */
+
 	}
 
