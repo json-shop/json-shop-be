@@ -43,12 +43,10 @@ public class OrderService {
     public Order loadByUid(UUID orderUid) {
         var foundedOrder = orderRepository.findByUid(orderUid)
                 .orElseThrow(OrderException.OrderNotFound::new);
-        System.out.println("1 : " + foundedOrder.getOrderStatus());
         if (foundedOrder.isExpired()) {
             foundedOrder.expire();
             orderRepository.save(foundedOrder);
         }
-        System.out.println("2 : " + foundedOrder.getOrderStatus());
         return foundedOrder;
     }
 
@@ -59,7 +57,6 @@ public class OrderService {
      */
     public OrderResponse getOrderResponse(UUID orderUid) {
         var loadedOrder = loadByUid(orderUid);
-        System.out.println("3 : " + loadedOrder.getOrderStatus());
         orderValidationService.validateExpiration(loadedOrder);
         return OrderResponse.from(loadedOrder);
     }
@@ -137,24 +134,26 @@ public class OrderService {
         var orderUid = UUID.fromString(confirmRequest.orderId());
         var order = loadByUid(orderUid);
 
+
+        // ------------트랜젝션---------------
         if (confirmRequest.amount() != order.getTotal()) {
             order.changeState(OrderStatus.FAILED);
             throw new OrderException.OrderTotalMismatchException();
         }
 
-        // ------------트랜젝션---------------
         // 재고 검사
         orderValidationService.validateProductStock(order);
 
         // 재고 예약
         // reserveStock(...) 호출 중 실패하면 트랜잭션이 롤백되긴 하지만
         // 재고 서비스가 외부 시스템이거나 자체 트랜잭션이라면 보상 트랜잭션 고려 필요
+        // TODO : 에러 extra 수정
         order.getOrderProducts().forEach(op->
                 productStockService.reserveStock(op.getProduct().getId(), op.getQuantity()));
-        // ------------------------------------
 
         // 결제 대기 상태
         order.changeState(OrderStatus.PAYMENT_PENDING);
+        // ------------------------------------
 
         // 주문 승인 및 결제키 등록
         var paymentResponse = paymentService.confirm(confirmRequest);
@@ -165,6 +164,7 @@ public class OrderService {
         // 웹훅으로 비동기적으로 처리 가능
 
 
+        // TODO: 트렌젝션 외부로
         var sb = new StringBuilder();
         var title = order.getTitle();
         sb.append(title).append("\n");
@@ -172,8 +172,9 @@ public class OrderService {
         var notificationBody = sb.toString();
 
         // 성공 알림 발송
+        // TODO : 트렌젝션 외부로
         try {
-            notificationService.sendNotification(order.getMember().getId(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
+            notificationService.sendNotification(order.getMember().getUid(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
         } catch (CommonException.InternalServerException e) {
             log.warn("발송 실패"); // 재발송 전략?
         }
@@ -211,6 +212,9 @@ public class OrderService {
         var title = order.getTitle();
         sb.append(title).append("\n");
         var notificationBody = sb.toString();
+
+        order.getOrderProducts().forEach(op->
+                productStockService.releaseStock(op.getProduct().getId(), op.getQuantity()));
 
         // 취소 성공 발송
         try {
