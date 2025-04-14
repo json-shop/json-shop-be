@@ -30,6 +30,7 @@ public class JsonstoreApplication {
 		return args -> redisTestService.testRedisConnection();
 	}
 
+	/*
 	// 테스트를 위한 관리자 계정 생성
 	@Bean
 	public CommandLineRunner insertAdminAccount(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
@@ -48,18 +49,24 @@ public class JsonstoreApplication {
 			System.out.println("관리자 계정 생성: " + admin.getEmail());
 		};
 	}
-
 	@Bean
 	public CommandLineRunner deleteAdminOnShutdown(AdminRepository adminRepository) {
 		return args -> {
-			// 애플리케이션 종료 시 생성된 관리자 계정을 삭제
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-				if (createdAdmin != null) {
-					adminRepository.delete(createdAdmin);
-					System.out.println("관리자 계정 삭제: " + createdAdmin.getEmail());
+				try {
+					// 애플리케이션 컨텍스트가 활성 상태인지 확인
+					if (adminRepository != null) {
+						adminRepository.delete(createdAdmin);
+						System.out.println("관리자 계정 삭제: " + createdAdmin.getEmail());
+					}
+				} catch (IllegalStateException e) {
+					// 컨텍스트가 종료된 상태에서 접근 시 예외 처리
+					System.err.println("애플리케이션 컨텍스트가 종료된 후 작업 시도. 무시합니다.");
 				}
 			}));
 		};
 	}
 
-}
+	 */
+	}
+
