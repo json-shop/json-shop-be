@@ -18,7 +18,7 @@ public class DeliveryValidationService {
 
     public Delivery getDeliveryByUid(UUID uid) {
         return deliveryRepository.findByUid(uid).orElseThrow(DeliveryException.DeliveryNotFoundException::new);
-         
+
     }
 
     public void validateMember(Delivery delivery, UUID memberUid) {

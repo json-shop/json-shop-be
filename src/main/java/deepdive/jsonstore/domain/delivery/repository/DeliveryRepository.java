@@ -16,8 +16,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
     @Query("SELECT new deepdive.jsonstore.domain.delivery.dto.DeliveryResponseDTO(d.address, d.zipCode, d.phone, d.recipient) " +
             "FROM Delivery d " +
-            "WHERE d.member.uid = :uid")
-    List<DeliveryResponseDTO> findByMemberUidAsDTO(@Param("uid") UUID uid);
+            "WHERE d.member.email = :email")
+    List<DeliveryResponseDTO> findByMemberEmailAsDTO(@Param("email") String email);
 
     boolean existsByUid(UUID uid);
 }

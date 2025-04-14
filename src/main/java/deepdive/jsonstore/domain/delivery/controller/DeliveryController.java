@@ -17,37 +17,41 @@ public class DeliveryController {
     private final DeliveryService deliveryService;
 
     @PostMapping("/delivery")
-    public ResponseEntity<?> createDelivery(UUID memberUid, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) { //인증 모듈 추가 시 수정 필요
-        deliveryService.createDelivery(memberUid, deliveryRegDTO);
+    public ResponseEntity<?> createDelivery(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) { //인증 모듈 추가 시 수정 필요
+        deliveryService.createDelivery(email, deliveryRegDTO);
 
         return ResponseEntity.created(URI.create("/api/v1/delivery")).build(); //HTTP method는 어떻게 전달하지?
+
     }
 
     @DeleteMapping("/delivery/{uid}")
-    public ResponseEntity<?> deleteDelivery(UUID memberUid, @PathVariable UUID uid){
-        deliveryService.deleteDelivery(memberUid, uid);
+    public ResponseEntity<?> deleteDelivery(String email, @PathVariable UUID uid){
+        deliveryService.deleteDelivery(email, uid);
 
         return ResponseEntity.ok().build();
+
     }
 
     @GetMapping("/delivery")
-    public ResponseEntity<?> getDelivery(UUID memberUid){
+    public ResponseEntity<?> getDelivery(String email){
 
-        return ResponseEntity.ok(deliveryService.getDelivery(memberUid));
+        return ResponseEntity.ok(deliveryService.getDelivery(email));
   }
   
     @PutMapping("/delivery/{uid}")
-    public ResponseEntity<?> updateDelivery(UUID memberUid, @RequestBody DeliveryRegRequestDTO deliveryRegDTO, @PathVariable UUID uid){
-        deliveryService.updateDelivery(memberUid, uid, deliveryRegDTO);
+    public ResponseEntity<?> updateDelivery(String email, @RequestBody DeliveryRegRequestDTO deliveryRegDTO, @PathVariable UUID uid){
+        deliveryService.updateDelivery(email, uid, deliveryRegDTO);
 
         return ResponseEntity.ok(URI.create("/api/v1/delivery"));
+
     }
 
     @PatchMapping("/delivery/default/{uid}")
-    public ResponseEntity<?> setDefaultDelivery(UUID memberUid, @PathVariable UUID uid){
+    public ResponseEntity<?> setDefaultDelivery(String email, @PathVariable UUID uid){
 
-        deliveryService.setDeliveryDefault(memberUid, uid);
+        deliveryService.setDeliveryDefault(email, uid);
 
         return ResponseEntity.noContent().build();
+
     }
 }

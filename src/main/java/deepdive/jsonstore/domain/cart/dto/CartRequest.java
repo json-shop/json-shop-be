@@ -3,17 +3,17 @@ package deepdive.jsonstore.domain.cart.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class CartRequest {
-    @NotNull(message = "memberUid를 입력해주세요.")
-    private UUID memberUid;
+    @NotNull(message = "memberId를 입력해주세요.")
+    @Positive(message = "memberId는 0보다 커야 합니다.")
+    private Long memberId;
 
-    @NotNull(message = "productUid를 입력해주세요.")
-    private UUID productUid;
+    @NotNull(message = "productId를 입력해주세요.")
+    @Positive(message = "productId는 0보다 커야 합니다.")
+    private Long productId;
 
     @NotNull(message = "수량을 입력해주세요.")
     private Long amount;

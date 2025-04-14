@@ -84,6 +84,6 @@ public class DeliveryService{
     }
 
     public Delivery getDeliveryByUid(UUID deliveryUid) {
-        return deliveryRepository.findByUid(deliveryUid).orElseThrow(EntityNotFoundException::new);
+        return deliveryValidationService.getDeliveryByUid(deliveryUid);
     }
 }

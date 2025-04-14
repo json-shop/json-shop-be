@@ -6,12 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartListRequest {
-    @NotNull(message = "memberUid를 입력해주세요.")
-    private UUID memberUid;
+    @NotNull(message = "memberId를 입력해주세요.")
+    @Positive(message = "memberId는 양수여야 합니다.")
+    private Long memberId;
 }

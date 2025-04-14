@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
+
 public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private final AdminJwtTokenProvider adminJwtTokenProvider;
@@ -52,9 +53,11 @@ public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProces
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
-                                              AuthenticationException failed)
-            throws IOException {
+                                              AuthenticationException failed) throws IOException {
+        // 로그 예외 메시지
+        logger.error("Authentication failed for user: " + failed.getMessage());
 
+        // 예외를 던져 GlobalExceptionHandler에서 처리
         throw new AuthException.AdminLoginFailedException();
     }
 }

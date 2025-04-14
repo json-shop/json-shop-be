@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.auth.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
@@ -14,6 +15,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
+
 public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private final MemberJwtTokenProvider memberJwtTokenProvider;
@@ -55,7 +57,18 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
                                               HttpServletResponse response,
                                               org.springframework.security.core.AuthenticationException failed)
             throws IOException {
-        // 실패 시 예외 던지기
-        throw new AuthException.MemberLoginFailedException();
+        handleAuthException(response, new AuthException.MemberLoginFailedException());
+    }
+
+    private void handleAuthException(HttpServletResponse response, AuthException e) throws IOException {
+        ErrorResponse errorResponse = new ErrorResponse(
+                e.getErrorCode().name(),
+                e.getErrorCode().getMessage()
+        );
+
+        response.setStatus(e.getErrorCode().getHttpStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }

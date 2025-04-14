@@ -1,12 +1,10 @@
 package deepdive.jsonstore.common.advice;
 
-import deepdive.jsonstore.common.dto.ErrorExtraResponse;
 import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.*;
 import deepdive.jsonstore.domain.admin.exception.AdminException;
 import deepdive.jsonstore.domain.cart.exception.CartException;
 import deepdive.jsonstore.domain.notification.exception.NotificationException;
-import deepdive.jsonstore.domain.order.exception.OrderException.OrderOutOfStockException;
 import deepdive.jsonstore.domain.product.exception.ProductException;
 import jakarta.persistence.EntityNotFoundException;
 import deepdive.jsonstore.common.exception.CommonException;
@@ -48,15 +46,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(OrderException.class)
     public ResponseEntity<ErrorResponse> orderExceptionHandler(OrderException ex) {
-        ErrorResponse response;
-        if (ex instanceof OrderOutOfStockException orderOutOfStockException) {
-            response = new ErrorExtraResponse<>(
-                    ex.getErrorCode().name(),
-                    ex.getErrorCode().getMessage() + String.join(", ", orderOutOfStockException.getExtra()),
-                    orderOutOfStockException.getExtra());
-        } else {
-            response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
-        }
+        ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 

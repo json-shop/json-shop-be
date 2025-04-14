@@ -24,32 +24,38 @@ public class CustomMemberDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // 이메일을 기반으로 Member 객체를 찾음
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 찾을 수 없습니다."));
+                .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 찾을 수 없습니다. 이메일: " + email));
 
         // 삭제된 회원은 인증되지 않음
         if (Boolean.TRUE.equals(member.getIsDeleted())) {
             throw new DisabledException("삭제된 회원입니다.");
         }
 
-        // CustomMemberDetails 객체에 UUID와 권한, 패스워드를 담아 반환
+        // CustomMemberDetails 객체에 UUID, 이메일, 비밀번호, 권한을 담아 반환
         return new CustomMemberDetails(
                 member.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("MEMBER"))
-
+                member.getEmail(),
+                member.getPassword(), // 비밀번호 추가
+                Collections.singleton(new SimpleGrantedAuthority("MEMBER")) //
         );
     }
 
     public CustomMemberDetails loadUserByUuid(UUID uuid) {
         // UUID를 사용하여 Member 객체를 조회
         Member member = memberRepository.findByUid(uuid)
-                .orElseThrow(() -> new UsernameNotFoundException("해당 UUID를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UsernameNotFoundException("해당 UUID를 찾을 수 없습니다. UUID: " + uuid));
 
-        // CustomMemberDetails 객체에 UUID와 권한, 패스워드를 담아 반환
+        // 삭제된 회원은 인증되지 않음
+        if (Boolean.TRUE.equals(member.getIsDeleted())) {
+            throw new DisabledException("삭제된 회원입니다.");
+        }
+
+        // CustomMemberDetails 객체에 UUID, 이메일, 비밀번호, 권한을 담아 반환
         return new CustomMemberDetails(
-
                 member.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("MEMBER"))
-
+                member.getEmail(),
+                member.getPassword(), // 비밀번호 추가
+                Collections.singleton(new SimpleGrantedAuthority("MEMBER")) //
         );
     }
 }
