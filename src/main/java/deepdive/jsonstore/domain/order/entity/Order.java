@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.order.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
+import deepdive.jsonstore.domain.admin.dto.OrderUpdateResponse;
 import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -97,5 +98,13 @@ public class Order extends BaseEntity {
         this.zipCode = zipCode;
         this.phone = phone;
         this.recipient = recipient;
+    }
+
+    public void update(OrderUpdateResponse orderUpdateResponse) {
+        if (orderUpdateResponse.status() != null) this.orderStatus = orderUpdateResponse.status();
+        if (orderUpdateResponse.address() != null) this.address = orderUpdateResponse.address();
+        if (orderUpdateResponse.zipCode() != null) this.zipCode = orderUpdateResponse.zipCode();
+        if (orderUpdateResponse.phone() != null) this.phone = orderUpdateResponse.phone();
+        if (orderUpdateResponse.phone() != null) this.recipient = orderUpdateResponse.phone();
     }
 }
