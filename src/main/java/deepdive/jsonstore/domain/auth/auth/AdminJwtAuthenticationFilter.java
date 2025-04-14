@@ -26,19 +26,25 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = adminJwtTokenProvider.resolveToken(request);
+        String requestURI = request.getRequestURI();
 
-        if (!StringUtils.hasText(token)) {
-            throw new AuthException.UnauthenticatedAccessException(); // 토큰 없으면 예외 발생
+        // 관리자 API가 아닌 경우 필터 통과
+        if (!requestURI.startsWith("/api/v1/admin")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        if (!adminJwtTokenProvider.validateToken(token)) {
-            throw new AuthException.UnauthenticatedAccessException(); // 유효하지 않은 토큰도 막기
+        String token = adminJwtTokenProvider.resolveToken(request);
+
+        // 토큰 없으면 그냥 다음 필터로 넘김 (예외 X)
+        if (!StringUtils.hasText(token) || !adminJwtTokenProvider.validateToken(token)) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
         Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        filterChain.doFilter(request, response); // 인증 성공 시에만 다음 필터 진행
+        filterChain.doFilter(request, response);
     }
 }

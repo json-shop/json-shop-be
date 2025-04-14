@@ -48,7 +48,7 @@ public class CustomMemberDetailsService implements UserDetailsService {
         return new CustomMemberDetails(
 
                 member.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_MEMBER"))
 
         );
     }
