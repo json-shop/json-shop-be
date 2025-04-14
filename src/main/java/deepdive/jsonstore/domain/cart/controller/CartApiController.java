@@ -24,7 +24,7 @@ public class CartApiController {
     // 장바구니에 상품 추가
     @PostMapping
     public ResponseEntity<CartResponse> addProductToCart(@Valid @RequestBody CartRequest request) {
-        Cart cart = cartService.addProductToCart(request.getMemberId(), request.getProductId(), request.getAmount());
+        Cart cart = cartService.addProductToCart(request.getMemberUid(), request.getProductUid(), request.getAmount());
         return ResponseEntity.ok(new CartResponse(cart));
     }
 
@@ -38,7 +38,7 @@ public class CartApiController {
     // 특정 멤버 카트 상품 조회
     @GetMapping
     public ResponseEntity<List<CartResponse>> getCartByMemberId(@Valid CartListRequest request) {
-        List<Cart> cart = cartService.getCartByMemberId(request.getMemberId());
+        List<Cart> cart = cartService.getCartByMemberId(request.getMemberUid());
         List<CartResponse> response = cart.stream()
                 .map(CartResponse::new)
                 .collect(Collectors.toList());

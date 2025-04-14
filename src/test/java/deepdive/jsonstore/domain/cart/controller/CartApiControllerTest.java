@@ -3,7 +3,6 @@ package deepdive.jsonstore.domain.cart.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import deepdive.jsonstore.domain.cart.dto.CartDeleteRequest;
 import deepdive.jsonstore.domain.cart.dto.CartRequest;
-import deepdive.jsonstore.domain.cart.dto.CartResponse;
 import deepdive.jsonstore.domain.cart.entity.Cart;
 import deepdive.jsonstore.domain.cart.service.CartService;
 import deepdive.jsonstore.domain.member.entity.Member;
@@ -13,25 +12,22 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -46,7 +42,7 @@ class CartApiControllerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this); // @Mock 초기화
+        MockitoAnnotations.openMocks(this);
         CartApiController controller = new CartApiController(cartService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
@@ -58,20 +54,21 @@ class CartApiControllerTest {
         @Test
         @DisplayName("성공")
         void success() throws Exception {
-            // given
-            CartRequest request = new CartRequest(1L, 10L, 3L);
+            UUID memberUid = UUID.randomUUID();
+            UUID productUid = UUID.randomUUID();
+
+            CartRequest request = new CartRequest(memberUid, productUid, 3L);
 
             Cart mockCart = Cart.builder()
                     .id(100L)
-                    .member(Member.builder().id(1L).build())
-                    .product(Product.builder().id(10L).build())
+                    .member(Member.builder().uid(memberUid).build())
+                    .product(Product.builder().uid(productUid).build())
                     .amount(3L)
                     .build();
 
-            Mockito.when(cartService.addProductToCart(anyLong(), anyLong(), anyLong()))
+            when(cartService.addProductToCart(any(UUID.class), any(UUID.class), anyLong()))
                     .thenReturn(mockCart);
 
-            // when & then
             mockMvc.perform(post("/api/v1/carts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -81,17 +78,15 @@ class CartApiControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 유효하지 않은 요청 (memberId 없음)")
+        @DisplayName("실패 - 유효하지 않은 요청 (memberUid 없음)")
         void fail_invalidRequest() throws Exception {
-            // given: memberId 누락
             String invalidJson = """
                 {
-                    "productId": 10,
+                    "productUid": "123e4567-e89b-12d3-a456-426614174000",
                     "amount": 2
                 }
             """;
 
-            // when & then
             mockMvc.perform(post("/api/v1/carts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(invalidJson))
@@ -106,30 +101,27 @@ class CartApiControllerTest {
         @Test
         @DisplayName("성공 - 장바구니 항목 삭제")
         void success() throws Exception {
-            // given
-            CartDeleteRequest request = new CartDeleteRequest(5L); // 예시 cartId
+            CartDeleteRequest request = new CartDeleteRequest(5L);
 
-            // when & then
             mockMvc.perform(delete("/api/v1/carts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNoContent());
 
-            Mockito.verify(cartService).deleteCartByCartId(5L);
+            verify(cartService).deleteCartByCartId(5L);
         }
 
         @Test
         @DisplayName("실패 - 유효하지 않은 요청 (cartId 누락)")
         void fail_invalidRequest() throws Exception {
-            // given: cartId 빠진 요청
             String invalidJson = "{}";
 
-            // when & then
             mockMvc.perform(delete("/api/v1/carts")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(invalidJson));
+                            .content(invalidJson))
+                    .andExpect(status().isBadRequest());
 
-            Mockito.verify(cartService, never()).deleteCartByCartId(anyLong());
+            verify(cartService, never()).deleteCartByCartId(anyLong());
         }
     }
 
@@ -140,33 +132,33 @@ class CartApiControllerTest {
         @Test
         @DisplayName("성공 - 장바구니 목록 조회")
         void success() throws Exception {
-            // given
+            UUID memberUid = UUID.randomUUID();
+            UUID productUid = UUID.randomUUID();
+
             Cart cart = Cart.builder()
                     .id(1L)
-                    .member(Member.builder().id(1L).build())
-                    .product(Product.builder().id(10L).build())
+                    .member(Member.builder().uid(memberUid).build())
+                    .product(Product.builder().uid(productUid).build())
                     .amount(2L)
                     .build();
 
-            Mockito.when(cartService.getCartByMemberId(anyLong()))
+            when(cartService.getCartByMemberId(any(UUID.class)))
                     .thenReturn(List.of(cart));
 
-            // when & then
             mockMvc.perform(get("/api/v1/carts")
-                            .param("memberId", "1")
+                            .param("memberUid", memberUid.toString())
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].id").value(1L))
                     .andExpect(jsonPath("$[0].amount").value(2));
 
-            Mockito.verify(cartService).getCartByMemberId(1L);
+            verify(cartService).getCartByMemberId(memberUid);
         }
 
         @Test
-        @DisplayName("실패 - 유효하지 않은 요청 (memberId 누락)")
+        @DisplayName("실패 - 유효하지 않은 요청 (memberUid 누락)")
         void fail_invalidRequest() throws Exception {
-            // when & then
             mockMvc.perform(get("/api/v1/carts")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
