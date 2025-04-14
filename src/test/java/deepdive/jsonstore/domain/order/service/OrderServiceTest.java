@@ -1,12 +1,11 @@
 package deepdive.jsonstore.domain.order.service;
 
-import deepdive.jsonstore.common.exception.CommonException;
+import deepdive.jsonstore.domain.order.entity.OrderProduct;
 import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.service.MemberValidationService;
 import deepdive.jsonstore.domain.order.dto.*;
 import deepdive.jsonstore.domain.order.entity.Order;
-import deepdive.jsonstore.domain.order.entity.OrderProduct;
 import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.entity.Product;
@@ -22,10 +21,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -33,23 +34,53 @@ import static org.mockito.Mockito.*;
 class OrderServiceTest {
 
     @InjectMocks
-    private OrderService orderService;
+    OrderService orderService;
 
     @Mock
-    private OrderRepository orderRepository;
+    OrderRepository orderRepository;
 
     @Mock
-    private ProductValidationService productValidationService;
+    ProductValidationService productValidationService;
 
     @Mock
-    private OrderValidationService orderValidationService;
+    MemberValidationService memberValidationService;
 
     @Mock
-    private MemberValidationService memberValidationService;
+    OrderValidationService orderValidationService;
 
     @Mock
-    private ProductStockService productStockService;
+    ProductStockService productStockService;
 
+    @Nested
+    class loadByUid {
+        @Test
+        @DisplayName("uid로 주문 불러오기 검증")
+        void loadByUid_성공() {
+            // given
+            UUID orderUid = UUID.randomUUID();
+            Order order = Order.builder().uid(orderUid).build();
+
+            // when
+            when(orderRepository.findByUid(orderUid)).thenReturn(Optional.of(order));
+
+            // then
+            Order result = orderService.loadByUid(orderUid);
+            assertThat(result).isEqualTo(result);
+            verify(orderRepository, times(1)).findByUid(orderUid);
+        }
+
+        @Test
+        void loadByUid_존재하지않는_UID_실패() {
+            // given
+            UUID uid = UUID.randomUUID();
+            when(orderRepository.findByUid(uid)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> orderService.loadByUid(uid))
+                    .isInstanceOf(OrderException.OrderNotFound.class);
+            verify(orderRepository, times(1)).findByUid(uid);
+        }
+    }
 
     @Nested
     @DisplayName("주문 생성")
@@ -141,15 +172,15 @@ class OrderServiceTest {
             verify(memberValidationService).findById(member.getId());
             verify(productValidationService).findActiveProductById(productUid);
         }
-    }
 
+//
     @Nested
     @DisplayName("주문 조회")
-    class getOrder {
+    class getOrderResponse {
 
         @Test
         @DisplayName("성공")
-        void getOrder_성공() {
+        void getOrderResponse_성공() {
             //given
             var orderUid = UUID.randomUUID();
             var member = Member.builder().build();
@@ -162,18 +193,17 @@ class OrderServiceTest {
                     .build();
 
             //when
-            when(orderValidationService.findByUid(orderUid)).thenReturn(order);
+            when(orderRepository.findByUid(orderUid)).thenReturn(Optional.of(order));
 
             //then
-            var orderResponse = orderService.getOrder(orderUid);
+            var orderResponse = orderService.getOrderResponse(orderUid);
 
             assertThat(orderResponse.orderUid()).isEqualTo(orderUid);
-            verify(orderValidationService, times(1)).findByUid(orderUid);
         }
 
         @Test
         @DisplayName("실패-만료")
-        void getORder_만료() {
+        void getOrderResponse_만료() {
             //given
             var orderUid = UUID.randomUUID();
             var member = Member.builder().build();
@@ -185,10 +215,12 @@ class OrderServiceTest {
                     .expiredAt(LocalDateTime.now())
                     .build();
             //when
-            when(orderValidationService.findByUid(orderUid)).thenReturn(order);
-
+            when(orderRepository.findByUid(orderUid)).thenReturn(Optional.of(order));
+            doThrow(new OrderException.OrderExpiredException())
+                    .when(orderValidationService)
+                    .validateExpiration(order);
             //then
-            assertThatThrownBy(() -> orderService.getOrder(orderUid))
+            assertThatThrownBy(() -> orderService.getOrderResponse(orderUid))
                     .isInstanceOf(OrderException.OrderExpiredException.class);
 
         }
@@ -213,21 +245,26 @@ class OrderServiceTest {
             var order = Order.builder()
                     .id(1L)
                     .expiredAt(LocalDateTime.now().plusMinutes(1))
-                    .products(products)
+                    .orderProducts(products)
                     .total(100)
                     .build();
 
             var confirmRequest = ConfirmRequest.builder()
+                    .orderId(order.getUid().toString())
                     .paymentKey(order.getUid().toString())
                     .amount(100L)
                     .build();
 
             //when
-            when(orderValidationService.findByUid(order.getUid())).thenReturn(order);
+            when(orderRepository.findByUid(order.getUid())).thenReturn(Optional.of(order));
+//            doThrow(new OrderException.OrderOutOfStockException())
+//                    .when(orderValidationService)
+//                    .validateProductStock(order);
+
             //then
-//            var reason = orderService.confirmOrder(confirmRequest);
-//            assertThat(reason).isEqualTo(ConfirmReason.CONFIRM);
-//            verify(orderValidationService, times(1)).findByUid(order.getUid());
+            orderService.confirmOrder(confirmRequest);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.PAID);
         }
+    }
     }
 }

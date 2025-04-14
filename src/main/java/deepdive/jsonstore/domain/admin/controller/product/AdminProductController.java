@@ -1,27 +1,27 @@
 package deepdive.jsonstore.domain.admin.controller.product;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
-import org.springframework.http.MediaType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import deepdive.jsonstore.domain.admin.dto.AdminProductListResponse;
 import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
 import deepdive.jsonstore.domain.admin.dto.UpdateProductRequest;
 import deepdive.jsonstore.domain.admin.service.product.AdminProductService;
+import deepdive.jsonstore.domain.product.dto.ProductListResponse;
 import deepdive.jsonstore.domain.product.dto.ProductResponse;
+import deepdive.jsonstore.domain.product.dto.ProductSearchCondition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +48,14 @@ public class AdminProductController {
 		ProductResponse res = adminProductService.updateProduct(UUID.fromString(adminId), productImage, updateProductRequest);
 		return ResponseEntity.ok().body(res);
 	}
+
+	@GetMapping
+	public ResponseEntity<Page<AdminProductListResponse>> getAdminProductList(@RequestParam String adminId,
+		ProductSearchCondition condition, Pageable pageable) {
+		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(UUID.fromString(adminId), condition, pageable);
+		return ResponseEntity.ok(res);
+	}
+
 
 	@PostMapping("/temp")
 	public ResponseEntity<Void> createAdmin() {

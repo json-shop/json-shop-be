@@ -82,4 +82,8 @@ public class DeliveryService{
 
         member.setDefaultDelivery(delivery);
     }
+
+    public Delivery getDeliveryByUid(UUID deliveryUid) {
+        return deliveryRepository.findByUid(deliveryUid).orElseThrow(EntityNotFoundException::new);
+    }
 }

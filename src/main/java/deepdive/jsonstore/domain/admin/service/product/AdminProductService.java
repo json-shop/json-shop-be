@@ -2,17 +2,22 @@ package deepdive.jsonstore.domain.admin.service.product;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import deepdive.jsonstore.common.s3.S3ImageService;
+import deepdive.jsonstore.domain.admin.dto.AdminProductListResponse;
 import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
 import deepdive.jsonstore.domain.admin.dto.UpdateProductRequest;
 import deepdive.jsonstore.domain.admin.entity.Admin;
 import deepdive.jsonstore.domain.admin.repository.AdminRepository;
 import deepdive.jsonstore.domain.admin.service.AdminValidationService;
 import deepdive.jsonstore.domain.product.dto.ProductResponse;
+import deepdive.jsonstore.domain.product.dto.ProductSearchCondition;
 import deepdive.jsonstore.domain.product.entity.Product;
+import deepdive.jsonstore.domain.product.repository.ProductQueryRepository;
 import deepdive.jsonstore.domain.product.repository.ProductRepository;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import jakarta.transaction.Transactional;
@@ -28,6 +33,7 @@ public class AdminProductService {
 	private final ProductValidationService productValidationService;
 	private final AdminValidationService adminValidationService;
 	private final ProductRepository productRepository;
+	private final ProductQueryRepository productQueryRepository;
 	private final AdminRepository adminRepository;
 
 	public String createProduct(UUID adminUid, MultipartFile productImage, CreateProductRequest createProductRequest) {
@@ -44,6 +50,10 @@ public class AdminProductService {
 		product.updateProduct(updateProductRequest, image);
 		productRepository.save(product);
 		return ProductResponse.toProductResponse(product);
+	}
+
+	public Page<AdminProductListResponse> getAdminProductList(UUID adminUid, ProductSearchCondition productSearchCondition, Pageable pageable) {
+		return productQueryRepository.searchAdminProductList(adminUid, productSearchCondition, pageable);
 	}
 
 	public void tempSave() {

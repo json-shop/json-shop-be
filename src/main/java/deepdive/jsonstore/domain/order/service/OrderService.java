@@ -1,5 +1,7 @@
 package deepdive.jsonstore.domain.order.service;
 
+import deepdive.jsonstore.common.exception.CommonException;
+import deepdive.jsonstore.domain.delivery.service.DeliveryService;
 import deepdive.jsonstore.domain.notification.entity.NotificationCategory;
 import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.member.service.MemberValidationService;
@@ -14,6 +16,8 @@ import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,32 +34,40 @@ public class OrderService {
     private final ProductStockService productStockService;
     private final OrderValidationService orderValidationService;
     private final MemberValidationService memberValidationService;
+    private final DeliveryService deliveryService;
     private final NotificationService notificationService;
     private final PaymentService paymentService;
-    @Value("${order.expire-minutes}") private int ORDER_EXPIRE_TIME;
+
+    /** 주문 엔티티를 uid로 조회 */
+    @Transactional
+    public Order loadByUid(UUID orderUid) {
+        var foundedOrder = orderRepository.findByUid(orderUid)
+                .orElseThrow(OrderException.OrderNotFound::new);
+        System.out.println("1 : " + foundedOrder.getOrderStatus());
+        if (foundedOrder.isExpired()) {
+            foundedOrder.expire();
+            orderRepository.save(foundedOrder);
+        }
+        System.out.println("2 : " + foundedOrder.getOrderStatus());
+        return foundedOrder;
+    }
 
     /**
      * 주문서 조회
-     *
      * @param orderUid 주문 uid
      * @return 주문서 Dto
      */
-    public OrderResponse getOrder(UUID orderUid) {
+    public OrderResponse getOrderResponse(UUID orderUid) {
+        var loadedOrder = loadByUid(orderUid);
+        System.out.println("3 : " + loadedOrder.getOrderStatus());
+        orderValidationService.validateExpiration(loadedOrder);
+        return OrderResponse.from(loadedOrder);
+    }
 
-        // 주문서 조회
-        var foundOrder = orderValidationService.findByUid(orderUid);
-
-        // 주문서 만료 처리
-        if (foundOrder.getExpiredAt().isBefore(LocalDateTime.now())) {
-            foundOrder.expire();
-        }
-
-        // 만료된 주문 접근시에 에러
-        if (foundOrder.getOrderStatus().equals(OrderStatus.EXPIRED)) {
-            throw new OrderException.OrderExpiredException();
-        }
-
-        return OrderResponse.from(foundOrder);
+    /** Pagenated 주문서 목록 조회 */
+    public Page<OrderResponse> getOrderResponsesByPage(Long memberId, Pageable pageable) {
+        return orderRepository.findByMemberId(memberId, pageable)
+                .map(OrderResponse::from);
     }
 
 
@@ -67,28 +79,9 @@ public class OrderService {
      * @return 주문서 Dto
      */
     public UUID createOrder(Long memberId, OrderRequest orderRequest) {
-
-        var member = memberValidationService.findById(memberId);
-        List<OrderProduct> orderProducts = new ArrayList<>();
-        int total = 0;
-
-        for (OrderProductRequest orderProductReq : orderRequest.orderProductRequests()) {
-            var product = productValidationService.findActiveProductById(orderProductReq.productUid());
-
-            int quantity = orderProductReq.quantity();
-            int price = product.getPrice();
-
-            // TODO : 재고가 부족한 목록을 에러로 반환할 것. 익셉션에 T extra 추가
-            if (product.getStock() < quantity) {
-                throw new OrderException.OrderOutOfStockException();
-            }
-
-            // 리스트에 추가
-            orderProducts.add(OrderProduct.from(product, quantity));
-
-            // 총액 계산
-            total += price * quantity;
-        }
+        var member = memberValidationService.findById(memberId); // TODO : 리펙토링 필요
+        List<OrderProduct> orderProducts = createOrderProducts(orderRequest);
+        int total = calculateTotalAmount(orderProducts);
 
         // 주문 생성 및 저장
         Order order = Order.builder()
@@ -99,15 +92,39 @@ public class OrderService {
                 .address(orderRequest.address())
                 .zipCode(orderRequest.zipCode())
                 .total(total)
-                .expiredAt(LocalDateTime.now().plusMinutes(ORDER_EXPIRE_TIME))
                 .build();
 
         // 주문 상품 등록
-        // TODO : 리펙토링?
-        orderProducts.forEach(order::addProduct);
+        orderProducts.forEach(order::addOrderProduct);
         var savedOrder = orderRepository.save(order);
 
         return savedOrder.getUid();
+    }
+
+    private int calculateTotalAmount(List<OrderProduct> orderProducts) {
+        return orderProducts.stream()
+                .mapToInt(p -> p.getPrice() * p.getQuantity())
+                .sum();
+    }
+
+    private List<OrderProduct> createOrderProducts(OrderRequest orderRequest) {
+        List<OrderProduct> orderProducts = new ArrayList<>();
+        List<String> outOfStockProducts = new ArrayList<>();
+        for (OrderProductRequest orderProductReq : orderRequest.orderProductRequests()) {
+            var product = productValidationService.findActiveProductById(orderProductReq.productUid());
+
+            int quantity = orderProductReq.quantity();
+
+            if (product.getStock() < quantity) {
+                outOfStockProducts.add(product.getName());
+            }
+
+            orderProducts.add(OrderProduct.from(product, quantity));
+        }
+        if (!outOfStockProducts.isEmpty()) {
+            throw new OrderException.OrderOutOfStockException(outOfStockProducts);
+        }
+        return orderProducts;
     }
 
     /**
@@ -118,58 +135,51 @@ public class OrderService {
     @Transactional
     public void confirmOrder(ConfirmRequest confirmRequest) {
         var orderUid = UUID.fromString(confirmRequest.orderId());
-        var order = orderValidationService.findByUid(orderUid);
-
-        if (order.getExpiredAt().isBefore(LocalDateTime.now())) {
-            order.changeState(OrderStatus.EXPIRED);
-            throw new OrderException.OrderExpiredException();
-        }
-//        if () {
-//            /* 통화 검사 */
-//        }
+        var order = loadByUid(orderUid);
 
         if (confirmRequest.amount() != order.getTotal()) {
             order.changeState(OrderStatus.FAILED);
-            //TODO : 실패시 리디렉션?
             throw new OrderException.OrderTotalMismatchException();
         }
-        if (order.isAnyOutOfStock()) {
-            throw new OrderException.OrderOutOfStockException();
-        }
+
+        // ------------트랜젝션---------------
+        // 재고 검사
+        orderValidationService.validateProductStock(order);
 
         // 재고 예약
-        for (var orderProduct : order.getProducts()) {
-            var productId = orderProduct.getProduct().getId();
-            var quantity = orderProduct.getQuantity();
-            productStockService.reserveStock(productId, quantity); // 예약
-        }
+        // reserveStock(...) 호출 중 실패하면 트랜잭션이 롤백되긴 하지만
+        // 재고 서비스가 외부 시스템이거나 자체 트랜잭션이라면 보상 트랜잭션 고려 필요
+        order.getOrderProducts().forEach(op->
+                productStockService.reserveStock(op.getProduct().getId(), op.getQuantity()));
+        // ------------------------------------
 
         // 결제 대기 상태
-        // order.changeState(OrderStatus.PAYMENT_PENDING);
+        order.changeState(OrderStatus.PAYMENT_PENDING);
 
         // 주문 승인 및 결제키 등록
         var paymentResponse = paymentService.confirm(confirmRequest);
         var paymentKey = paymentResponse.get("paymentKey").toString();
         order.setPaymentKey(paymentKey);
 
+        // ------------ 블로킹 ---------------------
+        // 웹훅으로 비동기적으로 처리 가능
+
+
         var sb = new StringBuilder();
         var title = order.getTitle();
-
         sb.append(title).append("\n");
         sb.append(order.getTotal()).append("원 결제성공");
         var notificationBody = sb.toString();
 
         // 성공 알림 발송
         try {
-            notificationService.sendNotification(order.getMember().getUid(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
-        } catch (Exception e) {
-            // 재발송 전략?
-            log.info("발송 실패");
+            notificationService.sendNotification(order.getMember().getId(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
+        } catch (CommonException.InternalServerException e) {
+            log.warn("발송 실패"); // 재발송 전략?
         }
 
         // 주문 상태 "결제"로 변경
         order.changeState(OrderStatus.PAID);
-
     }
 
     // 웹훅이 결제 완료인지 판별
@@ -183,33 +193,22 @@ public class OrderService {
     // 발송 전에 결제 취소 기능
     @Transactional
     public void cancelOrderBeforeShipment(UUID orderUid) {
-        var order = orderValidationService.findByUid(orderUid);
-        var currentStatus = order.getOrderStatus();
+        var order = loadByUid(orderUid);
 
-        // 결제 전 주문
-        if (currentStatus.ordinal() <= OrderStatus.PAYMENT_PENDING.ordinal()) {
-            throw new OrderException.NotPaidException();
-        }
-
-        // 만료된 주문
-        if (currentStatus.ordinal() >= OrderStatus.CANCELLED.ordinal()) {
-            throw new OrderException.OrderExpiredException();
-        }
-
-        // 이미 배송 중
-        if (currentStatus == OrderStatus.IN_DELIVERY) {
-            throw new OrderException.AlreadyInDeliveryException();
-        }
+        // -------- 트랜젝션 ----------------------
+        // 검증
+        orderValidationService.validateBeforePayment(order);
+        orderValidationService.validateExpiration(order);
+        orderValidationService.validateBeforeShipping(order);
 
         // 전액 환불
         String reason = "사용자 요청";
         paymentService.cancelFullAmount(order.getPaymentKey(), reason);
-
+        // ---------------------------------------
 
         // 알림 메시지 작성
         var sb = new StringBuilder();
         var title = order.getTitle();
-
         sb.append(title).append("\n");
         var notificationBody = sb.toString();
 
@@ -220,5 +219,21 @@ public class OrderService {
             log.info("발송 실패");
         }
         order.expire();
+    }
+
+    @Transactional
+    public void updateOrderDeliveryBeforeShipping(UUID orderUid, UUID deliveryUid) {
+        var order = loadByUid(orderUid);
+        var delivery = deliveryService.getDeliveryByUid(deliveryUid);
+
+        orderValidationService.validateExpiration(order);
+        orderValidationService.validateBeforeShipping(order);
+
+        order.updateDelivery(
+                delivery.getAddress(),
+                delivery.getZipCode(),
+                delivery.getPhone(),
+                delivery.getRecipient()
+        );
     }
 }
