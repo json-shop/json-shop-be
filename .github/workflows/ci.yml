@@ -67,6 +67,7 @@ jobs:
 
       - name: Run Tests
         env:
+          SPRING_PROFILES_ACTIVE: dev
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/testdb
           SPRING_DATASOURCE_USERNAME: testuser
           SPRING_DATASOURCE_PASSWORD: testpass
