@@ -2,13 +2,14 @@ services:
   app:
     image: ghcr.io/json-store-25/json-store-be:latest
     container_name: json-store-app
-    depends_on:
-      - mysql
-      - redis
     ports:
       - "8080:8080"
     env_file:
       - .env
+    volumes:
+      - /home/ec2-user/firebaseAccessKey.json:/app/firebaseAccessKey.json:ro
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/firebaseAccessKey.json
     restart: always
 
 #  redis:

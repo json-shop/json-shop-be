@@ -1,8 +1,9 @@
 name: cd
 
 on:
-  push:
-    branches: [ "cd-test" ]
+  #  push:
+  #    branches: [ "dev" ]
+  workflow_dispatch:
 
 jobs:
   cd:
@@ -37,10 +38,10 @@ jobs:
       - name: Build & Push Docker image
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          docker build -t ${{ secrets.DOCKER_IMAGE }}:$SHORT_SHA .
-          docker tag ${{ secrets.DOCKER_IMAGE }}:$SHORT_SHA ${{ secrets.DOCKER_IMAGE }}:latest
-          docker push ${{ secrets.DOCKER_IMAGE }}:$SHORT_SHA
-          docker push ${{ secrets.DOCKER_IMAGE }}:latest
+          docker build -t ${{ secrets.DOCKER_REPO }}:$SHORT_SHA .
+          docker tag ${{ secrets.DOCKER_REPO }}:$SHORT_SHA ${{ secrets.DOCKER_REPO }}:latest
+          docker push ${{ secrets.DOCKER_REPO }}:$SHORT_SHA
+          docker push ${{ secrets.DOCKER_REPO }}:latest
 
       - name: Generate .env
         run: |
@@ -48,8 +49,19 @@ jobs:
           echo "DB_URL=${{ secrets.DB_URL }}" >> .env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
-          echo "FIREBASE_KEY_BASE64=${{ secrets.FIREBASE_KEY_BASE64 }}" >> .env
+          echo "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" >> .env
+          echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}" >> .env
+          echo "REGION=${{ secrets.REGION }}" >> .env
+          echo "BUCKET_NAME=${{ secrets.BUCKET_NAME }}" >> .env
+          echo "TOSSPAYMENTS_API_BASE=${{ secrets.TOSSPAYMENTS_API_BASE }}" >> .env
+          echo "TOSSPAYMENTS_API_SECRET=${{ secrets.TOSSPAYMENTS_API_SECRET }}" >> .env
+
+
+
+      - name: Check files exist before SCP
+        run: ls -al
 
       - name: Upload docker-compose & .env to EC2
         uses: appleboy/scp-action@master
@@ -57,9 +69,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: |
-            docker-compose.yml
-            .env
+          source: "./docker-compose.yml,./.env"
           target: "~/app"
           overwrite: true
 
@@ -72,6 +82,5 @@ jobs:
           script: |
             cd ~/app
             docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} -p ${{ secrets.GHCR_TOKEN }}
-            docker pull ${{ secrets.DOCKER_IMAGE }}:latest
-            docker compose down
-            docker compose up -d --remove-orphans
+            docker compose pull
+            docker compose up -d --no-deps app
