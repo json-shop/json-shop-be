@@ -87,8 +87,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ROLE_ADMIN")
-                        .requestMatchers("/api/v1/member/**").hasRole("ROLE_MEMBER")
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/member/**").hasRole("MEMBER")
                         .anyRequest().authenticated()
                 )
                 //  예외 발생 시 Exception 던짐

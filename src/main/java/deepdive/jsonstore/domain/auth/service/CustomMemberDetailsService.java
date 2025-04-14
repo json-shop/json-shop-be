@@ -34,7 +34,7 @@ public class CustomMemberDetailsService implements UserDetailsService {
         // CustomMemberDetails 객체에 UUID와 권한, 패스워드를 담아 반환
         return new CustomMemberDetails(
                 member.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
+                Collections.singleton(new SimpleGrantedAuthority("MEMBER"))
 
         );
     }
