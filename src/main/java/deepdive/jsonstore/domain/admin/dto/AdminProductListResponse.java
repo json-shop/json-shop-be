@@ -14,6 +14,7 @@ public record AdminProductListResponse(
 	int price,
 	int stock,
 	ProductStatus status,
-	LocalDateTime createAt
+	long soldCount,
+	LocalDateTime createdAt
 ) {
 }

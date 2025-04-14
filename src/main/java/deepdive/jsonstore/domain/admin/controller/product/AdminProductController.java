@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import deepdive.jsonstore.domain.admin.dto.AdminProductListResponse;
+import deepdive.jsonstore.domain.admin.dto.AdminProductResponse;
 import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
 import deepdive.jsonstore.domain.admin.dto.UpdateProductRequest;
 import deepdive.jsonstore.domain.admin.service.product.AdminProductService;
@@ -53,6 +55,12 @@ public class AdminProductController {
 	public ResponseEntity<Page<AdminProductListResponse>> getAdminProductList(@RequestParam String adminId,
 		ProductSearchCondition condition, Pageable pageable) {
 		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(UUID.fromString(adminId), condition, pageable);
+		return ResponseEntity.ok(res);
+	}
+
+	@GetMapping("/{productId}")
+	public ResponseEntity<AdminProductResponse> getAdminProduct(@PathVariable UUID productId, @RequestParam String adminId) {
+		AdminProductResponse res = adminProductService.getAdminProduct(UUID.fromString(adminId), productId);
 		return ResponseEntity.ok(res);
 	}
 

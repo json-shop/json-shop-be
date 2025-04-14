@@ -73,6 +73,7 @@ public class ProductQueryRepository {
 				product.price,
 				product.stock,
 				product.status,
+				product.soldCount,
 				product.createdAt))
 			.from(product)
 			.where(categoryEq(condition.category()), searchContains(condition.search()), adminEq(uid))

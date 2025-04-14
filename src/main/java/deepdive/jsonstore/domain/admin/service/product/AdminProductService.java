@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import deepdive.jsonstore.common.s3.S3ImageService;
 import deepdive.jsonstore.domain.admin.dto.AdminProductListResponse;
+import deepdive.jsonstore.domain.admin.dto.AdminProductResponse;
 import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
 import deepdive.jsonstore.domain.admin.dto.UpdateProductRequest;
 import deepdive.jsonstore.domain.admin.entity.Admin;
@@ -54,6 +55,11 @@ public class AdminProductService {
 
 	public Page<AdminProductListResponse> getAdminProductList(UUID adminUid, ProductSearchCondition productSearchCondition, Pageable pageable) {
 		return productQueryRepository.searchAdminProductList(adminUid, productSearchCondition, pageable);
+	}
+
+	public AdminProductResponse getAdminProduct(UUID adminUid, UUID productUid) {
+		Product product = productValidationService.findProductByIdAndAdmin(productUid, adminUid);
+		return AdminProductResponse.toAdminProductResponse(product);
 	}
 
 	public void tempSave() {
