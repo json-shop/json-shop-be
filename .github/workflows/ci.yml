@@ -81,7 +81,7 @@ jobs:
           REDIS_PORT: ${{secrets.REDIS_PORT}}
           PORTONE_WEBHOOK_SECRET_KEY: ${{secrets.PORTONE_WEBHOOK_SECRET_KEY}}
           API_KEY: ${{secrets.API_KEY}}
-        run: ./gradlew test
+        run: ./gradlew test jacocoTestReport
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
