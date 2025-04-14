@@ -26,7 +26,7 @@ public class AdminMemberDetailsService implements UserDetailsService {
 
         return new AdminMemberDetails(
                 admin.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                Collections.singleton(new SimpleGrantedAuthority("ADMIN"))
         );
     }
 
@@ -37,7 +37,7 @@ public class AdminMemberDetailsService implements UserDetailsService {
 
         return new AdminMemberDetails(
                 admin.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                Collections.singleton(new SimpleGrantedAuthority("ADMIN"))
         );
     }
 }

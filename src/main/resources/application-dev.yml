@@ -48,6 +48,12 @@ fcm:
   credentials:
     file: classpath:firebaseAccessKey.json
 
+external:
+  api:
+    address:
+      key: ${API_KEY}
+
 tosspayments:
   api-base: ${TOSSPAYMENTS_API_BASE:https://api.tosspayments.com}
   api-secret: ${TOSSPAYMENTS_API_SECRET:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}
+  
