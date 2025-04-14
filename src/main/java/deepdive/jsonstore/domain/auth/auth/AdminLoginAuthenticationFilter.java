@@ -55,8 +55,6 @@ public class AdminLoginAuthenticationFilter extends AbstractAuthenticationProces
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
                                               AuthenticationException failed) throws IOException {
-        // 로그 예외 메시지
-        logger.error("Authentication failed for user: " + failed.getMessage());
 
         // 에러 응답 생성
         ErrorResponse errorResponse = new ErrorResponse(
