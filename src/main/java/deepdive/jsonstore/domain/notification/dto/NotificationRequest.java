@@ -8,13 +8,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationRequest {
-    @NotNull(message = "회원 ID를 입력해주세요.")
-    @Positive(message = "회원 ID는 0보다 커야 합니다.")
-    private Long memberId;
+    @NotNull(message = "회원 UUID를 입력해주세요.")
+    private UUID memberUid;
 
     @NotBlank(message = "제목을 입력해주세요.")
     @Size(max = 255, message = "제목은 최대 255자까지 입력 가능합니다.")

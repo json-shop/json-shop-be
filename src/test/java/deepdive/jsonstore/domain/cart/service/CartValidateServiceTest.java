@@ -16,6 +16,7 @@ import org.mockito.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -48,12 +49,12 @@ class CartValidateServiceTest {
         @Test
         @DisplayName("성공 - 멤버 존재")
         void success() {
-            Long memberId = 1L;
-            Member member = Member.builder().id(memberId).build();
+            UUID memberUid = UUID.randomUUID();
+            Member member = Member.builder().uid(memberUid).build();
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(memberRepository.findByUid(memberUid)).thenReturn(Optional.of(member));
 
-            Member result = cartValidateService.validateMember(memberId);
+            Member result = cartValidateService.validateMember(memberUid);
 
             assertThat(result).isEqualTo(member);
         }
@@ -61,11 +62,11 @@ class CartValidateServiceTest {
         @Test
         @DisplayName("실패 - 멤버 없음")
         void fail_notFound() {
-            Long memberId = 2L;
-            when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+            UUID memberUid = UUID.randomUUID();
+            when(memberRepository.findByUid(memberUid)).thenReturn(Optional.empty());
 
             assertThrows(CartException.MemberNotFoundException.class,
-                    () -> cartValidateService.validateMember(memberId));
+                    () -> cartValidateService.validateMember(memberUid));
         }
     }
 
@@ -76,18 +77,18 @@ class CartValidateServiceTest {
         @Test
         @DisplayName("성공 - 판매중이고 재고 충분")
         void success() {
-            Long productId = 10L;
+            UUID productUid = UUID.randomUUID();
             Long amount = 3L;
 
             Product product = Product.builder()
-                    .id(productId)
+                    .uid(productUid)
                     .status(ProductStatus.ON_SALE)
                     .stock(10)
                     .build();
 
-            when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+            when(productRepository.findByUid(productUid)).thenReturn(Optional.of(product));
 
-            Product result = cartValidateService.validateProduct(productId, amount);
+            Product result = cartValidateService.validateProduct(productUid, amount);
 
             assertThat(result).isEqualTo(product);
         }
@@ -95,42 +96,44 @@ class CartValidateServiceTest {
         @Test
         @DisplayName("실패 - 상품 없음")
         void fail_notFound() {
-            Long productId = 11L;
+            UUID productUid = UUID.randomUUID();
 
-            when(productRepository.findById(productId)).thenReturn(Optional.empty());
+            when(productRepository.findByUid(productUid)).thenReturn(Optional.empty());
 
             assertThrows(CartException.ProductNotFoundException.class,
-                    () -> cartValidateService.validateProduct(productId, 1L));
+                    () -> cartValidateService.validateProduct(productUid, 1L));
         }
 
         @Test
         @DisplayName("실패 - 상품 판매 중 아님")
         void fail_productNotOnSale() {
+            UUID productUid = UUID.randomUUID();
             Product product = Product.builder()
-                    .id(12L)
+                    .uid(productUid)
                     .status(ProductStatus.DISCONTINUED)
                     .stock(10)
                     .build();
 
-            when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
+            when(productRepository.findByUid(productUid)).thenReturn(Optional.of(product));
 
             assertThrows(CartException.ProductForbiddenException.class,
-                    () -> cartValidateService.validateProduct(product.getId(), 1L));
+                    () -> cartValidateService.validateProduct(productUid, 1L));
         }
 
         @Test
         @DisplayName("실패 - 재고 부족")
         void fail_outOfStock() {
+            UUID productUid = UUID.randomUUID();
             Product product = Product.builder()
-                    .id(13L)
+                    .uid(productUid)
                     .status(ProductStatus.ON_SALE)
                     .stock(2)
                     .build();
 
-            when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
+            when(productRepository.findByUid(productUid)).thenReturn(Optional.of(product));
 
             assertThrows(CartException.ProductOutOfStockException.class,
-                    () -> cartValidateService.validateProduct(product.getId(), 5L));
+                    () -> cartValidateService.validateProduct(productUid, 5L));
         }
     }
 
@@ -191,33 +194,29 @@ class CartValidateServiceTest {
     }
 
     @Nested
-    @DisplayName("validateCart 메서드")
-    class ValidateCart {
+    @DisplayName("validateCartList 테스트")
+    class ValidateCartList {
 
         @Test
         @DisplayName("성공 - 카트 목록이 존재하면 예외를 던지지 않는다")
         void success() {
-            // given
             List<Cart> carts = List.of(
                     Cart.builder()
                             .id(1L)
-                            .member(Member.builder().id(1L).build())
-                            .product(Product.builder().id(10L).build())
+                            .member(Member.builder().uid(UUID.randomUUID()).build())
+                            .product(Product.builder().uid(UUID.randomUUID()).build())
                             .amount(2L)
                             .build()
             );
 
-            // when & then
             assertDoesNotThrow(() -> cartValidateService.validateCartList(carts));
         }
 
         @Test
         @DisplayName("실패 - 카트 목록이 비어있으면 CartNotFoundException 예외 발생")
         void fail_emptyCartList() {
-            // given
             List<Cart> emptyCarts = List.of();
 
-            // when & then
             assertThatThrownBy(() -> cartValidateService.validateCartList(emptyCarts))
                     .isInstanceOf(CartException.CartNotFoundException.class);
         }

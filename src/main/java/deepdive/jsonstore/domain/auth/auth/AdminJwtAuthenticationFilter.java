@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 @RequiredArgsConstructor
 public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -25,16 +26,24 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+
+        // 관리자 API가 아닌 경우 필터 통과
+        if (!requestURI.startsWith("/api/v1/admin")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = adminJwtTokenProvider.resolveToken(request);
 
-        if (StringUtils.hasText(token)) {
-            if (adminJwtTokenProvider.validateToken(token)) {
-                Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                throw new AuthException.UnauthenticatedAccessException();
-            }
+        // 토큰 없으면 그냥 다음 필터로 넘김 (예외 X)
+        if (!StringUtils.hasText(token) || !adminJwtTokenProvider.validateToken(token)) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }

@@ -19,6 +19,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByEmail(String email);
 
+    boolean existsByUid(UUID uid);
+
     Optional<Member> findByEmailAndIsDeletedFalse(String email);
 
     Optional<Member> findByUid(UUID uid);
@@ -29,6 +31,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Transactional
     @Query("DELETE FROM Member m WHERE m.isDeleted = true AND m.deletedAt <= :cutoffDate")
     void deleteAllSoftDeletedBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
-
 
 }

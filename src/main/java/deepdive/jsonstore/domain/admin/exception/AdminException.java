@@ -14,4 +14,10 @@ public class AdminException extends RuntimeException {
 			super(AdminErrorCode.ADMIN_NOT_FOUND);
 		}
 	}
+
+	public static class AdminBadRequestException extends AdminException {
+		public AdminBadRequestException() {
+			super(AdminErrorCode.ADMIN_BAD_REQUEST);
+		}
+	}
 }

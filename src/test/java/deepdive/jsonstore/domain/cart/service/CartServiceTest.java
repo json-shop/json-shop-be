@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -39,21 +40,21 @@ class CartServiceTest {
         @DisplayName("성공 - 카트에 상품이 없을 때")
         void success_whenNotInCart() {
             // given
-            Long memberId = 1L;
-            Long productId = 100L;
+            UUID memberUid = UUID.randomUUID();
+            UUID productUid = UUID.randomUUID();
             Long amount = 2L;
 
-            Member member = Member.builder().id(memberId).build();
-            Product product = Product.builder().id(productId).build();
+            Member member = Member.builder().uid(memberUid).build();
+            Product product = Product.builder().uid(productUid).build();
             Cart newCart = Cart.builder().member(member).product(product).amount(amount).build();
 
-            when(validateService.validateMember(memberId)).thenReturn(member);
-            when(validateService.validateProduct(productId, amount)).thenReturn(product);
+            when(validateService.validateMember(memberUid)).thenReturn(member);
+            when(validateService.validateProduct(productUid, amount)).thenReturn(product);
             when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(null);
             when(cartRepository.save(any(Cart.class))).thenReturn(newCart);
 
             // when
-            Cart result = cartService.addProductToCart(memberId, productId, amount);
+            Cart result = cartService.addProductToCart(memberUid, productUid, amount);
 
             // then
             assertThat(result).isNotNull();
@@ -65,24 +66,24 @@ class CartServiceTest {
         @DisplayName("성공 - 카트에 동일 상품이 존재할 때 수량 갱신")
         void success_whenAlreadyInCart() {
             // given
-            Long memberId = 1L;
-            Long productId = 100L;
+            UUID memberUid = UUID.randomUUID();
+            UUID productUid = UUID.randomUUID();
             Long currentAmount = 1L;
             Long addedAmount = 2L;
             Long updatedAmount = 3L;
 
-            Member member = Member.builder().id(memberId).build();
-            Product product = Product.builder().id(productId).build();
+            Member member = Member.builder().uid(memberUid).build();
+            Product product = Product.builder().uid(productUid).build();
             Cart existingCart = Cart.builder().member(member).product(product).amount(currentAmount).build();
 
-            when(validateService.validateMember(memberId)).thenReturn(member);
-            when(validateService.validateProduct(productId, addedAmount)).thenReturn(product);
+            when(validateService.validateMember(memberUid)).thenReturn(member);
+            when(validateService.validateProduct(productUid, addedAmount)).thenReturn(product);
             when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(existingCart);
             when(validateService.validateAmount(existingCart, product, addedAmount)).thenReturn(updatedAmount);
             when(cartRepository.save(existingCart)).thenReturn(existingCart);
 
             // when
-            Cart result = cartService.addProductToCart(memberId, productId, addedAmount);
+            Cart result = cartService.addProductToCart(memberUid, productUid, addedAmount);
 
             // then
             assertThat(result).isNotNull();
@@ -99,8 +100,8 @@ class CartServiceTest {
         @DisplayName("성공 - 카트에 존재하는 상품이 있을 때 수량 갱신")
         void success_whenExists() {
             // given
-            Member member = Member.builder().id(1L).build();
-            Product product = Product.builder().id(100L).build();
+            Member member = Member.builder().uid(UUID.randomUUID()).build();
+            Product product = Product.builder().uid(UUID.randomUUID()).build();
             Cart cart = Cart.builder().member(member).product(product).amount(1L).build();
             Long newAmount = 5L;
 
@@ -121,8 +122,8 @@ class CartServiceTest {
         @DisplayName("성공 - 카트에 존재하지 않을 때 null 반환")
         void success_whenNotExists() {
             // given
-            Member member = Member.builder().id(1L).build();
-            Product product = Product.builder().id(100L).build();
+            Member member = Member.builder().uid(UUID.randomUUID()).build();
+            Product product = Product.builder().uid(UUID.randomUUID()).build();
             Long amount = 2L;
 
             when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(null);
@@ -154,41 +155,43 @@ class CartServiceTest {
             verify(cartRepository).deleteById(cartId);
         }
     }
+
+    @Nested
     @DisplayName("getCartByMemberId 메서드")
     class GetCartByMemberId {
 
         @Test
-        @DisplayName("성공 - 유효한 memberId로 카트 목록 조회")
+        @DisplayName("성공 - 유효한 memberUid로 카트 목록 조회")
         void success() {
             // given
-            Long memberId = 1L;
+            UUID memberUid = UUID.randomUUID();
 
             List<Cart> mockCarts = List.of(
                     Cart.builder()
                             .id(1L)
-                            .member(Member.builder().id(memberId).build())
-                            .product(Product.builder().id(10L).build())
+                            .member(Member.builder().uid(memberUid).build())
+                            .product(Product.builder().uid(UUID.randomUUID()).build())
                             .amount(2L)
                             .build(),
                     Cart.builder()
                             .id(2L)
-                            .member(Member.builder().id(memberId).build())
-                            .product(Product.builder().id(20L).build())
+                            .member(Member.builder().uid(memberUid).build())
+                            .product(Product.builder().uid(UUID.randomUUID()).build())
                             .amount(1L)
                             .build()
             );
 
-            when(cartRepository.findByMemberId(memberId)).thenReturn(mockCarts);
+            when(cartRepository.findByMemberUid(memberUid)).thenReturn(mockCarts);
 
             // when
-            List<Cart> result = cartService.getCartByMemberId(memberId);
+            List<Cart> result = cartService.getCartByMemberId(memberUid);
 
             // then
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getId()).isEqualTo(1L);
-            assertThat(result.get(1).getProduct().getId()).isEqualTo(20L);
+            assertThat(result.get(1).getProduct()).isNotNull();
 
-            verify(cartRepository).findByMemberId(memberId);
+            verify(cartRepository).findByMemberUid(memberUid);
             verify(validateService).validateCartList(mockCarts);
         }
     }

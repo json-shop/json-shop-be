@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,14 +22,34 @@ public class CustomMemberDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        // 이메일을 기반으로 Member 객체를 찾음
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 찾을 수 없습니다."));
 
+        // 삭제된 회원은 인증되지 않음
         if (Boolean.TRUE.equals(member.getIsDeleted())) {
             throw new DisabledException("삭제된 회원입니다.");
         }
 
+        // CustomMemberDetails 객체에 UUID와 권한, 패스워드를 담아 반환
+        return new CustomMemberDetails(
+                member.getUid(),
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
 
-        return new CustomMemberDetails(member, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
+        );
+    }
+
+    public CustomMemberDetails loadUserByUuid(UUID uuid) {
+        // UUID를 사용하여 Member 객체를 조회
+        Member member = memberRepository.findByUid(uuid)
+                .orElseThrow(() -> new UsernameNotFoundException("해당 UUID를 찾을 수 없습니다."));
+
+        // CustomMemberDetails 객체에 UUID와 권한, 패스워드를 담아 반환
+        return new CustomMemberDetails(
+
+                member.getUid(),
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_MEMBER"))
+
+        );
     }
 }
