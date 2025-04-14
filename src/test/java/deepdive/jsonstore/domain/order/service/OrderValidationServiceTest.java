@@ -1,15 +1,22 @@
 package deepdive.jsonstore.domain.order.service;
 
+import deepdive.jsonstore.domain.order.entity.OrderProduct;
+import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import deepdive.jsonstore.domain.order.exception.OrderException;
 import deepdive.jsonstore.domain.order.entity.Order;
-import deepdive.jsonstore.domain.order.repository.OrderRepository;
+import deepdive.jsonstore.domain.product.entity.Product;
+import deepdive.jsonstore.domain.product.service.ProductValidationService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,32 +29,156 @@ class OrderValidationServiceTest {
     private OrderValidationService orderValidationService;
 
     @Mock
-    private OrderRepository orderRepository;
+    private ProductValidationService productValidationService;
 
-    @Test
-    void getByUid_성공() {
-        // given
-        UUID uuid = UUID.randomUUID();
-        Order mockOrder = mock(Order.class);
-        when(orderRepository.findByUid(uuid)).thenReturn(Optional.of(mockOrder));
-
-        // when
-        Order result = orderValidationService.findByUid(uuid);
-
-        // then
-        assertNotNull(result);
-        assertEquals(mockOrder, result);
-        verify(orderRepository, times(1)).findByUid(uuid);
+    @Nested
+    @DisplayName("주문 만료 검증")
+    class validateExpiration {
+        @ParameterizedTest
+        @ValueSource(strings = {"CREATED", "PAYMENT_PENDING", "PAID", "IN_DELIVERY", "PREPARING_SHIPMENT", "DONE"})
+        void validateExpriration_성공(String statusName) {
+            //given
+            var status = OrderStatus.valueOf(statusName);
+            var orderUid = UUID.randomUUID();
+            var mockOrder = Order.builder()
+                    .uid(orderUid)
+                    .orderStatus(status)
+                    .build();
+            //when & then
+            assertDoesNotThrow(() -> orderValidationService.validateExpiration(mockOrder));
+        }
+        @ParameterizedTest
+        @ValueSource(strings = {"EXPIRED", "CANCELED", "FAILED"})
+        void validateExpriration_실패(String statusName) {
+            //given
+            var status = OrderStatus.valueOf(statusName);
+            var orderUid = UUID.randomUUID();
+            var mockOrder = Order.builder()
+                    .uid(orderUid)
+                    .orderStatus(status)
+                    .build();
+            //when & then
+            assertThrows(OrderException.OrderExpiredException.class,
+                    ()-> orderValidationService.validateExpiration(mockOrder));
+        }
     }
 
-    @Test
-    void getByUid_실패() {
-        // given
-        UUID uuid = UUID.randomUUID();
-        when(orderRepository.findByUid(uuid)).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("주문 재고 검증")
+    class validateProductStock {
 
-        // when & then
-        assertThrows(OrderException.OrderNotFound.class, () -> orderValidationService.findByUid(uuid));
-        verify(orderRepository, times(1)).findByUid(uuid);
+        @Test
+        void validateProductStock_성공() {
+            //given
+            var product = Product.builder()
+                    .stock(1)
+                    .build();
+            var pouid = UUID.randomUUID();
+            var orderProduct = OrderProduct.builder()
+                    .uid(pouid)
+                    .product(product)
+                    .quantity(1)
+                    .build();
+            var mockOrder = Order.builder()
+                    .orderProducts(List.of(orderProduct))
+                    .build();
+
+            //when
+            when(productValidationService.findActiveProductById(pouid)).thenReturn(product);
+
+            //then
+            assertDoesNotThrow(() -> orderValidationService.validateProductStock(mockOrder));
+        }
+
+        @Test
+        void validateProductStock_실패() {
+            //given
+            var name = "테스트";
+            var product = Product.builder()
+                    .name(name)
+                    .stock(1)
+                    .build();
+            var pouid = UUID.randomUUID();
+            var orderProduct = OrderProduct.builder()
+                    .uid(pouid)
+                    .product(product)
+                    .quantity(2)
+                    .build();
+            var mockOrder = Order.builder()
+                    .orderProducts(List.of(orderProduct))
+                    .build();
+
+            //when
+            when(productValidationService.findActiveProductById(pouid)).thenReturn(product);
+
+            //then
+            assertThrows(OrderException.OrderOutOfStockException.class,
+                    () -> orderValidationService.validateProductStock(mockOrder))
+                    .getExtra().getFirst().equals(name);
+        }
+    }
+
+    @Nested
+    @DisplayName("주문 배송전 검증")
+    class validateBeforeShipping {
+
+        @ParameterizedTest
+        @ValueSource(strings = {"CREATED", "PAYMENT_PENDING", "PAID", "PREPARING_SHIPMENT"})
+        void validateBeforeShipping_성공(String statusName) {
+            //given
+            var status = OrderStatus.valueOf(statusName);
+            var order = Order.builder()
+                    .orderStatus(status)
+                    .build();
+
+            //when & then
+            assertDoesNotThrow(() -> orderValidationService.validateBeforeShipping(order));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"IN_DELIVERY", "DONE"})
+        void validateBeforeShipping_실패(String statusName) {
+            //given
+            var status = OrderStatus.valueOf(statusName);
+            var order = Order.builder()
+                    .orderStatus(status)
+                    .build();
+
+            //when & then
+            assertThrows(OrderException.AlreadyStartDeliveryException.class,
+                    () -> orderValidationService.validateBeforeShipping(order));
+        }
+
+        @Nested
+        @DisplayName("주문 결제전 검증")
+        class validateBeforePayment {
+
+            @ParameterizedTest
+            @ValueSource(strings = {"IN_DELIVERY", "DONE", "PAID", "PREPARING_SHIPMENT"})
+            void validateBeforeShipping_성공(String statusName) {
+                //given
+                var status = OrderStatus.valueOf(statusName);
+                var order = Order.builder()
+                        .orderStatus(status)
+                        .build();
+
+                //when & then
+                assertDoesNotThrow(() -> orderValidationService.validateBeforePayment(order));
+            }
+
+            @ParameterizedTest
+            @ValueSource(strings = {"CREATED", "PAYMENT_PENDING"})
+            void validateBeforeShipping_실패(String statusName) {
+                //given
+                var status = OrderStatus.valueOf(statusName);
+                var order = Order.builder()
+                        .orderStatus(status)
+                        .build();
+
+                //when & then
+                assertThrows(OrderException.NotPaidException.class,
+                        () -> orderValidationService.validateBeforePayment(order));
+            }
+        }
     }
 }

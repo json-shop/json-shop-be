@@ -9,14 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface CartRepository extends JpaRepository<Cart, Long> {
     // 멤버와 상품을 기반으로 카트 목록 조회
     Cart findByMemberAndProduct(Member member, Product product);
 
-    // 멤버ID를 기반으로 카트 목록 조회
+    // 멤버UID를 기반으로 카트 목록 조회
     @EntityGraph(attributePaths = {"product", "member"})
-    List<Cart> findByMemberId(Long memberId);
+    List<Cart> findByMemberUid(UUID memberUid);
 
 }

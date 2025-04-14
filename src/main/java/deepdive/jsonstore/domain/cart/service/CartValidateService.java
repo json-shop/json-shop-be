@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -23,14 +24,14 @@ public class CartValidateService {
     private final ProductRepository productRepository;
 
     // 멤버 검증
-    public Member validateMember(Long memberId) {
-        return memberRepository.findById(memberId)
+    public Member validateMember(UUID memberUid) {
+        return memberRepository.findByUid(memberUid)
                 .orElseThrow(CartException.MemberNotFoundException::new);
     }
 
     // 상품 검증
-    public Product validateProduct(Long productId, Long amount) {
-        Product product = productRepository.findById(productId)
+    public Product validateProduct(UUID productUid, Long amount) {
+        Product product = productRepository.findByUid(productUid)
                 .orElseThrow(CartException.ProductNotFoundException::new);
 
         // 상품이 판매중인지 검증

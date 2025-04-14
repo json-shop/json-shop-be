@@ -25,16 +25,23 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+
+        // 관리자 API일 경우 멤버 필터는 스킵
+        if (requestURI.startsWith("/api/v1/admin")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = memberJwtTokenProvider.resolveToken(request);
 
-        if (StringUtils.hasText(token)) {
-            if (memberJwtTokenProvider.validateToken(token)) {
-                Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                throw new AuthException.UnauthenticatedAccessException();
-            }
+        if (!StringUtils.hasText(token) || !memberJwtTokenProvider.validateToken(token)) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }

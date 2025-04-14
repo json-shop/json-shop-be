@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.auth.auth;
 
 import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
+import deepdive.jsonstore.domain.auth.entity.AdminMemberDetails;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -12,6 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,17 +33,13 @@ public class JwtTokenUtil {
     /**
      * 인증 객체 기반으로 JWT Access Token 생성
      */
-    public JwtTokenDto generateToken(Authentication authentication, Key key) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-
+    public JwtTokenDto generateToken(UUID adminUid, String authorities, Key key) {
         long now = System.currentTimeMillis();
         Date expiryDate = new Date(now + validityInMilliseconds);
 
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim("auth", authorities)
+                .setSubject(adminUid.toString())  // UUID를 String으로 변환하여 subject에 포함
+                .claim("auth", authorities)  // 권한 정보를 claim으로 포함
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -51,7 +49,6 @@ public class JwtTokenUtil {
                 .accessToken(accessToken)
                 .build();
     }
-
     /**
      * JWT Claims 파싱
      */
