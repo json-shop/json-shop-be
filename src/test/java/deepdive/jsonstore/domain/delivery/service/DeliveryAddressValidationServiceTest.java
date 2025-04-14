@@ -19,8 +19,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.services.s3.S3Client;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -29,8 +30,8 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @Transactional
 @Rollback
-@DisplayName("DeliveryValidationService 테스트")
-class DeliveryValidationServiceTest {
+@DisplayName("deliveryAddressValidationService 테스트")
+class DeliveryAddressValidationServiceTest {
 
     @MockitoBean
     private FirebaseConfig firebaseConfig;
@@ -51,7 +52,7 @@ class DeliveryValidationServiceTest {
     private RestTemplateBuilder restTemplateBuilder;
 
     @Autowired
-    private DeliveryValidationService deliveryValidationService;
+    private DeliveryAddressValidationService deliveryAddressValidationService;
 
     @TestConfiguration
     static class TestConfig {
@@ -101,11 +102,8 @@ class DeliveryValidationServiceTest {
 
             when(restTemplate.getForObject(anyString(),eq(String.class))).thenReturn(mockResponse);
 
-            //when
-            boolean result = deliveryValidationService.validateZipCode(zipCode);
-
-            //then
-            assertThat(result).isTrue();
+            //when & then
+            assertDoesNotThrow(() -> deliveryAddressValidationService.validateZipCode(zipCode));
 
         }
 
@@ -129,7 +127,7 @@ class DeliveryValidationServiceTest {
             when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(errorResponse);
 
             // then
-            assertThatThrownBy(() -> deliveryValidationService.validateZipCode(zipCode))
+            assertThatThrownBy(() -> deliveryAddressValidationService.validateZipCode(zipCode))
                     .isInstanceOf(DeliveryException.AddressAPIException.class);
         }
         @Test
@@ -150,11 +148,10 @@ class DeliveryValidationServiceTest {
         """;
             when(restTemplate.getForObject(anyString(),eq(String.class))).thenReturn(errorResponse);
 
-            //when
-            boolean result = deliveryValidationService.validateZipCode(zipCode);
+            //when & then
+            assertThrows(DeliveryException.AddressNotFoundException.class,
+                    () -> deliveryAddressValidationService.validateZipCode("12345"));
 
-            //then
-            assertThat(result).isFalse();
         }
     }
 
