@@ -32,7 +32,7 @@ public class DeliveryAddressValidationService {
     public void validateZipCode(String zipcode) {
         String url = BASE_URL + "?currentPage=1&countPerPage=1"
                 + "&keyword=" + URLEncoder.encode(zipcode, StandardCharsets.UTF_8)
-                + "&confmKey=" + ADDRESS_API_KEY  // key는 절대 encode 하지 않기!
+                + "&confmKey=" + ADDRESS_API_KEY
                 + "&resultType=json";
 
         String response = restTemplate.getForObject(url, String.class);
