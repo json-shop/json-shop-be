@@ -1,11 +1,12 @@
 package deepdive.jsonstore.domain.auth.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
-import deepdive.jsonstore.common.exception.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,9 @@ import org.springframework.security.core.AuthenticationException;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
+
 class AdminLoginAuthenticationFilterTest {
 
     private AdminLoginAuthenticationFilter filter;
@@ -38,7 +40,7 @@ class AdminLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("로그인 시도 테스트")
+    @DisplayName("관리자 로그인 성공 테스트")
     void testAttemptAuthentication() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -60,29 +62,31 @@ class AdminLoginAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("잘못된 비밀번호로 로그인 시도 시 예외 발생 테스트")
-    void testAttemptAuthenticationWithWrongPassword() throws IOException {
+    @DisplayName("관리자 로그인 실패 시 적절한 응답 반환 테스트")
+    void testUnsuccessfulAuthentication_returnsErrorResponse() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        AuthenticationException exception = mock(AuthenticationException.class);
 
-        LoginRequest loginRequest = new LoginRequest("admin@example.com", "wrongpassword");
-        request.setContent(objectMapper.writeValueAsBytes(loginRequest));
 
-        UsernamePasswordAuthenticationToken authRequest =
-                new UsernamePasswordAuthenticationToken("admin@example.com", "wrongpassword");
+        filter.unsuccessfulAuthentication(request, response, exception);
 
-        when(authenticationManager.authenticate(authRequest))
-                .thenThrow(new AuthException.AdminLoginFailedException());
 
-        assertThrows(AuthException.AdminLoginFailedException.class, () -> {
-            filter.attemptAuthentication(request, new MockHttpServletResponse());
-        });
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+        assertEquals("application/json;charset=UTF-8", response.getContentType());
 
-        verify(authenticationManager).authenticate(authRequest);
+
+        String expectedResponse = objectMapper.writeValueAsString(
+                new ErrorResponse(
+                        "ADMIN_LOGIN_FAILED",
+                        "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요."
+                )
+        );
+        assertEquals(expectedResponse, response.getContentAsString());
     }
 
     @Test
-    @DisplayName("인증 성공 시 JWT 응답 테스트")
+    @DisplayName("관리자 인증 성공 후 JWT 응답 테스트")
     void testSuccessfulAuthentication() throws IOException, ServletException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -95,33 +99,6 @@ class AdminLoginAuthenticationFilterTest {
         filter.successfulAuthentication(request, response, chain, authentication);
 
         assertEquals("application/json;charset=UTF-8", response.getContentType());
-        assertEquals("{\"grantType\":\"Bearer\",\"accessToken\":\"token\"}", response.getContentAsString());
-    }
-
-    @Test
-    @DisplayName("인증 실패 시 AuthException 발생 테스트")
-    void testUnsuccessfulAuthentication_throwsException() {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        AuthenticationException exception = mock(AuthenticationException.class);
-
-        assertThrows(AuthException.AdminLoginFailedException.class, () -> {
-            filter.unsuccessfulAuthentication(request, response, exception);
-        });
-    }
-
-    @Test
-    @DisplayName("인증 실패 시 에러 응답 반환 테스트")
-    void testUnsuccessfulAuthenticationErrorResponse() throws IOException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        AuthenticationException exception = new AuthenticationException("Invalid credentials") {};
-
-        filter.unsuccessfulAuthentication(request, response, exception);
-
-        assertEquals(401, response.getStatus());
-        assertEquals("application/json;charset=UTF-8", response.getContentType());
-        String expectedErrorMessage = "{\"code\":\"ADMIN_LOGIN_FAILED\",\"message\":\"로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요.\"}";
-        assertEquals(expectedErrorMessage, response.getContentAsString());
+        assertEquals(objectMapper.writeValueAsString(tokenDto), response.getContentAsString());
     }
 }

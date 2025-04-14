@@ -94,10 +94,19 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll() // FCM 테스트용 프론트엔드 허용
+                        // FCM 테스트용 프론트엔드 접근경로
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
+                                       
+                        // 공용 접근 경로
                         .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
+
+                        // 관리자 전용 경로
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+                        // 멤버 전용 경로
                         .requestMatchers("/api/v1/member/**").hasRole("MEMBER")
+                        .requestMatchers("/api/v1/products", "/api/v1/cart", "/api/v1/delivery", "/api/v1/orders","/api/v1/fcm-tokens","api/v1/notifications").hasRole("MEMBER")
+
                         .anyRequest().authenticated()
                 )
                 // 로그인 필터는 UsernamePasswordAuthenticationFilter 위치에 정확히 지정

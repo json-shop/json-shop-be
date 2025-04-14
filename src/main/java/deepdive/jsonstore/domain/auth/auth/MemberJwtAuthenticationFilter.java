@@ -31,11 +31,11 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
         String requestURI = request.getRequestURI();
 
-        // 관리자 API일 경우 멤버 필터는 스킵
-        if (!requestURI.startsWith("/api/v1/member")) {
+        if (!isMemberProtectedPath(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
+
 
 
         try {
@@ -70,5 +70,15 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+    }
+
+    private boolean isMemberProtectedPath(String uri) {
+        return uri.startsWith("/api/v1/member") ||
+                uri.startsWith("/api/v1/products") ||
+                uri.startsWith("/api/v1/cart") ||
+                uri.startsWith("/api/v1/delivery") ||
+                uri.startsWith("/api/v1/orders") ||
+                uri.startsWith("/api/v1/fcm-tokens") ||
+                uri.startsWith("/api/v1/notifications");
     }
 }

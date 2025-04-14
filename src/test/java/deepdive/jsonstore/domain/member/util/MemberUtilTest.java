@@ -72,9 +72,37 @@ public class MemberUtilTest {
 
     @Test
     @DisplayName("인증되지 않은 사용자는 UnauthenticatedAccessException이 발생")
-    void getCurrentMember_실패_테스트() {
+    void getCurrentMember_비인증_상태_테스트() {
         // given: 비인증 상태 초기화
         SecurityContextHolder.clearContext();
+
+        // when & then
+        assertThrows(AuthException.UnauthenticatedAccessException.class, () -> {
+            memberUtil.getCurrentMember();
+        });
+    }
+
+    @Test
+    @DisplayName("principal이 null이면 UnauthenticatedAccessException이 발생")
+    void getCurrentMember_principal_null_테스트() {
+        // given
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(null, null, null)
+        );
+
+        // when & then
+        assertThrows(AuthException.UnauthenticatedAccessException.class, () -> {
+            memberUtil.getCurrentMember();
+        });
+    }
+
+    @Test
+    @DisplayName("principal이 CustomMemberDetails가 아니면 UnauthenticatedAccessException 발생")
+    void getCurrentMember_invalid_principal_테스트() {
+        // given: 잘못된 principal 설정
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("InvalidPrincipal", null, null)
+        );
 
         // when & then
         assertThrows(AuthException.UnauthenticatedAccessException.class, () -> {
