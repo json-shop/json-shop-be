@@ -14,9 +14,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationRequest {
-    @NotNull(message = "회원 UUID를 입력해주세요.")
-    private UUID memberUid;
-
     @NotBlank(message = "제목을 입력해주세요.")
     @Size(max = 255, message = "제목은 최대 255자까지 입력 가능합니다.")
     private String title;
