@@ -31,11 +31,11 @@ public class CustomMemberDetailsService implements UserDetailsService {
             throw new DisabledException("삭제된 회원입니다.");
         }
 
-        // CustomMemberDetails 객체에 UUID와 권한, 패스워드를 담아 반환
+        // CustomMemberDetails 객체에 비밀번호와 권한 포함하여 반환
         return new CustomMemberDetails(
                 member.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("MEMBER"))
-
+                member.getPassword(), // 비밀번호 추가
+                Collections.singleton(new SimpleGrantedAuthority("MEMBER")) // 권한 하드코딩
         );
     }
 
@@ -44,12 +44,11 @@ public class CustomMemberDetailsService implements UserDetailsService {
         Member member = memberRepository.findByUid(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 UUID를 찾을 수 없습니다."));
 
-        // CustomMemberDetails 객체에 UUID와 권한, 패스워드를 담아 반환
+        // CustomMemberDetails 객체에 비밀번호와 권한 포함하여 반환
         return new CustomMemberDetails(
-
                 member.getUid(),
-                Collections.singleton(new SimpleGrantedAuthority("MEMBER"))
-
+                member.getPassword(), // 비밀번호 추가
+                Collections.singleton(new SimpleGrantedAuthority("MEMBER")) // 권한 하드코딩
         );
     }
 }

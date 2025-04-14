@@ -21,22 +21,28 @@ public class AdminMemberDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        // 이메일을 기반으로 Admin 조회
         Admin admin = adminRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("관리자를 찾을 수 없습니다."));
 
+        // AdminMemberDetails 객체를 생성하여 반환
         return new AdminMemberDetails(
                 admin.getUid(),
+                admin.getPassword(), // 비밀번호 포함
                 Collections.singleton(new SimpleGrantedAuthority("ADMIN"))
         );
     }
 
-    // UUID 기반 사용자 로드 메서드 추가
+    // UUID 기반 사용자 로드
     public AdminMemberDetails loadUserByUuid(UUID uuid) {
+        // UUID를 기반으로 Admin 조회
         Admin admin = adminRepository.findByUid(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException("UUID에 해당하는 관리자를 찾을 수 없습니다."));
 
+        // AdminMemberDetails 객체를 생성하여 반환
         return new AdminMemberDetails(
                 admin.getUid(),
+                admin.getPassword(), // 비밀번호 포함
                 Collections.singleton(new SimpleGrantedAuthority("ADMIN"))
         );
     }

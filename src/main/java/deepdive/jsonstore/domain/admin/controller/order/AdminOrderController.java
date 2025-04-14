@@ -28,14 +28,14 @@ public class AdminOrderController {
     private final OrderService orderService;
 
     /** 주문상품 조회 */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{orderUid}")
     public ResponseEntity<OrderResponse> getOrder(@PathVariable("orderUid") UUID orderUid) {
         return ResponseEntity.ok(orderService.getOrderResponse(orderUid));
     }
 
     /** 주문상품 페이지 조회 */
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("")
     public ResponseEntity<Page<OrderProductSalesResponse>> getOrder(
             @AuthenticationPrincipal(expression = "admin.id") Long adminId,
@@ -52,7 +52,7 @@ public class AdminOrderController {
         return ResponseEntity.ok(adminOrderService.getOrderResponsesByPage(adminId, pageRequest));
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{orderUid}")
     public ResponseEntity<Void> updateState(
             @PathVariable("orderUid") UUID orderUid,

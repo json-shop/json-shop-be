@@ -1,5 +1,7 @@
 package deepdive.jsonstore.domain.auth.auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,6 +21,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final AdminJwtTokenProvider adminJwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -34,17 +37,37 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = adminJwtTokenProvider.resolveToken(request);
+        try {
+            String token = adminJwtTokenProvider.resolveToken(request);
 
-        // 토큰 없으면 그냥 다음 필터로 넘김 (예외 X)
-        if (!StringUtils.hasText(token) || !adminJwtTokenProvider.validateToken(token)) {
+            if (!StringUtils.hasText(token)) {
+                throw new AuthException.EmptyTokenException(); // 토큰이 비어있는 경우
+            }
+
+            if (!adminJwtTokenProvider.validateToken(token)) {
+                throw new AuthException.InvalidTokenException(); // 유효하지 않은 토큰
+            }
+
+            // 토큰이 유효한 경우 Authentication 설정
+            Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
             filterChain.doFilter(request, response);
-            return;
+
+        } catch (AuthException e) {
+            handleAuthException(response, e);
         }
+    }
 
-        Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    private void handleAuthException(HttpServletResponse response, AuthException e) throws IOException {
+        ErrorResponse errorResponse = new ErrorResponse(
+                e.getErrorCode().name(),
+                e.getErrorCode().getMessage()
+        );
 
-        filterChain.doFilter(request, response);
+        response.setStatus(e.getErrorCode().getHttpStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }
