@@ -1,7 +1,6 @@
 package deepdive.jsonstore.domain.cart.controller;
 
 import deepdive.jsonstore.domain.cart.dto.CartDeleteRequest;
-import deepdive.jsonstore.domain.cart.dto.CartListRequest;
 import deepdive.jsonstore.domain.cart.dto.CartRequest;
 import deepdive.jsonstore.domain.cart.dto.CartResponse;
 import deepdive.jsonstore.domain.cart.entity.Cart;
@@ -10,8 +9,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,8 +24,10 @@ public class CartApiController {
 
     // 장바구니에 상품 추가
     @PostMapping
-    public ResponseEntity<CartResponse> addProductToCart(@Valid @RequestBody CartRequest request) {
-        Cart cart = cartService.addProductToCart(request.getMemberUid(), request.getProductUid(), request.getAmount());
+    public ResponseEntity<CartResponse> addProductToCart(
+            @AuthenticationPrincipal(expression = "uid") UUID memberUid,
+            @Valid @RequestBody CartRequest request) {
+        Cart cart = cartService.addProductToCart(memberUid, request.getProductUid(), request.getAmount());
         return ResponseEntity.ok(new CartResponse(cart));
     }
 
@@ -37,8 +40,8 @@ public class CartApiController {
 
     // 특정 멤버 카트 상품 조회
     @GetMapping
-    public ResponseEntity<List<CartResponse>> getCartByMemberId(@Valid CartListRequest request) {
-        List<Cart> cart = cartService.getCartByMemberId(request.getMemberUid());
+    public ResponseEntity<List<CartResponse>> getCartByMemberId(@AuthenticationPrincipal(expression = "uid") UUID memberUid) {
+        List<Cart> cart = cartService.getCartByMemberUid(memberUid);
         List<CartResponse> response = cart.stream()
                 .map(CartResponse::new)
                 .collect(Collectors.toList());

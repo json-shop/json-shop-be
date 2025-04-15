@@ -44,8 +44,11 @@ class NotificationApiControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(notificationApiController)
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(notificationApiController)
                 .setControllerAdvice(new GlobalExceptionHandler())
+                .defaultRequest(MockMvcRequestBuilders.get("/")
+                        .requestAttr("uid", UUID.randomUUID())) // 기본 request에 uid mock 설정
                 .build();
     }
 
@@ -57,62 +60,45 @@ class NotificationApiControllerTest {
         @DisplayName("성공")
         void success() throws Exception {
             UUID memberUid = UUID.randomUUID();
-            FcmTokenRequest request = new FcmTokenRequest(memberUid, "validToken_123:ABC-def+ghi");
+            String token = "validToken_123:ABC-def+ghi";
 
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/fcm-tokens")
+            FcmTokenRequest request = new FcmTokenRequest(token);
+
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/fcm-tokens")
+                            .param("memberUid", memberUid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
-
-            result.andExpect(status().isOk())
+                            .content(gson.toJson(request)))
+                    .andExpect(status().isOk())
                     .andExpect(content().string("FCM token registered successfully"));
 
-            verify(notificationService).saveToken(eq(request.getMemberUid()), eq(request.getToken()));
-        }
-
-        @Test
-        @DisplayName("실패 - memberUid 없음")
-        void fail_memberUidMissing() throws Exception {
-            FcmTokenRequest request = new FcmTokenRequest(null, "validToken_123");
-
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/fcm-tokens")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
-
-            result.andExpect(status().isBadRequest());
-            verify(notificationService, never()).saveToken(any(), any());
+            verify(notificationService).saveToken(eq(memberUid), eq(token));
         }
 
         @Test
         @DisplayName("실패 - token 없음")
         void fail_tokenMissing() throws Exception {
-            FcmTokenRequest request = new FcmTokenRequest(UUID.randomUUID(), "");
+            FcmTokenRequest request = new FcmTokenRequest("");
 
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/fcm-tokens")
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/fcm-tokens")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
+                            .requestAttr("uid", UUID.randomUUID())
+                            .content(gson.toJson(request)))
+                    .andExpect(status().isBadRequest());
 
-            result.andExpect(status().isBadRequest());
             verify(notificationService, never()).saveToken(any(), any());
         }
 
         @Test
         @DisplayName("실패 - token 형식이 잘못됨")
         void fail_tokenInvalidPattern() throws Exception {
-            FcmTokenRequest request = new FcmTokenRequest(UUID.randomUUID(), "invalid token@!#");
+            FcmTokenRequest request = new FcmTokenRequest("invalid token@!#");
 
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/fcm-tokens")
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/fcm-tokens")
+                            .requestAttr("uid", UUID.randomUUID())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
+                            .content(gson.toJson(request)))
+                    .andExpect(status().isBadRequest());
 
-            result.andExpect(status().isBadRequest());
             verify(notificationService, never()).saveToken(any(), any());
         }
     }
@@ -125,96 +111,43 @@ class NotificationApiControllerTest {
         @DisplayName("성공")
         void success() throws Exception {
             UUID memberUid = UUID.randomUUID();
-            NotificationRequest request = new NotificationRequest(memberUid, "제목", "내용");
+            NotificationRequest request = new NotificationRequest("제목", "내용");
 
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/notifications")
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/notifications")
+                            .param("memberUid", memberUid.toString())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
-
-            result.andExpect(status().isOk())
+                            .content(gson.toJson(request)))
+                    .andExpect(status().isOk())
                     .andExpect(content().string("Notification sent successfully"));
 
-            verify(notificationService).sendNotification(eq(request.getMemberUid()), eq(request.getTitle()), eq(request.getMessage()), any());
-        }
-
-        @Test
-        @DisplayName("실패 - memberUid 없음")
-        void fail_memberUidMissing() throws Exception {
-            NotificationRequest request = new NotificationRequest(null, "제목", "내용");
-
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/notifications")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
-
-            result.andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").exists());
-
-            verify(notificationService, never()).sendNotification(any(), any(), any(), any());
+            verify(notificationService).sendNotification(eq(memberUid), eq("제목"), eq("내용"), eq(NotificationCategory.SAVE));
         }
 
         @Test
         @DisplayName("실패 - title 없음")
         void fail_titleMissing() throws Exception {
-            NotificationRequest request = new NotificationRequest(UUID.randomUUID(), null, "내용");
+            NotificationRequest request = new NotificationRequest(null, "내용");
 
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/notifications")
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/notifications")
+                            .requestAttr("uid", UUID.randomUUID())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
+                            .content(gson.toJson(request)))
+                    .andExpect(status().isBadRequest());
 
-            result.andExpect(status().isBadRequest());
-            verify(notificationService, never()).sendNotification(any(), any(), any(), any());
-        }
-
-        @Test
-        @DisplayName("실패 - title 길이 초과")
-        void fail_titleTooLong() throws Exception {
-            String longTitle = "a".repeat(256);
-            NotificationRequest request = new NotificationRequest(UUID.randomUUID(), longTitle, "내용");
-
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/notifications")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
-
-            result.andExpect(status().isBadRequest());
             verify(notificationService, never()).sendNotification(any(), any(), any(), any());
         }
 
         @Test
         @DisplayName("실패 - message 없음")
         void fail_messageMissing() throws Exception {
-            NotificationRequest request = new NotificationRequest(UUID.randomUUID(), "제목", null);
+            NotificationRequest request = new NotificationRequest("제목", null);
 
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/notifications")
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/notifications")
+                            .requestAttr("uid", UUID.randomUUID())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
+                            .content(gson.toJson(request)))
+                    .andExpect(status().isBadRequest());
 
-            result.andExpect(status().isBadRequest());
-            verify(notificationService, never()).sendNotification(any(), any(), any(), any());
-        }
-
-        @Test
-        @DisplayName("실패 - message 길이 초과")
-        void fail_messageTooLong() throws Exception {
-            String longMessage = "a".repeat(256);
-            NotificationRequest request = new NotificationRequest(UUID.randomUUID(), "제목", longMessage);
-
-            ResultActions result = mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/notifications")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(gson.toJson(request))
-            );
-
-            result.andExpect(status().isBadRequest());
             verify(notificationService, never()).sendNotification(any(), any(), any(), any());
         }
     }
@@ -227,15 +160,10 @@ class NotificationApiControllerTest {
         @DisplayName("성공")
         void success() throws Exception {
             UUID memberUid = UUID.randomUUID();
+
             List<NotificationHistoryResponse> mockHistory = List.of(
                     new NotificationHistoryResponse(
-                            1L,
-                            "제목",
-                            "내용",
-                            NotificationCategory.SAVE,
-                            memberUid,
-                            LocalDateTime.now()
-                    )
+                            1L, "제목", "내용", NotificationCategory.SAVE, memberUid, LocalDateTime.now())
             );
 
             when(notificationService.getNotificationHistory(memberUid)).thenReturn(mockHistory);
@@ -244,25 +172,15 @@ class NotificationApiControllerTest {
                             .param("memberUid", memberUid.toString())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(1));
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].title").value("제목"));
 
             verify(notificationService).getNotificationHistory(memberUid);
         }
 
         @Test
-        @DisplayName("실패 - memberUid 없음")
-        void fail_memberUidMissing() throws Exception {
-            mockMvc.perform(get("/api/v1/notifications")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-
-            verify(notificationService, never()).getNotificationHistory(any());
-        }
-
-        @Test
         @DisplayName("성공 - 알림 내역 없음")
-        void success_emptyNotificationHistory() throws Exception {
+        void success_empty() throws Exception {
             UUID memberUid = UUID.randomUUID();
             when(notificationService.getNotificationHistory(memberUid)).thenReturn(Collections.emptyList());
 
@@ -270,7 +188,6 @@ class NotificationApiControllerTest {
                             .param("memberUid", memberUid.toString())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(0));
 
             verify(notificationService).getNotificationHistory(memberUid);

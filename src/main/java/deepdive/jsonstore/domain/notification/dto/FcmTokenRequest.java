@@ -11,10 +11,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FcmTokenRequest {
-
-    @NotNull(message = "회원 UUID를 입력해주세요.")
-    private UUID memberUid;
-
     @NotBlank(message = "FCM 토큰이 없습니다.")
     @Pattern(
             regexp = "^[a-zA-Z0-9:_\\-+=/]+$",
