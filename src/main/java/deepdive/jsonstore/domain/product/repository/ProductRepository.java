@@ -30,9 +30,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	@Query("SELECT p FROM Product p WHERE p.id = :id")
 	Optional<Product> findWithLockById(@Param("id") Long id);
 
-	@Query("SELECT new deepdive.jsonstore.domain.product.dto.ProductOrderCountDTO(p, COALESCE(SUM(op.quantity), 0)) " +
-		"FROM Product p LEFT JOIN OrderProduct op ON p.id = op.product.id " +
-		"GROUP BY p.id")
+	@Query("SELECT new deepdive.jsonstore.domain.product.dto.ProductOrderCountDTO(op.product, "
+		+ "COALESCE(SUM(CASE WHEN op.order.orderStatus = deepdive.jsonstore.domain.order.entity.OrderStatus.PAID "
+		+ "THEN op.quantity ELSE 0 END), 0)) "
+		+ "FROM OrderProduct op "
+		+ "GROUP BY op.product.id ")
 	List<ProductOrderCountDTO> findSoldCount();
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
