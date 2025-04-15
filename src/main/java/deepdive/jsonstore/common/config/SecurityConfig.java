@@ -92,14 +92,14 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
                                        
                         // 공용 접근 경로
-                        .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join","/api/v1/admin/join").permitAll()
+                        .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join","/api/v1/admin/join","/api/v1/products/**").permitAll()
 
                         // 관리자 전용 경로
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
 
                         // 멤버 전용 경로
                         .requestMatchers("/api/v1/member/**").hasAuthority("MEMBER")
-                        .requestMatchers("/api/v1/products/**", "/api/v1/cart/**", "/api/v1/delivery/**", "/api/v1/orders/**","/api/v1/fcm-tokens/**","/api/v1/notifications/**").hasAuthority("MEMBER")
+                        .requestMatchers("/api/v1/cart/**", "/api/v1/delivery/**", "/api/v1/orders/**","/api/v1/fcm-tokens/**","/api/v1/notifications/**").hasAuthority("MEMBER")
 
                         .anyRequest().authenticated()
                 )
