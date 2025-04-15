@@ -37,6 +37,11 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        if ("/api/v1/admin/join".equals(requestURI)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String token = adminJwtTokenProvider.resolveToken(request);
 

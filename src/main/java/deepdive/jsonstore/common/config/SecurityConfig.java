@@ -98,7 +98,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
                                        
                         // 공용 접근 경로
-                        .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
+                        .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join","/api/v1/admin/join").permitAll()
 
                         // 관리자 전용 경로
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
