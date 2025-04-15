@@ -98,8 +98,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
                         // 멤버 전용 경로
-                        .requestMatchers("/api/v1/member").hasRole("MEMBER")
-                        .requestMatchers("/api/v1/products", "/api/v1/cart", "/api/v1/delivery", "/api/v1/orders","/api/v1/fcm-tokens","api/v1/notifications").hasRole("MEMBER")
+                        .requestMatchers("/api/v1/member/**").hasAuthority("MEMBER")
+                        .requestMatchers("/api/v1/products/**", "/api/v1/cart/**", "/api/v1/delivery/**", "/api/v1/orders/**","/api/v1/fcm-tokens/**","api/v1/notifications/**").hasAuthority("MEMBER")
 
                         .anyRequest().authenticated()
                 )
