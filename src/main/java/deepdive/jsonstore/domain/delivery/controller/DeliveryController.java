@@ -19,10 +19,10 @@ public class DeliveryController {
 
     //배송지 등록
     @PostMapping("/delivery")
-    public ResponseEntity<?> createDelivery(@AuthenticationPrincipal(expression = "uid") UUID memberUid, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) { //인증 모듈 추가 시 수정 필요
+    public ResponseEntity<?> createDelivery(@AuthenticationPrincipal(expression = "uid") UUID memberUid, @RequestBody DeliveryRegRequestDTO deliveryRegDTO) {
         deliveryService.createDelivery(memberUid, deliveryRegDTO);
 
-        return ResponseEntity.created(URI.create("/api/v1/delivery")).build(); //HTTP method는 어떻게 전달하지?
+        return ResponseEntity.created(URI.create("/api/v1/delivery")).build(); 
     }
 
     //배송지 삭제
