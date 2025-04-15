@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -136,19 +135,19 @@ class OrderServiceTest {
                     .expiredAt(LocalDateTime.now().plusMinutes(1))
                     .build();
 
-            when(memberValidationService.findById(member.getId())).thenReturn(member); // mock 설정
+            when(memberValidationService.findByUid(member.getUid())).thenReturn(member); // mock 설정
             when(productValidationService.findActiveProductById(productUid)).thenReturn(product);
             when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
             // when
-            UUID result = orderService.createOrder(member.getId(), orderRequest);
+            UUID result = orderService.createOrder(member.getUid(), orderRequest);
 
             // then
             assertThat(result).isNotNull();
             assertThat(savedOrder.getUid()).isEqualTo(result);
 
             verify(orderRepository, times(1)).save(any(Order.class));
-            verify(memberValidationService).findById(member.getId());
+            verify(memberValidationService).findByUid(member.getUid());
             verify(productValidationService).findActiveProductById(productUid);
         }
 
@@ -178,14 +177,14 @@ class OrderServiceTest {
                     ))
                     .build();
 
-            when(memberValidationService.findById(member.getId())).thenReturn(member); // mock 설정
+            when(memberValidationService.findByUid(member.getUid())).thenReturn(member); // mock 설정
             when(productValidationService.findActiveProductById(productUid)).thenReturn(product);
 
             // when & then
-            assertThatThrownBy(() -> orderService.createOrder(member.getId(), orderRequest))
+            assertThatThrownBy(() -> orderService.createOrder(member.getUid(), orderRequest))
                     .isInstanceOf(OrderException.OrderOutOfStockException.class);
 
-            verify(memberValidationService).findById(member.getId());
+            verify(memberValidationService).findByUid(member.getUid());
             verify(productValidationService).findActiveProductById(productUid);
         }
 
@@ -274,7 +273,8 @@ class OrderServiceTest {
                         .build();
 
                 //when
-                when(orderRepository.findByUid(order.getUid())).thenReturn(Optional.of(order));
+
+                when(orderRepository.findWithLockByUid(order.getUid())).thenReturn(Optional.of(order));
                 when(paymentService.confirm(confirmRequest)).thenReturn(Map.of("paymentKey", paymentKey));
 
                 //then
@@ -311,7 +311,7 @@ class OrderServiceTest {
                         .build();
 
                 //when
-                when(orderRepository.findByUid(order.getUid())).thenReturn(Optional.of(order));
+                when(orderRepository.findWithLockByUid(order.getUid())).thenReturn(Optional.of(order));
                 //then
                 assertThatThrownBy(()->orderService.confirmOrder(confirmRequest))
                         .isInstanceOf(OrderException.OrderTotalMismatchException.class);
@@ -344,7 +344,7 @@ class OrderServiceTest {
                         .build();
 
                 //when
-                when(orderRepository.findByUid(order.getUid())).thenReturn(Optional.of(order));
+                when(orderRepository.findWithLockByUid(order.getUid())).thenReturn(Optional.of(order));
                 doThrow(new OrderException.OrderOutOfStockException())
                         .when(orderValidationService)
                         .validateProductStock(order);
@@ -384,10 +384,10 @@ class OrderServiceTest {
                         .build();
                 var op = order.getOrderProducts().getFirst();
                 //when
-                when(orderRepository.findByUid(order.getUid())).thenReturn(Optional.of(order));
+                when(orderRepository.findWithLockByUid(order.getUid())).thenReturn(Optional.of(order));
                 doThrow(new ProductException.ProductForbiddenException())
                         .when(productStockService)
-                        .reserveStock(op.getProduct().getId(), op.getQuantity());
+                        .consumeStock(order);
 //                when(paymentService.confirm(confirmRequest)).thenReturn(Map.of("paymentKey", paymentKey));
 
                 //then
