@@ -8,17 +8,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationException extends RuntimeException {
 
-	private final JsonStoreErrorCode errorCode;
+	private final NotificationErrorCode errorCode;
 
 	public static class MissingFcmTokenException extends NotificationException {
 		public MissingFcmTokenException() {
-			super(JsonStoreErrorCode.MISSING_FCM_TOKEN);
+			super(NotificationErrorCode.MISSING_FCM_TOKEN);
 		}
 	}
 
 	public static class NotificationMemberNotFoundException extends NotificationException {
 		public NotificationMemberNotFoundException() {
-			super(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND);
+			super(NotificationErrorCode.NOTIFICATION_MEMBER_NOT_FOUND);
 		}
 	}
 }
