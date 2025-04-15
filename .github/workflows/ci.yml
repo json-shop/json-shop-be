@@ -67,6 +67,7 @@ jobs:
 
       - name: Run Tests
         env:
+          SPRING_PROFILES_ACTIVE: dev
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/testdb
           SPRING_DATASOURCE_USERNAME: testuser
           SPRING_DATASOURCE_PASSWORD: testpass
@@ -81,7 +82,7 @@ jobs:
           REDIS_PORT: ${{secrets.REDIS_PORT}}
           PORTONE_WEBHOOK_SECRET_KEY: ${{secrets.PORTONE_WEBHOOK_SECRET_KEY}}
           API_KEY: ${{secrets.API_KEY}}
-        run: ./gradlew test
+        run: ./gradlew test jacocoTestReport
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2

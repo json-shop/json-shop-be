@@ -1,27 +1,40 @@
 services:
-  redis:
-    image: redis:latest
-    container_name: json-store-redis
-    hostname: redis
+  app:
+    image: ghcr.io/json-store-25/json-store-be:latest
+    container_name: json-store-app
     ports:
-      - "6379:6379"
+      - "8080:8080"
+    env_file:
+      - .env
     volumes:
-      - redis-data:/data
-
-  mysql:
-    image: mysql:9.2
-    container_name: json-store-mysql
-    restart: always
+      - /home/ec2-user/firebaseAccessKey.json:/app/firebaseAccessKey.json:ro
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/firebaseAccessKey.json
+    restart: always
 
-volumes:
-  redis-data:
-  mysql-data:
+#  redis:
+#    image: redis:latest
+#    container_name: json-store-redis
+#    hostname: redis
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - redis-data:/data
+#
+#  mysql:
+#    image: mysql:9.2
+#    container_name: json-store-mysql
+#    restart: always
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+#      MYSQL_DATABASE: ${DB_NAME}
+#      MYSQL_USER: ${DB_USERNAME}
+#      MYSQL_PASSWORD: ${DB_PASSWORD}
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      - mysql-data:/var/lib/mysql
+#
+#volumes:
+#  redis-data:
+#  mysql-data:

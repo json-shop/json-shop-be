@@ -43,17 +43,12 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-#로컬에서 가져올 때 (CI)
+#ec2에서 가져올때 (CD)
 fcm:
   credentials:
-    file: classpath:firebaseAccessKey.json
+    file: /app/firebaseAccessKey.json
 
-external:
-  api:
-    address:
-      key: ${API_KEY}
 
 tosspayments:
   api-base: ${TOSSPAYMENTS_API_BASE:https://api.tosspayments.com}
   api-secret: ${TOSSPAYMENTS_API_SECRET:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}
-  

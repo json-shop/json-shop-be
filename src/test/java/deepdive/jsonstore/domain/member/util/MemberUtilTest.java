@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -48,11 +48,14 @@ public class MemberUtilTest {
         // MemberRepository 모킹
         when(memberRepository.findByUid(mockUuid)).thenReturn(java.util.Optional.of(mockMember));
 
+        // CustomMemberDetails 객체 생성
         CustomMemberDetails customDetails = new CustomMemberDetails(
                 mockUuid, // UUID 추가
-                List.of(new SimpleGrantedAuthority("ROLE_USER")) // 권한 추가
+                "encryptedPassword", // 비밀번호 추가
+                Collections.singleton(new SimpleGrantedAuthority("MEMBER")) // 권한 추가
         );
 
+        // 인증 객체 설정
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 customDetails, null, customDetails.getAuthorities()
         );
@@ -62,16 +65,43 @@ public class MemberUtilTest {
         Member result = memberUtil.getCurrentMember();
 
         // then
-        assertEquals("test@example.com", result.getEmail());
-        verify(memberRepository, times(1)).findByUid(mockUuid); // repository 조회 검증
+        assertEquals("test@example.com", result.getEmail()); // 이메일 검증
+        assertEquals("tester", result.getUsername()); // 사용자명 검증
+        verify(memberRepository).findByUid(mockUuid); // repository 조회 검증
     }
 
     @Test
     @DisplayName("인증되지 않은 사용자는 UnauthenticatedAccessException이 발생")
-    void getCurrentMember_실패_테스트() {
-        // given: 비정상 사용자
+    void getCurrentMember_비인증_상태_테스트() {
+        // given: 비인증 상태 초기화
+        SecurityContextHolder.clearContext();
+
+        // when & then
+        assertThrows(AuthException.UnauthenticatedAccessException.class, () -> {
+            memberUtil.getCurrentMember();
+        });
+    }
+
+    @Test
+    @DisplayName("principal이 null이면 UnauthenticatedAccessException이 발생")
+    void getCurrentMember_principal_null_테스트() {
+        // given
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("other", null)
+                new UsernamePasswordAuthenticationToken(null, null, null)
+        );
+
+        // when & then
+        assertThrows(AuthException.UnauthenticatedAccessException.class, () -> {
+            memberUtil.getCurrentMember();
+        });
+    }
+
+    @Test
+    @DisplayName("principal이 CustomMemberDetails가 아니면 UnauthenticatedAccessException 발생")
+    void getCurrentMember_invalid_principal_테스트() {
+        // given: 잘못된 principal 설정
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("InvalidPrincipal", null, null)
         );
 
         // when & then
