@@ -4,14 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import deepdive.jsonstore.domain.auth.auth.*;
 import deepdive.jsonstore.domain.auth.service.AdminMemberDetailsService;
 import deepdive.jsonstore.domain.auth.service.CustomMemberDetailsService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -25,7 +20,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.io.IOException;
 import java.util.List;
 
 @Configuration
@@ -104,7 +98,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
                         // 멤버 전용 경로
-                        .requestMatchers("/api/v1/member/**").hasRole("MEMBER")
+                        .requestMatchers("/api/v1/member").hasRole("MEMBER")
                         .requestMatchers("/api/v1/products", "/api/v1/cart", "/api/v1/delivery", "/api/v1/orders","/api/v1/fcm-tokens","api/v1/notifications").hasRole("MEMBER")
 
                         .anyRequest().authenticated()

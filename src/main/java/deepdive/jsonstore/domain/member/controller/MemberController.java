@@ -12,12 +12,12 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/member")
 public class MemberController {
 
     private final MemberService memberService;
 
-    @PatchMapping("/pwReset")
+    @PutMapping("/pwReset")
     public ResponseEntity<?> resetPassword(@AuthenticationPrincipal(expression = "uid") UUID memberUid, @RequestBody ResetPasswordRequestDTO request) {
 
         memberService.resetPW(memberUid, request);
