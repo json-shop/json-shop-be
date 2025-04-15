@@ -45,6 +45,7 @@ public class Product extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private ProductStatus status;
 	private long soldCount;
+	private byte[] imageByte;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(
@@ -53,14 +54,18 @@ public class Product extends BaseEntity {
 	)
 	private Admin admin;
 
-	public void updateProduct(UpdateProductRequest updateProductRequest, String image) {
+	public void updateProduct(UpdateProductRequest updateProductRequest) {
 		this.name = updateProductRequest.productName();
 		this.stock = updateProductRequest.stock();
 		this.price = updateProductRequest.price();
-		this.image = image;
 		this.detail = updateProductRequest.productDetail();
 		this.category = updateProductRequest.category();
 		this.status = updateProductRequest.status();
+	}
+
+	public void updateImage(String image, byte[] imageByte) {
+		this.image = image;
+		this.imageByte = imageByte;
 	}
 
 	public void increaseStock(int quantity) {

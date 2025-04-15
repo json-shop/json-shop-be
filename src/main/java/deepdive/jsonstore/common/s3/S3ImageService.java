@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -46,5 +47,15 @@ public class S3ImageService {
 			throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
 		}
 		return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
+	}
+
+	public void deleteImage(String url) {
+		String[] urlList = url.split("/");
+		String key = urlList[3] + "/" + urlList[4];
+		DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+			.bucket(bucketName)
+			.key(key)
+			.build();
+		s3Client.deleteObject(deleteObjectRequest);
 	}
 }

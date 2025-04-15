@@ -20,4 +20,10 @@ public class ProductException extends RuntimeException {
 			super(ProductErrorCode.PRODUCT_FORBIDDEN);
 		}
 	}
+
+	public static class ServerErrorException extends ProductException {
+		public ServerErrorException() {
+			super(ProductErrorCode.INTERNAL_SERVER_ERROR);
+		}
+	}
 }

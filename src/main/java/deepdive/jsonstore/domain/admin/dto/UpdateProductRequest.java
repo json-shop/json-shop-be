@@ -4,7 +4,9 @@ import java.util.UUID;
 
 import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.ProductStatus;
+import lombok.Builder;
 
+@Builder
 public record UpdateProductRequest(
 	UUID uid,
 	String productName,
@@ -12,7 +14,6 @@ public record UpdateProductRequest(
 	Category category,
 	int price,
 	int stock,
-	String image,
 	ProductStatus status
 ) {
 }
