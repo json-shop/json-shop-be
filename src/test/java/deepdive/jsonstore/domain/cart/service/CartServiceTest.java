@@ -184,7 +184,7 @@ class CartServiceTest {
             when(cartRepository.findByMemberUid(memberUid)).thenReturn(mockCarts);
 
             // when
-            List<Cart> result = cartService.getCartByMemberId(memberUid);
+            List<Cart> result = cartService.getCartByMemberUid(memberUid);
 
             // then
             assertThat(result).hasSize(2);

@@ -64,7 +64,7 @@ public class CartService {
     }
 
     // 카트 리스트 조회
-    public List<Cart> getCartByMemberId(UUID memberUid) {
+    public List<Cart> getCartByMemberUid(UUID memberUid) {
         // 멤버ID 기반으로 카트 리스트 조회
         List<Cart> carts = cartRepository.findByMemberUid(memberUid);
 
