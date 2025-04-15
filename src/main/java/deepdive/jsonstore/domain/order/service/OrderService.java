@@ -16,9 +16,13 @@ import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -129,9 +133,15 @@ public class OrderService {
      * @param confirmRequest
      * @return 컨펌프로세스 결과를 반환합니다.
      */
+    @Retryable(
+            value = { PessimisticLockingFailureException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 200, multiplier = 2.0, maxDelay = 2000)
+    )
     @Transactional
     public void confirmOrder(ConfirmRequest confirmRequest) {
-        var orderUid = UUID.fromString(confirmRequest.orderId());
+        var orderUid = UUID.fromString(confirmRequest.orderId().trim());
+
         var order = loadByUid(orderUid);
 
 
@@ -151,7 +161,7 @@ public class OrderService {
         order.getOrderProducts().forEach(op->
                 productStockService.reserveStock(op.getProduct().getId(), op.getQuantity()));
 
-        // 결제 대기 상태
+        // 결제 대기 상태0
         order.changeState(OrderStatus.PAYMENT_PENDING);
         // ------------------------------------
 

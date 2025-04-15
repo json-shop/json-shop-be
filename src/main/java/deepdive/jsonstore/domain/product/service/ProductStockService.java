@@ -19,9 +19,6 @@ public class ProductStockService {
         var product = productRepository.findWithLockById(productId)
                 .orElseThrow((ProductException.ProductForbiddenException::new));
         product.decreaseStock(quantity);
-        if (product.getStock() == 0) {
-            // change state
-        }
     }
 
     // 리저브 반환

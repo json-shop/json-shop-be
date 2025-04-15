@@ -29,7 +29,7 @@ public class OrderValidationService {
     public void validateProductStock(Order order) {
         List<String> outOfStockProducts = new ArrayList<>();
         for (OrderProduct orderProduct : order.getOrderProducts()) {
-            var product = productValidationService.findActiveProductById(orderProduct.getUid());
+            var product = productValidationService.findActiveProductById(orderProduct.getProduct().getUid());
             if (product.getStock() < orderProduct.getQuantity()) {
                 outOfStockProducts.add(product.getName());
             }
