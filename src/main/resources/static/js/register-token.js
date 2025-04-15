@@ -1,9 +1,9 @@
 document.getElementById('registerButton').addEventListener('click', async () => {
-  const memberUid = document.getElementById('memberUid').value.trim();
   const tokenStatus = document.getElementById('tokenStatus');
+  const jwtToken = localStorage.getItem('jwtToken');
 
-  if (!memberUid) {
-    tokenStatus.textContent = '사용자 UID를 입력해주세요.';
+  if (!jwtToken) {
+    tokenStatus.textContent = '❌ JWT 토큰이 저장되어 있지 않습니다. 먼저 입력하고 저장해주세요.';
     return;
   }
 
@@ -24,16 +24,19 @@ document.getElementById('registerButton').addEventListener('click', async () => 
 
     const response = await fetch('/api/v1/fcm-tokens', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ memberUid, token }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken}`
+      },
+      body: JSON.stringify({token }),
     });
 
     tokenStatus.textContent = response.ok
-        ? '푸시 알림이 성공적으로 등록되었습니다.'
-        : '서버에 토큰 등록 실패: ' + await response.text();
+        ? '✅ 푸시 알림이 성공적으로 등록되었습니다.'
+        : '❌ 서버에 토큰 등록 실패: ' + await response.text();
   } catch (error) {
     console.error('푸시 등록 오류:', error);
-    tokenStatus.textContent = '푸시 등록 중 오류가 발생했습니다: ' + error.message;
+    tokenStatus.textContent = '❌ 푸시 등록 중 오류가 발생했습니다: ' + error.message;
   }
 
   messaging.onMessage((payload) => {

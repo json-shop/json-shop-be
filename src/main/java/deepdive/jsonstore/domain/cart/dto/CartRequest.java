@@ -9,9 +9,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 public class CartRequest {
-    @NotNull(message = "memberUid를 입력해주세요.")
-    private UUID memberUid;
-
     @NotNull(message = "productUid를 입력해주세요.")
     private UUID productUid;
 

@@ -17,13 +17,20 @@
 <div class="container">
   <h1>FCM 웹 푸시 알림 테스트</h1>
 
+  <!-- JWT 토큰 입력 -->
+  <div class="card">
+    <h2>0. JWT 토큰 입력</h2>
+    <div class="form-group">
+      <label for="jwtToken">JWT 토큰</label>
+      <input type="text" id="jwtToken" placeholder="여기에 JWT 토큰을 입력하세요" />
+    </div>
+    <button id="saveTokenButton">토큰 저장</button>
+    <p id="saveTokenStatus"></p>
+  </div>
+
   <!-- 푸시 알림 등록 -->
   <div class="card">
     <h2>1. 푸시 알림 등록</h2>
-    <div class="form-group">
-      <label for="memberUid">사용자 UID</label>
-      <input type="text" id="memberUid" placeholder="사용자 UID 입력" />
-    </div>
     <button id="registerButton">알림 권한 요청 및 토큰 등록</button>
     <p id="tokenStatus"></p>
   </div>
@@ -31,10 +38,6 @@
   <!-- 알림 테스트 -->
   <div class="card">
     <h2>2. 알림 테스트</h2>
-    <div class="form-group">
-      <label for="notifMemberUid">수신자 UID</label>
-      <input type="text" id="notifMemberUid" placeholder="알림을 받을 사용자 UID" />
-    </div>
     <div class="form-group">
       <label for="title">제목</label>
       <input type="text" id="title" placeholder="알림 제목" />
@@ -49,10 +52,6 @@
 
   <div class="card">
     <h2>3. 알림 내역 조회</h2>
-    <div class="form-group">
-      <label for="historyMemberUid">사용자 UID</label>
-      <input type="text" id="historyMemberUid" placeholder="알림 내역을 조회할 사용자 ID" />
-    </div>
     <button id="historyButton">내역 조회</button>
     <div id="notificationHistory"></div>
   </div>
@@ -86,6 +85,18 @@
 <script src="./js/register-token.js"></script>
 <script src="./js/send-notification.js"></script>
 <script src="./js/history-fetcher.js"></script>
+
+<script>
+  document.getElementById('saveTokenButton').addEventListener('click', () => {
+    const token = document.getElementById('jwtToken').value;
+    if (token) {
+      localStorage.setItem('jwtToken', token);
+      document.getElementById('saveTokenStatus').innerText = '✅ 토큰이 저장되었습니다.';
+    } else {
+      document.getElementById('saveTokenStatus').innerText = '❌ 토큰을 입력하세요.';
+    }
+  });
+</script>
 
 </body>
 </html>

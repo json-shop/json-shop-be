@@ -94,6 +94,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // FCM 테스트용 프론트엔드 접근경로
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
+                                       
                         // 공용 접근 경로
                         .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join").permitAll()
 

@@ -1,16 +1,23 @@
 document.getElementById('historyButton').addEventListener('click', async () => {
-  const memberUid = document.getElementById('historyMemberUid').value.trim();
   const notificationHistory = document.getElementById('notificationHistory');
+  const jwtToken = localStorage.getItem('jwtToken');
 
-  if (!memberUid) {
-    notificationHistory.innerHTML = '<p style="color:red;">사용자 UID를 입력해주세요.</p>';
+  if (!jwtToken) {
+    notificationHistory.innerHTML = '<p style="color:red;">JWT 토큰이 저장되어 있지 않습니다. 먼저 입력하고 저장해주세요.</p>';
     return;
   }
 
   try {
-    const response = await fetch(`/api/v1/notifications?memberUid=${memberUid}`);
+    const response = await fetch(`/api/v1/notifications`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`
+      }
+    });
+
     if (!response.ok) {
-      notificationHistory.innerHTML = `<p style="color:red;">조회 실패: ${await response.text()}</p>`;
+      const errorText = await response.text();
+      notificationHistory.innerHTML = `<p style="color:red;">조회 실패: ${errorText}</p>`;
       return;
     }
 
