@@ -96,6 +96,12 @@
       document.getElementById('saveTokenStatus').innerText = '❌ 토큰을 입력하세요.';
     }
   });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    });
+  }
 </script>
 
 </body>
