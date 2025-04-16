@@ -36,6 +36,7 @@ import deepdive.jsonstore.domain.product.dto.ProductSearchCondition;
 import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.entity.ProductStatus;
+import deepdive.jsonstore.domain.product.exception.ProductException;
 import deepdive.jsonstore.domain.product.repository.ProductQueryRepository;
 import deepdive.jsonstore.domain.product.repository.ProductRepository;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
@@ -160,12 +161,23 @@ class AdminProductServiceTest {
 	}
 
 	@Test
-	void getAdminProduct() {
+	void getAdminProduct_성공() {
 		UUID productUid = productList.get(2).getUid();
 		when(productValidationService.findProductByIdAndAdmin(productUid, admin.getUid())).thenReturn(productList.get(2));
 		AdminProductResponse response = adminProductService.getAdminProduct(admin.getUid(), productUid);
 		assertThat(response).isNotNull();
 		assertThat(response.uid()).isEqualTo(productUid);
 		assertThat(response.productName()).isEqualTo(productList.get(2).getName());
+	}
+
+	@Test
+	void getAdminProduct_실패() {
+		Admin admin1 = Admin.builder().uid(UUID.randomUUID()).username("test1").build();
+		UUID productUid = productList.get(2).getUid();
+		when(productValidationService.findProductByIdAndAdmin(productUid, admin1.getUid()))
+			.thenThrow(ProductException.ProductForbiddenException.class);
+
+		assertThatThrownBy(() -> adminProductService.getAdminProduct(admin1.getUid(), productUid))
+			.isInstanceOf(ProductException.ProductForbiddenException.class);
 	}
 }
