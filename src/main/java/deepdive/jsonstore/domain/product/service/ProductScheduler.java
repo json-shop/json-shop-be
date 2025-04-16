@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import deepdive.jsonstore.domain.product.dto.ProductOrderCountDTO;
 import deepdive.jsonstore.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ProductScheduler {

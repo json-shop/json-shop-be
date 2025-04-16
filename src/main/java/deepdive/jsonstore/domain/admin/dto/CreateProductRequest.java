@@ -6,7 +6,9 @@ import deepdive.jsonstore.domain.admin.entity.Admin;
 import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.entity.ProductStatus;
+import lombok.Builder;
 
+@Builder
 public record CreateProductRequest(
 	String productName,
 	String productDetail,
@@ -15,7 +17,7 @@ public record CreateProductRequest(
 	int stock
 ) {
 
-	public Product toProduct(String url, Admin admin) {
+	public Product toProduct(String url, Admin admin, byte[] imageByte) {
 		return Product.builder()
 			.uid(UUID.randomUUID())
 			.admin(admin)
@@ -27,6 +29,7 @@ public record CreateProductRequest(
 			.image(url)
 			.status(ProductStatus.ON_SALE)
 			.soldCount(0)
+			.imageByte(imageByte)
 			.build();
 	}
 }

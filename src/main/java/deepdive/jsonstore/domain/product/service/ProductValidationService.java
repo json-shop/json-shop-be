@@ -30,4 +30,5 @@ public class ProductValidationService {
 		if(!product.getAdmin().getUid().equals(adminId)) throw new ProductException.ProductForbiddenException();
 		return product;
 	}
+
 }

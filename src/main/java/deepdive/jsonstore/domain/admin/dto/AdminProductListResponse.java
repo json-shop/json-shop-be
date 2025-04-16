@@ -5,7 +5,9 @@ import java.util.UUID;
 
 import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.ProductStatus;
+import lombok.Builder;
 
+@Builder
 public record AdminProductListResponse(
 	UUID uid,
 	String productName,
@@ -14,6 +16,7 @@ public record AdminProductListResponse(
 	int price,
 	int stock,
 	ProductStatus status,
-	LocalDateTime createAt
+	long soldCount,
+	LocalDateTime createdAt
 ) {
 }
