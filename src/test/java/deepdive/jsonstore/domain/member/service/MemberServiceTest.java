@@ -19,10 +19,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +45,10 @@ class MemberServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private MemberValidationService memberValidationService;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
@@ -53,9 +57,9 @@ class MemberServiceTest {
     @BeforeEach
     void setUp() {
         memberService = new MemberService(
-                memberRepository,
                 passwordEncoder,
-                memberUtil
+                memberUtil,
+                memberValidationService
         );
     }
 
@@ -71,18 +75,20 @@ class MemberServiceTest {
 
         Member member = Member.builder()
                 .email("test@example.com")
+                .uid(UUID.randomUUID())
                 .username("testuser")
                 .password(encodedCurrentPassword)  // 저장된 암호화된 비밀번호
                 .isDeleted(false)
                 .build();
 
-        when(memberRepository.findByEmail("test@example.com"))
-                .thenReturn(Optional.of(member)); //findByEmail 호출되면 db에 접근하는게 아니라 위에 만든 member 객체를 넘겨줌
+        when(memberValidationService.findByUid(member.getUid()))
+                .thenReturn(member);
+
 
         ResetPasswordRequestDTO dto = new ResetPasswordRequestDTO(currentPassword, newPassword, newPassword);
 
         // when
-        memberService.resetPW("test@example.com", dto);
+        memberService.resetPW(member.getUid(), dto);
 
         // then
         assertThat(passwordEncoder.matches(newPassword, member.getPassword())).isTrue();
@@ -97,19 +103,20 @@ class MemberServiceTest {
         // given
         Member member = Member.builder()
                 .email("test@example.com")
+                .uid(UUID.randomUUID())
                 .username("Old Name")
                 .phone("010-0000-0000")
                 .password(passwordEncoder.encode("password"))
                 .isDeleted(false)
                 .build();
 
-        given(memberRepository.findByEmail("test@example.com"))
-                .willReturn(Optional.of(member));
+        when(memberValidationService.findByUid(member.getUid()))
+                .thenReturn(member);
 
         UpdateMemberRequestDTO dto = new UpdateMemberRequestDTO("New Name", "010-1234-5678");
 
         // when
-        memberService.updateMember("test@example.com", dto);
+        memberService.updateMember(member.getUid(), dto);
 
         // then
         assertThat(member.getUsername()).isEqualTo("New Name");
