@@ -47,7 +47,6 @@ class ProductServiceTest {
 
 	@BeforeEach
 	public void setUp() {
-		// 각 테스트 실행 전에 더미 데이터 리스트를 초기화
 		productList = new ArrayList<>();
 		Category[] categories = Category.values();
 
