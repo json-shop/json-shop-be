@@ -21,9 +21,4 @@ public class ProductException extends RuntimeException {
 		}
 	}
 
-	public static class ServerErrorException extends ProductException {
-		public ServerErrorException() {
-			super(ProductErrorCode.INTERNAL_SERVER_ERROR);
-		}
-	}
 }

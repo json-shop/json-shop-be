@@ -66,10 +66,4 @@ public class AdminProductController {
 		return ResponseEntity.ok(res);
 	}
 
-
-	@PostMapping("/temp")
-	public ResponseEntity<Void> createAdmin() {
-		adminProductService.tempSave();
-		return ResponseEntity.noContent().build();
-	}
 }

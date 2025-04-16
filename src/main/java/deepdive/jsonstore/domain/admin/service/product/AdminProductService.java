@@ -74,22 +74,13 @@ public class AdminProductService {
 		return AdminProductResponse.toAdminProductResponse(product);
 	}
 
-	public void tempSave() {
-		adminRepository.save(Admin.builder()
-			.username("admin")
-			.password("temp")
-			.email("tt@t.com")
-			.deleted(false)
-			.build());
-	}
-
 	private byte[] getImageByte(MultipartFile productImage) {
 		try {
 			byte[] fileBytes = productImage.getBytes();
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			return md.digest(fileBytes);
 		} catch(IOException | NoSuchAlgorithmException e) {
-			throw new ProductException.ServerErrorException();
+			throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
 		}
 	}
 }
