@@ -89,7 +89,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // FCM 테스트용 프론트엔드 접근경로
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/firebase-messaging-sw.js").permitAll()
                                        
                         // 공용 접근 경로
                         .requestMatchers("/api/v1/login", "/api/v1/admin/login", "/api/v1/join","/api/v1/admin/join","/api/v1/products/**").permitAll()
