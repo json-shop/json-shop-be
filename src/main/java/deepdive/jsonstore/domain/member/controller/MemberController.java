@@ -5,31 +5,30 @@ import deepdive.jsonstore.domain.member.dto.UpdateMemberRequestDTO;
 import deepdive.jsonstore.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/member")
 public class MemberController {
 
     private final MemberService memberService;
 
-    @PatchMapping("/pwReset")
-    public ResponseEntity<?> resetPassword(String email, @RequestBody ResetPasswordRequestDTO request) {
+    @PutMapping("/pwReset")
+    public ResponseEntity<?> resetPassword(@AuthenticationPrincipal(expression = "uid") UUID memberUid, @RequestBody ResetPasswordRequestDTO request) {
 
-        memberService.resetPW(email, request);
+        memberService.resetPW(memberUid, request);
 
         return ResponseEntity.noContent().build();
 
     }
 
     @PutMapping("/user")
-    public ResponseEntity<?> updateMember(String email, @RequestBody UpdateMemberRequestDTO request) {
-        memberService.updateMember(email, request);
+    public ResponseEntity<?> updateMember(@AuthenticationPrincipal(expression = "uid") UUID memberUid , @RequestBody UpdateMemberRequestDTO request) {
+        memberService.updateMember(memberUid, request);
 
         return ResponseEntity.noContent().build();
     }

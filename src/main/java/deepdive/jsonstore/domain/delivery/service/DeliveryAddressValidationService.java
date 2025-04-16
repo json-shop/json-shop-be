@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -28,13 +30,10 @@ public class DeliveryAddressValidationService {
     private String ADDRESS_API_KEY;
 
     public void validateZipCode(String zipcode) {
-        String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
-                .queryParam("currentPage", 1)
-                .queryParam("countPerPage", 1)
-                .queryParam("keyword", zipcode)
-                .queryParam("confmKey", ADDRESS_API_KEY)
-                .queryParam("resultType", "json")
-                .toUriString();
+        String url = BASE_URL + "?currentPage=1&countPerPage=1"
+                + "&keyword=" + URLEncoder.encode(zipcode, StandardCharsets.UTF_8)
+                + "&confmKey=" + ADDRESS_API_KEY
+                + "&resultType=json";
 
         String response = restTemplate.getForObject(url, String.class);
 

@@ -3,6 +3,7 @@ package deepdive.jsonstore.domain.notification.service;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
+import deepdive.jsonstore.domain.notification.exception.NotificationErrorCode;
 import deepdive.jsonstore.domain.notification.exception.NotificationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,7 +65,7 @@ class NotificationValidationServiceTest {
 
             NotificationException ex = assertThrows(NotificationException.class,
                     () -> validationService.validateAndGetFcmToken(memberUid));
-            assertEquals(JsonStoreErrorCode.MISSING_FCM_TOKEN, ex.getErrorCode());
+            assertEquals(NotificationErrorCode.MISSING_FCM_TOKEN, ex.getErrorCode());
         }
     }
 
@@ -89,7 +90,7 @@ class NotificationValidationServiceTest {
 
             NotificationException ex = assertThrows(NotificationException.class,
                     () -> validationService.validateMemberExists(memberUid));
-            assertEquals(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND, ex.getErrorCode());
+            assertEquals(NotificationErrorCode.NOTIFICATION_MEMBER_NOT_FOUND, ex.getErrorCode());
         }
     }
 
@@ -118,7 +119,7 @@ class NotificationValidationServiceTest {
 
             NotificationException ex = assertThrows(NotificationException.class,
                     () -> validationService.validateAndGetMember(memberUid));
-            assertEquals(JsonStoreErrorCode.NOTIFICATION_MEMBER_NOT_FOUND, ex.getErrorCode());
+            assertEquals(NotificationErrorCode.NOTIFICATION_MEMBER_NOT_FOUND, ex.getErrorCode());
         }
     }
 }
