@@ -35,7 +35,7 @@ public class PaymentService {
 
     @Transactional
     public void cancelFullAmount(String paymentKey, String reason) {
-        String url = apiBase + "/v1/payments/" + paymentKey +"/cancel";
+        String url = apiBase + "/v1/payments/" + paymentKey + "/cancel";
         String auth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
 
         RestTemplate restTemplate = new RestTemplate();
@@ -51,10 +51,9 @@ public class PaymentService {
         HttpEntity<CancelRequest> entity = new HttpEntity<>(cancelRequest, headers);
 
         try {
-            ResponseEntity<Map<String, Object>> paymentResponse =
-                    restTemplate.postForObject(url, entity, ResponseEntity.class);
-            var code = paymentResponse.getStatusCode();
-            if (!code.equals(HttpStatus.OK)) {
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new CommonException.InternalServerException();
             }
         } catch (HttpClientErrorException e) {
@@ -75,16 +74,15 @@ public class PaymentService {
         headers.set("Authorization", "Basic " + auth);
 
         HttpEntity<ConfirmRequest> entity = new HttpEntity<>(confirmRequest, headers);
-
         try {
-            ResponseEntity<Map<String, Object>> paymentResponse =
-                    restTemplate.postForObject(url, entity, ResponseEntity.class);
-            var code = paymentResponse.getStatusCode();
+            ResponseEntity<Map> response =
+                    restTemplate.postForEntity(url, entity, Map.class);
 
-            if (!code.equals(HttpStatus.OK)) {
+            if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new CommonException.InternalServerException();
             }
-            return paymentResponse.getBody();
+
+            return response.getBody();
         } catch (HttpClientErrorException e) {
             log.info(e.getLocalizedMessage());
             throw new CommonException.InternalServerException();

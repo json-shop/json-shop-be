@@ -70,12 +70,12 @@ class OrderValidationServiceTest {
         @Test
         void validateProductStock_성공() {
             //given
+            var puid = UUID.randomUUID();
             var product = Product.builder()
+                    .uid(puid)
                     .stock(1)
                     .build();
-            var pouid = UUID.randomUUID();
             var orderProduct = OrderProduct.builder()
-                    .uid(pouid)
                     .product(product)
                     .quantity(1)
                     .build();
@@ -84,7 +84,7 @@ class OrderValidationServiceTest {
                     .build();
 
             //when
-            when(productValidationService.findActiveProductById(pouid)).thenReturn(product);
+            when(productValidationService.findActiveProductById(puid)).thenReturn(product);
 
             //then
             assertDoesNotThrow(() -> orderValidationService.validateProductStock(mockOrder));
@@ -94,13 +94,13 @@ class OrderValidationServiceTest {
         void validateProductStock_실패() {
             //given
             var name = "테스트";
+            var puid = UUID.randomUUID();
             var product = Product.builder()
+                    .uid(puid)
                     .name(name)
                     .stock(1)
                     .build();
-            var pouid = UUID.randomUUID();
             var orderProduct = OrderProduct.builder()
-                    .uid(pouid)
                     .product(product)
                     .quantity(2)
                     .build();
@@ -109,7 +109,7 @@ class OrderValidationServiceTest {
                     .build();
 
             //when
-            when(productValidationService.findActiveProductById(pouid)).thenReturn(product);
+            when(productValidationService.findActiveProductById(puid)).thenReturn(product);
 
             //then
             assertThrows(OrderException.OrderOutOfStockException.class,

@@ -15,13 +15,14 @@ import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -62,8 +63,8 @@ public class OrderService {
     }
 
     /** Pagenated 주문서 목록 조회 */
-    public Page<OrderResponse> getOrderResponsesByPage(Long memberId, Pageable pageable) {
-        return orderRepository.findByMemberId(memberId, pageable)
+    public Page<OrderResponse> getOrderResponsesByPage(UUID memberUid, Pageable pageable) {
+        return orderRepository.findByUid(memberUid, pageable)
                 .map(OrderResponse::from);
     }
 
@@ -71,17 +72,17 @@ public class OrderService {
     /**
      * 재고를 확인하고 주문서를 생성합니다.
      *
-     * @param memberId     주문자 아이디
+     * @param memberUid     주문자 아이디
      * @param orderRequest 주문 요청 Dto
      * @return 주문서 Dto
      */
-    public UUID createOrder(Long memberId, OrderRequest orderRequest) {
-        var member = memberValidationService.findById(memberId); // TODO : 리펙토링 필요
+    public UUID createOrder(UUID memberUid, OrderRequest orderRequest) {
+        var member = memberValidationService.findByUid(memberUid);
         List<OrderProduct> orderProducts = createOrderProducts(orderRequest);
         int total = calculateTotalAmount(orderProducts);
 
         // 주문 생성 및 저장
-        Order order = Order.builder()
+        var order = Order.builder()
                 .orderStatus(OrderStatus.CREATED)
                 .member(member)
                 .phone(orderRequest.phone())
@@ -129,13 +130,16 @@ public class OrderService {
      * @param confirmRequest
      * @return 컨펌프로세스 결과를 반환합니다.
      */
-    @Transactional
+    @Retryable(
+            value = { PessimisticLockingFailureException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 200, multiplier = 2.0, maxDelay = 2000)
+    )
+    @Transactional(timeout = 5)
     public void confirmOrder(ConfirmRequest confirmRequest) {
-        var orderUid = UUID.fromString(confirmRequest.orderId());
-        var order = loadByUid(orderUid);
+        var order = orderRepository.findWithLockByUid(UUID.fromString(confirmRequest.orderId().trim()))
+                .orElseThrow(OrderException.OrderNotFound::new); // 여기서 order + orderProducts + product + member 모두 fetch + lock
 
-
-        // ------------트랜젝션---------------
         if (confirmRequest.amount() != order.getTotal()) {
             order.changeState(OrderStatus.FAILED);
             throw new OrderException.OrderTotalMismatchException();
@@ -143,28 +147,18 @@ public class OrderService {
 
         // 재고 검사
         orderValidationService.validateProductStock(order);
+        orderValidationService.validateExpiration(order);
+        
+        // consume
+        productStockService.consumeStock(order);
 
-        // 재고 예약
-        // reserveStock(...) 호출 중 실패하면 트랜잭션이 롤백되긴 하지만
-        // 재고 서비스가 외부 시스템이거나 자체 트랜잭션이라면 보상 트랜잭션 고려 필요
-        // TODO : 에러 extra 수정
-        order.getOrderProducts().forEach(op->
-                productStockService.reserveStock(op.getProduct().getId(), op.getQuantity()));
-
-        // 결제 대기 상태
         order.changeState(OrderStatus.PAYMENT_PENDING);
-        // ------------------------------------
 
-        // 주문 승인 및 결제키 등록
         var paymentResponse = paymentService.confirm(confirmRequest);
-        var paymentKey = paymentResponse.get("paymentKey").toString();
-        order.setPaymentKey(paymentKey);
+        order.setPaymentKey(paymentResponse.get("paymentKey").toString());
 
-        // ------------ 블로킹 ---------------------
-        // 웹훅으로 비동기적으로 처리 가능
+        order.changeState(OrderStatus.PAID);
 
-
-        // TODO: 트렌젝션 외부로
         var sb = new StringBuilder();
         var title = order.getTitle();
         sb.append(title).append("\n");
@@ -172,23 +166,14 @@ public class OrderService {
         var notificationBody = sb.toString();
 
         // 성공 알림 발송
-        // TODO : 트렌젝션 외부로
         try {
-            notificationService.sendNotification(order.getMember().getUid(), "결제 성공", notificationBody, NotificationCategory.ORDERED);
+            notificationService.sendNotification(
+                    order.getMember().getUid(),
+                    "결제 성공", notificationBody,
+                    NotificationCategory.ORDERED);
         } catch (CommonException.InternalServerException e) {
             log.warn("발송 실패"); // 재발송 전략?
         }
-
-        // 주문 상태 "결제"로 변경
-        order.changeState(OrderStatus.PAID);
-    }
-
-    // 웹훅이 결제 완료인지 판별
-    @Transactional
-    public void webhook() {
-        // 주문 완료
-        // 주문 실패
-        // 주문 취소
     }
 
     // 발송 전에 결제 취소 기능
@@ -196,7 +181,6 @@ public class OrderService {
     public void cancelOrderBeforeShipment(UUID orderUid) {
         var order = loadByUid(orderUid);
 
-        // -------- 트랜젝션 ----------------------
         // 검증
         orderValidationService.validateBeforePayment(order);
         orderValidationService.validateExpiration(order);
@@ -205,7 +189,6 @@ public class OrderService {
         // 전액 환불
         String reason = "사용자 요청";
         paymentService.cancelFullAmount(order.getPaymentKey(), reason);
-        // ---------------------------------------
 
         // 알림 메시지 작성
         var sb = new StringBuilder();
@@ -213,12 +196,15 @@ public class OrderService {
         sb.append(title).append("\n");
         var notificationBody = sb.toString();
 
-        order.getOrderProducts().forEach(op->
-                productStockService.releaseStock(op.getProduct().getId(), op.getQuantity()));
+
+        productStockService.releaseStock(order);
 
         // 취소 성공 발송
         try {
-            notificationService.sendNotification(order.getMember().getUid(), "결제 취소", notificationBody, NotificationCategory.CANCELED);
+            notificationService.sendNotification(
+                    order.getMember().getUid(),
+                    "결제 취소", notificationBody,
+                    NotificationCategory.CANCELED);
         } catch (Exception e) {
             log.info("발송 실패");
         }

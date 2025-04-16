@@ -84,6 +84,6 @@ public class DeliveryService{
     }
 
     public Delivery getDeliveryByUid(UUID deliveryUid) {
-        return deliveryValidationService.getDeliveryByUid(deliveryUid);
+        return  deliveryValidationService.getDeliveryByUid(deliveryUid);
     }
 }
