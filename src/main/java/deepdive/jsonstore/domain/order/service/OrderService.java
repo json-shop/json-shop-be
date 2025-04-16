@@ -135,7 +135,7 @@ public class OrderService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 200, multiplier = 2.0, maxDelay = 2000)
     )
-    @Transactional
+    @Transactional(timeout = 5)
     public void confirmOrder(ConfirmRequest confirmRequest) {
         var order = orderRepository.findWithLockByUid(UUID.fromString(confirmRequest.orderId().trim()))
                 .orElseThrow(OrderException.OrderNotFound::new); // 여기서 order + orderProducts + product + member 모두 fetch + lock
