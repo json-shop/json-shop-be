@@ -42,4 +42,12 @@ public class OrderProduct extends BaseEntity {
                 .quantity(quantity)
                 .build();
     }
+    public static OrderProduct from(Order order, Product product, int quantity) {
+        return OrderProduct.builder()
+            .order(order)
+            .product(product)
+            .price(product.getPrice())
+            .quantity(quantity)
+            .build();
+    }
 }

@@ -36,4 +36,22 @@ public class ProductController {
 		return ResponseEntity.ok(res);
 	}
 
+	@GetMapping("/test")
+	public ResponseEntity<Page<ProductListResponse>> test(ProductSearchCondition condition, Pageable pageable) {
+		Page<ProductListResponse> res = productService.test(condition, pageable);
+		return ResponseEntity.ok(res);
+	}
+
+	@GetMapping("/temp")
+	public ResponseEntity<Page<ProductListResponse>> temp() {
+		productService.temp();
+		return ResponseEntity.noContent().build();
+	}
+
+	@GetMapping("/order")
+	public ResponseEntity<Page<ProductListResponse>> tempOrder() {
+		productService.tempOrder();
+		return ResponseEntity.noContent().build();
+	}
+
 }

@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.product.repository;
 
+import static deepdive.jsonstore.domain.order.entity.QOrderProduct.*;
 import static deepdive.jsonstore.domain.product.entity.QProduct.*;
 
 import java.util.List;
@@ -78,6 +79,36 @@ public class ProductQueryRepository {
 			.from(product)
 			.where(categoryEq(condition.category()), searchContains(condition.search()), adminEq(uid))
 			.orderBy(orderSpecifier)
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
+
+		Long totalCount = queryFactory
+			.select(product.count())
+			.from(product)
+			.where(categoryEq(condition.category()), searchContains(condition.search()))
+			.fetchOne();
+		long total = totalCount != null ? totalCount : 0L;
+
+		return new PageImpl<>(content, pageable, total);
+	}
+
+	public Page<ProductListResponse> test(ProductSearchCondition condition, Pageable pageable) {
+
+		List<ProductListResponse> content = queryFactory
+			.select(Projections.constructor(ProductListResponse.class,
+				product.uid,
+				product.name,
+				product.image,
+				product.category,
+				product.price,
+				product.status,
+				product.createdAt))
+			.from(product)
+			.leftJoin(orderProduct).on(orderProduct.product.eq(product))
+			.where(categoryEq(condition.category()), searchContains(condition.search()), statusStopNe())
+			.groupBy(product.id)
+			.orderBy(orderProduct.quantity.sum().desc().nullsLast())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
