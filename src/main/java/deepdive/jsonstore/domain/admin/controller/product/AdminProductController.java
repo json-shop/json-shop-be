@@ -60,9 +60,11 @@ public class AdminProductController {
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<AdminProductListResponse>> getAdminProductList(@RequestParam String adminId,
-		ProductSearchCondition condition, Pageable pageable) {
-		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(UUID.fromString(adminId), condition, pageable);
+	public ResponseEntity<Page<AdminProductListResponse>> getAdminProductList(
+			@AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
+			ProductSearchCondition condition, Pageable pageable
+	) {
+		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(adminUid, condition, pageable);
 		return ResponseEntity.ok(res);
 	}
 
