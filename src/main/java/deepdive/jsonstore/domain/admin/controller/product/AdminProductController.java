@@ -38,9 +38,15 @@ public class AdminProductController {
 	private final AdminProductService adminProductService;
 
 	@PostMapping
-	public ResponseEntity<Void> createProduct(@RequestPart("image") MultipartFile productImage,
-		@AuthenticationPrincipal AdminMemberDetails admin,
-		@RequestPart("productRequest") CreateProductRequest createProductRequest) {
+	public ResponseEntity<Void> createProduct(@RequestPart(value = "image", required = false) MultipartFile productImage,
+											  @AuthenticationPrincipal AdminMemberDetails admin,
+											  @RequestPart("productRequest") CreateProductRequest createProductRequest) {
+		if (productImage == null || productImage.isEmpty()) {
+			log.info("in this");
+			String id = adminProductService.createProduct(admin.getAdminUid(), createProductRequest);
+			return ResponseEntity.created(URI.create("/api/v1/products/"+id)).build();
+		}
+
 		String id = adminProductService.createProduct(admin.getAdminUid(), productImage, createProductRequest);
 		return ResponseEntity.created(URI.create("/api/v1/products/"+id)).build();
 	}
