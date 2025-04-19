@@ -69,9 +69,11 @@ public class AdminProductController {
 	}
 
 	@GetMapping("/{productId}")
-	public ResponseEntity<AdminProductResponse> getAdminProduct(@PathVariable UUID productId, @RequestParam String adminId) {
-		AdminProductResponse res = adminProductService.getAdminProduct(UUID.fromString(adminId), productId);
+	public ResponseEntity<AdminProductResponse> getAdminProduct(
+			@AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
+			@PathVariable UUID productId
+	) {
+		AdminProductResponse res = adminProductService.getAdminProduct(adminUid, productId);
 		return ResponseEntity.ok(res);
 	}
-
 }
