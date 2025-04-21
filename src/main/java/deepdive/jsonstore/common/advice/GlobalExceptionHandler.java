@@ -77,6 +77,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DeliveryException.class)
     public ResponseEntity<ErrorResponse> deliveryExceptionHandler(DeliveryException ex) {
+        log.error("Delivery error: {}", ex.getMessage(), ex);
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
@@ -157,6 +158,4 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
-
-
 }
