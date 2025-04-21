@@ -40,3 +40,5 @@ out/
 .sql
 
 /src/main/resources/FirebaseAccessKey.json
+/DummyData
+application.*
