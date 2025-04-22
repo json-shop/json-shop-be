@@ -78,6 +78,8 @@ public class NotificationService {
                 .category(category)
                 .member(member)
                 .build();
+        // ✅ ULID 자동 생성
+        notification.generateUlid();
 
         notificationRepository.save(notification);
     }
@@ -94,4 +96,19 @@ public class NotificationService {
                 ))
                 .collect(Collectors.toList());
     }
+
+    public List<NotificationHistoryResponse> getNotificationHistoryV2(UUID memberUid) {
+        return notificationRepository.findAllByMember_UidOrderByUlidDesc(memberUid).stream()
+                .map(notification -> new NotificationHistoryResponse(
+                        notification.getId(),
+                        notification.getTitle(),
+                        notification.getBody(),
+                        notification.getCategory(),
+                        notification.getMember().getUid(),
+                        notification.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+    }
+
+
 }

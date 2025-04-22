@@ -35,6 +35,10 @@
     <p id="tokenStatus"></p>
   </div>
 
+  <input type="file" id="tokenFile" accept=".json" />
+  <button id="registerAllButton">더미 유저 저장</button>
+  <pre id="bulkTokenStatus"></pre>
+
   <!-- 알림 테스트 -->
   <div class="card">
     <h2>2. 알림 테스트</h2>
@@ -103,6 +107,62 @@
     });
   }
 </script>
+<script>
+  let jwtList = [];
+
+  // 파일 업로드 후 JWT 파싱
+  document.getElementById('tokenFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const text = await file.text();
+    const json = JSON.parse(text);
+    jwtList = json.map(row => row.accessToken);
+    document.getElementById('bulkTokenStatus').textContent = `📦 ${jwtList.length}개의 JWT 토큰 로드 완료`;
+  });
+
+  // 일괄 등록 버튼 클릭 시 실행
+  document.getElementById('registerAllButton').addEventListener('click', async () => {
+    const status = document.getElementById('bulkTokenStatus');
+    status.textContent = '🚀 일괄 토큰 등록 시작...';
+    const results = [];
+
+    for (let i = 0; i < jwtList.length; i++) {
+      const jwt = jwtList[i];
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          results.push(`❌ ${i + 1}: 알림 권한 거부`);
+          continue;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        const fcmToken = await firebase.messaging().getToken({
+          vapidKey: "BFb0x3jt3JOK6l0eG7iBXKyiiZszUCINd4NgNRqDYNGPM3-Uny9Dch6z7e_Ac2lwUjiJR8MMSP4V2Oxv_LKaSFA",
+          serviceWorkerRegistration: registration,
+        });
+
+        const res = await fetch('/api/v1/fcm-tokens', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwt}`
+          },
+          body: JSON.stringify({ token: fcmToken }),
+        });
+
+        if (res.ok) {
+          results.push(`✅ ${i + 1}: 등록 성공`);
+        } else {
+          results.push(`❌ ${i + 1}: 실패 - ${await res.text()}`);
+        }
+      } catch (err) {
+        results.push(`❌ ${i + 1}: 오류 - ${err.message}`);
+      }
+    }
+
+    status.textContent = `📦 등록 결과\n${results.join('\n')}`;
+  });
+</script>
+
 
 </body>
 </html>

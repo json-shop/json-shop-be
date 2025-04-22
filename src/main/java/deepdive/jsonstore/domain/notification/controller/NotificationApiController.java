@@ -56,4 +56,12 @@ public class NotificationApiController {
         List<NotificationHistoryResponse> history = notificationService.getNotificationHistory(memberUid);
         return ResponseEntity.ok(history);
     }
+
+    @GetMapping("/notificationsV2")
+    public ResponseEntity<List<NotificationHistoryResponse>> getNotificationHistoryV2(
+            @AuthenticationPrincipal(expression = "uid") UUID memberUid
+    ) {
+        List<NotificationHistoryResponse> history = notificationService.getNotificationHistoryV2(memberUid);
+        return ResponseEntity.ok(history);
+    }
 }
