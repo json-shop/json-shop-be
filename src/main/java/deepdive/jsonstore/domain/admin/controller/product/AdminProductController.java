@@ -64,16 +64,21 @@ public class AdminProductController {
 			@AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
 			ProductSearchCondition condition, Pageable pageable
 	) {
+		log.info("condition : {}", condition);
 		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(adminUid, condition, pageable);
+		log.info("res : {}", res);
 		return ResponseEntity.ok(res);
 	}
 
 	@GetMapping("/{productId}")
 	public ResponseEntity<AdminProductResponse> getAdminProduct(
 			@AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
-			@PathVariable UUID productId
+			@PathVariable String productId
 	) {
-		AdminProductResponse res = adminProductService.getAdminProduct(adminUid, productId);
+		log.info("productId : {}", productId);
+		UUID productUid = UUID.fromString(productId);
+		AdminProductResponse res = adminProductService.getAdminProduct(adminUid, productUid);
+		log.info("res : {}", res);
 		return ResponseEntity.ok(res);
 	}
 }

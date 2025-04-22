@@ -8,6 +8,7 @@ import deepdive.jsonstore.domain.auth.dto.LoginRequest;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
 
+@Slf4j
 public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private final MemberJwtTokenProvider memberJwtTokenProvider;
@@ -47,6 +49,7 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
 
         JwtTokenDto tokenDto = memberJwtTokenProvider.generateToken(authResult);
 
+        log.info("login successful: {}", tokenDto.getAccessToken());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(objectMapper.writeValueAsString(tokenDto));
@@ -58,6 +61,7 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
                                               org.springframework.security.core.AuthenticationException failed)
             throws IOException {
 
+        log.info("login failed: {}", failed.getMessage());
         // 에러 응답 생성
         ErrorResponse errorResponse = new ErrorResponse(
                 "MEMBER_LOGIN_FAILED", // 에러 코드
