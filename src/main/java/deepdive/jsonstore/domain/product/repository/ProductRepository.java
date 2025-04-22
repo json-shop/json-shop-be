@@ -22,8 +22,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.uid = :uid AND p.status != :status")
 	Optional<Product> findByUidAndStatusIsNot(@Param("uid") UUID uid, @Param("status") ProductStatus status);
 
+	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.ulid = :uid AND p.status != :status")
+	Optional<Product> findByUlidAndStatusIsNot(@Param("uid") UUID uid, @Param("status") ProductStatus status);
+
 	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.uid = :productUid")
 	Optional<Product> findByUid(@Param("productUid") UUID productUid);
+
+	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.ulid = :productUid")
+	Optional<Product> findByUlid(@Param("productUid") UUID productUid);
+
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints(@QueryHint(name = "javax.persistence.lock.timeout", value = "1000"))

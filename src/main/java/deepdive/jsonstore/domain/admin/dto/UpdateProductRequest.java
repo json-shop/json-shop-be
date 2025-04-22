@@ -8,12 +8,13 @@ import lombok.Builder;
 
 @Builder
 public record UpdateProductRequest(
-	UUID uid,
-	String productName,
-	String productDetail,
-	Category category,
-	int price,
-	int stock,
-	ProductStatus status
+        UUID uid,
+        UUID ulid,
+        String productName,
+        String productDetail,
+        Category category,
+        int price,
+        int stock,
+        ProductStatus status
 ) {
 }

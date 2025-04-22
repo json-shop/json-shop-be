@@ -115,11 +115,12 @@ public class SecurityConfig {
                                 "/api/v1/login", "/api/v1/admin/login",
                                 "/api/v1/join", "/api/v1/admin/join",
                                 "/api/v1/products/**",
+                                "/api/v2/products/**",
                                 "/swagger-ui/**", "/v3/api-docs/**"
                         ).permitAll()
 
                         // 관리자 전용
-                        .requestMatchers("/api/v1/admin/**")
+                        .requestMatchers("/api/v1/admin/**", "/api/v2/admin/**")
                         .hasAuthority("ADMIN")
 
                         // 회원 전용

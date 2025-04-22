@@ -113,6 +113,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductException.class)
     public ResponseEntity<ErrorResponse> ProductExceptionHandler(ProductException ex) {
+        log.info("ProductException: {}", ex.getErrorCode().name());
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }

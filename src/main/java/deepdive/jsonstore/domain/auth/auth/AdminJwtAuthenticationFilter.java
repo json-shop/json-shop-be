@@ -32,12 +32,12 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
 
         // 관리자 API가 아닌 경우 필터 통과
-        if (!requestURI.startsWith("/api/v1/admin")) {
+        if (!requestURI.startsWith("/api/v1/admin") && !requestURI.startsWith("/api/v2/admin")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if ("/api/v1/admin/join".equals(requestURI)) {
+        if ("/api/v1/admin/join".equals(requestURI) || "/api/v2/admin/login".equals(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }

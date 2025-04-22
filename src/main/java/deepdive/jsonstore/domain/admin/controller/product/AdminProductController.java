@@ -64,6 +64,7 @@ public class AdminProductController {
 			@AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
 			ProductSearchCondition condition, Pageable pageable
 	) {
+		log.info("condition: {}", condition);
 		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(adminUid, condition, pageable);
 		return ResponseEntity.ok(res);
 	}

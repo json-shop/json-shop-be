@@ -35,6 +35,7 @@ public class Product extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private UUID uid;
+	private UUID ulid;
 	private String name;
 	private int stock;
 	private int price;
