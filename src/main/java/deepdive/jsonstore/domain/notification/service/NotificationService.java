@@ -6,6 +6,7 @@ import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushNotification;
 import deepdive.jsonstore.common.exception.JsonStoreErrorCode;
 import deepdive.jsonstore.common.exception.CommonException;
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
 import deepdive.jsonstore.domain.notification.dto.NotificationHistoryResponse;
@@ -97,8 +98,8 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    public List<NotificationHistoryResponse> getNotificationHistoryV2(UUID memberUid) {
-        return notificationRepository.findAllByMember_UidOrderByUlidDesc(memberUid).stream()
+    public List<NotificationHistoryResponse> getNotificationHistoryV2(byte[] ulid) {
+        return notificationRepository.findAllByMember_UlidOrderByUlidDesc(ulid).stream()
                 .map(notification -> new NotificationHistoryResponse(
                         notification.getId(),
                         notification.getTitle(),

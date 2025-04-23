@@ -15,5 +15,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @EntityGraph(attributePaths = {"member"})
     List<Notification> findByMember_UidOrderByCreatedAtDesc(UUID memberUid);
 
-    List<Notification> findAllByMember_UidOrderByUlidDesc(UUID memberUid);
+    @EntityGraph(attributePaths = {"member"})
+    List<Notification> findAllByMember_UlidOrderByUlidDesc(byte[] ulid);
 }
