@@ -22,7 +22,7 @@ public record CreateProductRequest(
     public Product toProduct(String url, Admin admin, byte[] imageByte) {
         return Product.builder()
                 .uid(UUID.randomUUID())
-                .ulid(UlidUtil.createUlid())
+                .ulid(UlidUtil.createUlidBytes())
                 .admin(admin)
                 .name(productName)
                 .category(category)

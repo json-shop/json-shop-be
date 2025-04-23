@@ -16,10 +16,10 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ProductServiceV2 {
 
-	private final ProductValidationService productValidationService;
+	private final ProductValidationServiceV2 productValidationService;
 	private final ProductQueryRepository productQueryRepository;
 
-	public ProductResponse getActiveProductDetail(UUID id) {
+	public ProductResponse getActiveProductDetail(String id) {
 		Product product = productValidationService.findActiveProductById(id);
 		return ProductResponse.toProductResponse(product);
 	}

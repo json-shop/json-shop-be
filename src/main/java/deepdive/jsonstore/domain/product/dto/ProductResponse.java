@@ -11,7 +11,7 @@ import lombok.Builder;
 @Builder
 public record ProductResponse(
         UUID uid,
-        UUID ulid,
+        byte[] ulid,
         String productName,
         String image,
         String productDetail,

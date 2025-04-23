@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.UUID;
 
 @Slf4j
@@ -20,14 +22,17 @@ public class ProductValidationServiceV2 {
 
 	private final ProductRepository productRepository;
 
-	public Product findActiveProductById(UUID id) {
-		return productRepository.findByUidAndStatusIsNot(id, ProductStatus.DISCONTINUED)
+	public Product findActiveProductById(String id) {
+		return productRepository.findByUlidAndStatusIsNot(Base64.getUrlDecoder().decode(id), ProductStatus.DISCONTINUED)
 			.orElseThrow(ProductException.ProductNotFoundException::new);
 	}
 
-	public Product findProductByIdAndAdmin(UUID productId, UUID adminId) {
+	public Product findProductByIdAndAdmin(String ulid, byte[] adminId) {
+		byte[] productId = Base64.getUrlDecoder().decode(ulid);
 		Product product = productRepository.findByUlid(productId).orElseThrow(ProductException.ProductNotFoundException::new);
-		if(!product.getAdmin().getUid().equals(adminId)) throw new ProductException.ProductForbiddenException();
+		if(!Arrays.equals(product.getAdmin().getUlid(), adminId)) throw new ProductException.ProductForbiddenException();
 		return product;
 	}
+
+
 }

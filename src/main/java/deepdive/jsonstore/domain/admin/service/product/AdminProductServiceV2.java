@@ -2,10 +2,7 @@ package deepdive.jsonstore.domain.admin.service.product;
 
 import deepdive.jsonstore.common.s3.S3ImageService;
 import deepdive.jsonstore.common.util.UlidUtil;
-import deepdive.jsonstore.domain.admin.dto.AdminProductListResponse;
-import deepdive.jsonstore.domain.admin.dto.AdminProductResponse;
-import deepdive.jsonstore.domain.admin.dto.CreateProductRequest;
-import deepdive.jsonstore.domain.admin.dto.UpdateProductRequest;
+import deepdive.jsonstore.domain.admin.dto.*;
 import deepdive.jsonstore.domain.admin.entity.Admin;
 import deepdive.jsonstore.domain.admin.repository.AdminRepository;
 import deepdive.jsonstore.domain.admin.service.AdminValidationService;
@@ -19,6 +16,7 @@ import deepdive.jsonstore.domain.product.service.ProductValidationServiceV2;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.constraintvalidators.bv.size.SizeValidatorForArraysOfLong;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,7 +26,11 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.UUID;
+
+import static java.util.Base64.getEncoder;
+import static java.util.Base64.getUrlEncoder;
 
 @Slf4j
 @Service
@@ -40,24 +42,26 @@ public class AdminProductServiceV2 {
 	private final AdminValidationService adminValidationService;
 	private final ProductRepository productRepository;
 	private final ProductQueryRepository productQueryRepository;
-	private final AdminRepository adminRepository;
 
-	public String createProduct(UUID adminUid, MultipartFile productImage, CreateProductRequest createProductRequest) {
+	public String createProduct(byte[] adminUid, MultipartFile productImage, CreateProductRequest createProductRequest) {
 		Admin admin = adminValidationService.getAdminById(adminUid);
 		String image = s3ImageService.uploadImage(productImage);
 		Product product = productRepository.save(createProductRequest.toProduct(image,admin,getImageByte(productImage)));
-		return product.getUid().toString();
+
+		return getEncoder().encodeToString(product.getUlid());
+
 	}
 
-	public String createProduct(UUID adminUid, CreateProductRequest createProductRequest) {
+	public String createProduct(byte[] adminUid, CreateProductRequest createProductRequest) {
 		Admin admin = adminValidationService.getAdminById(adminUid);
 		Product product = productRepository.save(createProductRequest.toProduct(null, admin, null));
 
-		return product.getUid().toString();
+		return getUrlEncoder().encodeToString(product.getUlid());
 	}
 
 	@Transactional
-	public ProductResponse updateProduct(UUID adminUid, MultipartFile productImage, UpdateProductRequest updateProductRequest) {
+	public ProductResponse updateProduct(byte[] adminUid, MultipartFile productImage, UpdateProductRequest updateProductRequest) {
+
 		Product product = productValidationService.findProductByIdAndAdmin(updateProductRequest.ulid(), adminUid);
 		if(productImage != null && !productImage.isEmpty() ) {
 			byte[] imageByte = getImageByte(productImage);
@@ -71,11 +75,27 @@ public class AdminProductServiceV2 {
 		return ProductResponse.toProductResponse(product);
 	}
 
-	public Page<AdminProductListResponse> getAdminProductList(UUID adminUid, ProductSearchCondition productSearchCondition, Pageable pageable) {
-		return productQueryRepository.searchAdminProductList(adminUid, productSearchCondition, pageable);
-	}
+	public Page<AdminProductListResponseWithSafeUlid> getAdminProductList(byte[] adminUlid, ProductSearchCondition productSearchCondition, Pageable pageable) {
+		Page<AdminProductListResponse> page = productQueryRepository.searchAdminProductList(adminUlid, productSearchCondition, pageable);
 
-	public AdminProductResponse getAdminProduct(UUID adminUid, UUID productUid) {
+		return page.map(r -> {
+			String safeUlid = getUrlEncoder().encodeToString(r.ulid());
+			return AdminProductListResponseWithSafeUlid.builder()
+					.uid(r.uid())
+					.ulid(safeUlid)
+					.productName(r.productName())
+					.image(r.image())
+					.category(r.category())
+					.price(r.price())
+					.stock(r.stock())
+					.status(r.status())
+					.soldCount(r.soldCount())
+					.createdAt(r.createdAt()).build();
+
+		});
+	}
+	public AdminProductResponse getAdminProduct(byte[] adminUid, String productUid) {
+
 		Product product = productValidationService.findProductByIdAndAdmin(productUid, adminUid);
 		return AdminProductResponse.toAdminProductResponse(product);
 	}

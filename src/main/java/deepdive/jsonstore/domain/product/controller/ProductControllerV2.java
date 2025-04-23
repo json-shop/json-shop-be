@@ -21,7 +21,7 @@ public class ProductControllerV2 {
 	private final ProductServiceV2 productService;
 
 	@GetMapping("/{productId}")
-	public ResponseEntity<ProductResponse> getActiveProduct(@PathVariable UUID productId) {
+	public ResponseEntity<ProductResponse> getActiveProduct(@PathVariable String productId) {
 		ProductResponse res = productService.getActiveProductDetail(productId);
 		return ResponseEntity.ok(res);
 	}

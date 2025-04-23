@@ -35,7 +35,8 @@ public class Product extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private UUID uid;
-	private UUID ulid;
+	@Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+	private byte[] ulid;
 	private String name;
 	private int stock;
 	private int price;

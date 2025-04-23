@@ -9,7 +9,7 @@ import lombok.Builder;
 @Builder
 public record UpdateProductRequest(
         UUID uid,
-        UUID ulid,
+        String ulid,
         String productName,
         String productDetail,
         Category category,
@@ -18,3 +18,4 @@ public record UpdateProductRequest(
         ProductStatus status
 ) {
 }
+

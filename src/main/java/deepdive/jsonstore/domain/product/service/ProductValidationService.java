@@ -21,8 +21,9 @@ public class ProductValidationService {
 
 	private final ProductRepository productRepository;
 
+
 	public Product findActiveProductById(UUID id) {
-		return productRepository.findByUlidAndStatusIsNot(id, ProductStatus.DISCONTINUED)
+		return productRepository.findByUidAndStatusIsNot(id, ProductStatus.DISCONTINUED)
 			.orElseThrow(ProductException.ProductNotFoundException::new);
 	}
 
@@ -32,5 +33,4 @@ public class ProductValidationService {
 		if(!product.getAdmin().getUid().equals(adminId)) throw new ProductException.ProductForbiddenException();
 		return product;
 	}
-
 }
