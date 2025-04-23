@@ -16,7 +16,7 @@ document.getElementById('registerButton').addEventListener('click', async () => 
 
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     const token = await messaging.getToken({
-      vapidKey: "BFb0x3jt3JOK6l0eG7iBXKyiiZszUCINd4NgNRqDYNGPM3-Uny9Dch6z7e_Ac2lwUjiJR8MMSP4V2Oxv_LKaSFA",
+      vapidKey: "BMudtW8mJr24K2EAYNoi2-8G_KYrTgRVWt93aQyYthGuaFEIWWcf1uU7D4s-FxCEWmlTCJJBlgrEHmRl7y8fCUI",
       serviceWorkerRegistration: registration,
     });
 
