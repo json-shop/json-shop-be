@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -36,8 +38,6 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-
-
         try {
             String token = memberJwtTokenProvider.resolveToken(request);
 
@@ -51,6 +51,7 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 토큰이 유효한 경우 Authentication 설정
             Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
+            log.info("인증된 사용자 principal = {}", authentication.getPrincipal());
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             filterChain.doFilter(request, response);
@@ -74,7 +75,9 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isMemberProtectedPath(String uri) {
         return uri.startsWith("/api/v1/member") ||
-                uri.startsWith("/api/v1/cart") ||
+                uri.startsWith("/api/v2/member") ||
+                uri.startsWith("/api/v1/carts") ||
+                uri.startsWith("/api/v2/carts") ||
                 uri.startsWith("/api/v1/delivery") ||
                 uri.startsWith("/api/v1/orders") ||
                 uri.startsWith("/api/v1/fcm-tokens") ||

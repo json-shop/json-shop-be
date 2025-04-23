@@ -7,6 +7,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberJwtTokenProvider {
@@ -39,6 +41,7 @@ public class MemberJwtTokenProvider {
     // 토큰 생성
     public JwtTokenDto generateToken(Authentication authentication) {
         CustomMemberDetails memberDetails = (CustomMemberDetails) authentication.getPrincipal();
+        log.info("generateToken = {}", memberDetails.getUlid());
 
         // 권한 정보를 String으로 변환
         String authorities = memberDetails.getAuthorities().stream()
@@ -46,7 +49,7 @@ public class MemberJwtTokenProvider {
                 .collect(Collectors.joining(","));
 
         // UUID와 권한만 포함하여 JWT 토큰 생성
-        return jwtTokenUtil.generateToken(memberDetails.getUid(), authorities, key);
+        return jwtTokenUtil.generateToken(memberDetails.getUid(), memberDetails.getUlid(), authorities, key);
     }
 
     // 토큰 유효성 검사
@@ -70,6 +73,8 @@ public class MemberJwtTokenProvider {
         Claims claims = parseClaims(token);
         UUID uuid = UUID.fromString(claims.getSubject());
         CustomMemberDetails customMemberDetails = customMemberDetailsService.loadUserByUuid(uuid);  // UUID로 사용자 로드
+        log.info("ulid={}", customMemberDetails.getUlid());
+
         return new UsernamePasswordAuthenticationToken(customMemberDetails, "", customMemberDetails.getAuthorities());  // 인증 객체 반환
     }
 }

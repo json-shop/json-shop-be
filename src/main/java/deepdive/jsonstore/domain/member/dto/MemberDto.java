@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.member.dto;
 
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.member.entity.Member;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ public record MemberDto(
         return new Member(
                 null, // ID는 자동 생성
                 UUID.randomUUID(), // UUID 생성
+                UlidUtil.createUlidBytes(),
                 this.username,
                 encodedPassword,
                 this.email,

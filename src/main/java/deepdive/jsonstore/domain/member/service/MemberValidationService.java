@@ -22,6 +22,11 @@ public class MemberValidationService {
         return memberRepository.findByUid(uid).orElseThrow(CommonException.InternalServerException::new);
     }
 
+    public Member findByUlid(byte[] uid) {
+        //TODO : 커스텀에러로 변경할 것
+        return memberRepository.findByUlid(uid).orElseThrow(CommonException.InternalServerException::new);
+    }
+
     public Member findById(Long id) {
         //TODO : 커스텀에러로 변경할 것
         return memberRepository.findById(id).orElseThrow(CommonException.InternalServerException::new);

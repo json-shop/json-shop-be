@@ -13,6 +13,7 @@ import java.util.UUID;
 public class CustomMemberDetails implements UserDetails {
 
     private final UUID uid;
+    private final byte[] ulid;
     private final String password; // 비밀번호 추가
     private final Collection<? extends GrantedAuthority> authorities;
 
@@ -39,5 +40,9 @@ public class CustomMemberDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public byte[] getUlid() {
+        return ulid;
     }
 }

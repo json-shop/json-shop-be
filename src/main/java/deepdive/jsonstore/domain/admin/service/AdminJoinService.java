@@ -25,6 +25,7 @@ public class AdminJoinService {
         // DTO 생성
         AdminDto adminDto = new AdminDto(
                 null, // uid - 회원가입 시 생성 예정
+                null,
                 adminJoinRequest.username(),
                 adminJoinRequest.email(),
                 adminJoinRequest.phone(),

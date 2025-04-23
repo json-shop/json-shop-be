@@ -28,6 +28,7 @@ public class AdminMemberDetailsService implements UserDetailsService {
         // AdminMemberDetails 객체를 생성하여 반환
         return new AdminMemberDetails(
                 admin.getUid(),
+                admin.getUlid(),
                 admin.getPassword(), // 비밀번호 포함
                 Collections.singleton(new SimpleGrantedAuthority("ADMIN"))
         );
@@ -42,6 +43,7 @@ public class AdminMemberDetailsService implements UserDetailsService {
         // AdminMemberDetails 객체를 생성하여 반환
         return new AdminMemberDetails(
                 admin.getUid(),
+                admin.getUlid(),
                 admin.getPassword(), // 비밀번호 포함
                 Collections.singleton(new SimpleGrantedAuthority("ADMIN"))
         );
