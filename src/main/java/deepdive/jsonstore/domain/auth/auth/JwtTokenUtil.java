@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,13 +34,15 @@ public class JwtTokenUtil {
     /**
      * 인증 객체 기반으로 JWT Access Token 생성
      */
-    public JwtTokenDto generateToken(UUID adminUid, String authorities, Key key) {
+    public JwtTokenDto generateToken(UUID uuid, byte[] ulid, String authorities, Key key) {
         long now = System.currentTimeMillis();
         Date expiryDate = new Date(now + validityInMilliseconds);
+        String base64Ulid = Base64.getEncoder().encodeToString(ulid);
 
         String accessToken = Jwts.builder()
-                .setSubject(adminUid.toString())  // UUID를 String으로 변환하여 subject에 포함
+                .setSubject(uuid.toString())  // UUID를 String으로 변환하여 subject에 포함
                 .claim("auth", authorities)  // 권한 정보를 claim으로 포함
+                .claim("ulid", base64Ulid)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();

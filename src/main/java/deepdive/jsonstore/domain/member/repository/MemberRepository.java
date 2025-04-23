@@ -24,6 +24,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByEmailAndIsDeletedFalse(String email);
 
     Optional<Member> findByUid(UUID uid);
+
+    Optional<Member> findByUlid(byte[] ulid);
   
     Optional<Member> findByEmail(String email);
 

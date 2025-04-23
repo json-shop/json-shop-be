@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.admin.dto;
 
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.admin.entity.Admin;
 
 import java.time.LocalDateTime;
@@ -7,6 +8,7 @@ import java.util.UUID;
 
 public record AdminDto(
         UUID uid,
+        byte[] ulid,
         String username,
         String email,
         String phone,
@@ -18,6 +20,7 @@ public record AdminDto(
     public static AdminDto fromEntity(Admin admin) {
         return new AdminDto(
                 admin.getUid(),
+                admin.getUlid(),
                 admin.getUsername(),
                 admin.getEmail(),
                 admin.getPhone(),
@@ -30,6 +33,7 @@ public record AdminDto(
     public Admin toEntity(String encodedPassword) {
         return Admin.builder()
                 .uid(UUID.randomUUID())
+                .ulid(UlidUtil.createUlidBytes())
                 .username(this.username)
                 .password(encodedPassword)
                 .email(this.email)

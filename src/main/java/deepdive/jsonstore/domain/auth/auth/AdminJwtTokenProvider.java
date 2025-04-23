@@ -43,7 +43,7 @@ public class AdminJwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         // JWT 토큰 생성 시 UUID와 권한만 포함
-        return jwtTokenUtil.generateToken(adminDetails.getAdminUid(), authorities, key);
+        return jwtTokenUtil.generateToken(adminDetails.getAdminUid(), adminDetails.getAdminUlid(), authorities, key);
     }
 
     public boolean validateToken(String token) {
