@@ -22,4 +22,8 @@ public class AdminValidationService {
 	public Admin getAdminById(UUID uid) {
 		return adminRepository.findByUidAndDeletedIsFalse(uid).orElseThrow(AdminException.AdminNotFoundException::new);
 	}
+
+	public Admin getAdminById(byte[] ulid) {
+		return adminRepository.findByUidAndDeletedIsFalse(ulid).orElseThrow(AdminException.AdminNotFoundException::new);
+	}
 }

@@ -124,12 +124,13 @@ public class SecurityConfig {
                         .hasAuthority("ADMIN")
 
                         // 회원 전용
-                        .requestMatchers("/api/v1/member/**")
+                        .requestMatchers("/api/v1/member/**", "/api/v2/member/**")
                         .hasAuthority("MEMBER")
                         .requestMatchers(
-                                "/api/v1/cart/**", "/api/v1/delivery/**",
+                                "/api/v1/carts/**", "/api/v1/delivery/**",
                                 "/api/v1/orders/**", "/api/v1/fcm-tokens/**",
-                                "/api/v1/notifications/**"
+                                "/api/v1/notifications/**",
+                                "/api/v2/carts/**"
                         ).hasAuthority("MEMBER")
 
                         // 그 외

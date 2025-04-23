@@ -1,11 +1,11 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyBDKIU4hFmo8yvQdMo4TKhE71Lnhz-6J94",
-  authDomain: "json-store-52d9e.firebaseapp.com",
-  projectId: "json-store-52d9e",
-  storageBucket: "json-store-52d9e.appspot.com",
-  messagingSenderId: "953170806887",
-  appId: "1:953170806887:web:897b3f9e35b0a1f0e22cc2",
-  measurementId: "G-PF428EC1GP"
+  apiKey: "AIzaSyCpRQAOsd_YPJYn3nSOqUyJ4qCEbndgNec",
+  authDomain: "json-store-94fa8.firebaseapp.com",
+  projectId: "json-store-94fa8",
+  storageBucket: "json-store-94fa8.firebasestorage.app",
+  messagingSenderId: "799710081526",
+  appId: "1:799710081526:web:db1486e12ac4f49623d7d7",
+  measurementId: "G-4MW54E47HT"
 };
 
 firebase.initializeApp(firebaseConfig);

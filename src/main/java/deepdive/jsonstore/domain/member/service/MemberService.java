@@ -45,8 +45,33 @@ public class MemberService {
     }
 
     @Transactional
+    public void resetPW(byte[] memberUid, ResetPasswordRequestDTO dto) {
+        Member member = memberValidationService.findByUlid(memberUid);
+
+        if (!dto.newPassword().equals(dto.newPasswordConfirm())) {
+            throw new MemberException.PasswordMismatchException();
+        }
+        memberValidationService.newPasswordConfirm(dto.newPassword(),dto.newPasswordConfirm());
+
+        if (!passwordEncoder.matches(dto.currentPassword(), member.getPassword())) {
+            throw new MemberException.CurrentPasswordIncorrectException();
+        }
+
+        member.resetPassword(passwordEncoder.encode(dto.newPassword()));
+
+    }
+
+    @Transactional
     public void updateMember(UUID memberUid, UpdateMemberRequestDTO dto) {
         Member member = memberValidationService.findByUid(memberUid);
+
+        member.setUsername(dto.username());
+        member.setPhone(dto.phone());
+    }
+
+    @Transactional
+    public void updateMember(byte[] memberUid, UpdateMemberRequestDTO dto) {
+        Member member = memberValidationService.findByUlid(memberUid);
 
         member.setUsername(dto.username());
         member.setPhone(dto.phone());
