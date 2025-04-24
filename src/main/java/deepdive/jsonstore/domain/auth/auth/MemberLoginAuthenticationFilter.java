@@ -8,6 +8,7 @@ import deepdive.jsonstore.domain.auth.dto.LoginRequest;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
 
+@Slf4j
 public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private final MemberJwtTokenProvider memberJwtTokenProvider;
@@ -32,6 +34,7 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws IOException {
         LoginRequest loginRequest = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
+        log.info("loginRequest email = {}, password = {}", loginRequest.getEmail(), loginRequest.getPassword());
 
         UsernamePasswordAuthenticationToken authRequest =
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
@@ -46,6 +49,7 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
                                             Authentication authResult) throws IOException {
 
         JwtTokenDto tokenDto = memberJwtTokenProvider.generateToken(authResult);
+        log.info("login success tokenDto = {}", tokenDto.getAccessToken());
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");

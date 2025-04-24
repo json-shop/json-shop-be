@@ -47,6 +47,9 @@ public class JwtTokenUtil {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
+        log.info("base64Ulid = {}", base64Ulid);
+        log.info("토큰 생성 완료 = {}", accessToken);
+
         return JwtTokenDto.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)

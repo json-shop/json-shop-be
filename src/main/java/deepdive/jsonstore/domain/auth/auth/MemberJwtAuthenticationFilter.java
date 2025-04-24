@@ -32,6 +32,7 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
+        log.info("reqeustURI = {}", requestURI);
 
         if (!isMemberProtectedPath(requestURI)) {
             filterChain.doFilter(request, response);
@@ -40,6 +41,7 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String token = memberJwtTokenProvider.resolveToken(request);
+            log.info("token = {}", token);
 
             if (!StringUtils.hasText(token)) {
                 throw new AuthException.EmptyTokenException(); // 토큰이 비어있는 경우

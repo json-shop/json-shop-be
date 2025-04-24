@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ public class CustomMemberDetailsService implements UserDetailsService {
             throw new DisabledException("삭제된 회원입니다.");
         }
 
-        log.info("DB에서 조회된 ULID = {}", member.getUlid()); // 이거 찍히는지 확인
+        log.info("DB에서 조회된 ULID = {}", Base64.getUrlEncoder().encode(member.getUlid()));
 
         // CustomMemberDetails 객체에 비밀번호와 권한 포함하여 반환
         return new CustomMemberDetails(
@@ -49,7 +50,7 @@ public class CustomMemberDetailsService implements UserDetailsService {
         Member member = memberRepository.findByUid(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 UUID를 찾을 수 없습니다."));
 
-        log.info("DB에서 조회된 ULID = {}", member.getUlid()); // 이거 찍히는지 확인
+        log.info("DB에서 조회된 ULID = {}", Base64.getUrlEncoder().encode(member.getUlid()));
 
         // CustomMemberDetails 객체에 비밀번호와 권한 포함하여 반환
         return new CustomMemberDetails(
