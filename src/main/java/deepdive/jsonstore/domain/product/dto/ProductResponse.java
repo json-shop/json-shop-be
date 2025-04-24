@@ -10,30 +10,32 @@ import lombok.Builder;
 
 @Builder
 public record ProductResponse(
-	UUID uid,
-	String productName,
-	String image,
-	String productDetail,
-	Category category,
-	int price,
-	int stock,
-	ProductStatus status,
-	String adminName,
-	LocalDateTime createdAt
+        UUID uid,
+        byte[] ulid,
+        String productName,
+        String image,
+        String productDetail,
+        Category category,
+        int price,
+        int stock,
+        ProductStatus status,
+        String adminName,
+        LocalDateTime createdAt
 ) {
 
-	public static ProductResponse toProductResponse(Product product) {
-		return ProductResponse.builder()
-			.uid(product.getUid())
-			.productName(product.getName())
-			.productDetail(product.getDetail())
-			.image(product.getImage())
-			.category(product.getCategory())
-			.price(product.getPrice())
-			.stock(product.getStock())
-			.status(product.getStatus())
-			.adminName(product.getAdmin().getUsername())
-			.createdAt(product.getCreatedAt())
-			.build();
-	}
+    public static ProductResponse toProductResponse(Product product) {
+        return ProductResponse.builder()
+                .uid(product.getUid())
+                .ulid(product.getUlid())
+                .productName(product.getName())
+                .productDetail(product.getDetail())
+                .image(product.getImage())
+                .category(product.getCategory())
+                .price(product.getPrice())
+                .stock(product.getStock())
+                .status(product.getStatus())
+                .adminName(product.getAdmin().getUsername())
+                .createdAt(product.getCreatedAt())
+                .build();
+    }
 }

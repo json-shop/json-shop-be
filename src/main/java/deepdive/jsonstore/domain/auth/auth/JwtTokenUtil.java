@@ -80,6 +80,7 @@ public class JwtTokenUtil {
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
+            log.debug("토큰 검증 성공");
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.error("Invalid JWT signature or malformed: {}", e.getMessage());

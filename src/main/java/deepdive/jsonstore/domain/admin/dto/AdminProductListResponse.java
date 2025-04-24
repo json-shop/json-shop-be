@@ -10,6 +10,7 @@ import lombok.Builder;
 @Builder
 public record AdminProductListResponse(
 	UUID uid,
+	byte[] ulid,
 	String productName,
 	String image,
 	Category category,

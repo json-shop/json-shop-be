@@ -5,6 +5,8 @@ import static deepdive.jsonstore.domain.product.entity.QProduct.*;
 import java.util.List;
 import java.util.UUID;
 
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringExpression;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -60,13 +62,46 @@ public class ProductQueryRepository {
 
 		return new PageImpl<>(content, pageable, total);
 	}
-
 	public Page<AdminProductListResponse> searchAdminProductList(UUID uid, ProductSearchCondition condition, Pageable pageable) {
+		OrderSpecifier<?> orderSpecifier = getOrderSpecifier(condition).nullsLast();
+
+		List<AdminProductListResponse> content = queryFactory
+				.select(Projections.constructor(AdminProductListResponse.class,
+						product.uid,
+						product.ulid,
+						product.name,
+						product.image,
+						product.category,
+						product.price,
+						product.stock,
+						product.status,
+						product.soldCount,
+						product.createdAt))
+				.from(product)
+				.where(categoryEq(condition.category()), searchContains(condition.search()), adminEq(uid))
+				.orderBy(orderSpecifier)
+				.offset(pageable.getOffset())
+				.limit(pageable.getPageSize())
+				.fetch();
+
+		Long totalCount = queryFactory
+				.select(product.count())
+				.from(product)
+				.where(categoryEq(condition.category()), searchContains(condition.search()))
+				.fetchOne();
+		long total = totalCount != null ? totalCount : 0L;
+
+		return new PageImpl<>(content, pageable, total);
+	}
+
+
+	public Page<AdminProductListResponse> searchAdminProductList(byte[] ulid, ProductSearchCondition condition, Pageable pageable) {
 		OrderSpecifier<?> orderSpecifier = getOrderSpecifier(condition).nullsLast();
 
 		List<AdminProductListResponse> content = queryFactory
 			.select(Projections.constructor(AdminProductListResponse.class,
 				product.uid,
+				product.ulid,
 				product.name,
 				product.image,
 				product.category,
@@ -76,7 +111,7 @@ public class ProductQueryRepository {
 				product.soldCount,
 				product.createdAt))
 			.from(product)
-			.where(categoryEq(condition.category()), searchContains(condition.search()), adminEq(uid))
+			.where(categoryEq(condition.category()), searchContains(condition.search()), ulidEq(ulid))
 			.orderBy(orderSpecifier)
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
@@ -117,6 +152,12 @@ public class ProductQueryRepository {
 	private BooleanExpression adminEq(UUID adminUid) {
 		if (adminUid == null) throw new AdminException.AdminBadRequestException();
 		return product.admin.uid.eq(adminUid);
+	}
+
+	private BooleanExpression ulidEq(byte[] ulid) {
+		return (ulid == null || ulid.length == 0)
+				? null
+				: product.ulid.eq(ulid);
 	}
 
 }
