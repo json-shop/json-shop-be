@@ -38,6 +38,12 @@ public class MemberValidationService {
         }
     }
 
+    public void existsByUlid(byte[] ulid) {
+        if (!memberRepository.existsByUlid(ulid)){
+            throw new MemberException.MemberNotFound();
+        }
+    }
+
     public void newPasswordConfirm(String password, String confirmPassword) {
         if (!password.equals(confirmPassword)) {
             throw new MemberException.PasswordMismatchException();

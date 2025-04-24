@@ -21,6 +21,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByUid(UUID uid);
 
+    boolean existsByUlid(byte[] ulid);
+
     Optional<Member> findByEmailAndIsDeletedFalse(String email);
 
     Optional<Member> findByUid(UUID uid);

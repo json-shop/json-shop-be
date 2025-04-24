@@ -39,6 +39,8 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+
+
         try {
             String token = memberJwtTokenProvider.resolveToken(request);
             log.info("token = {}", token);
@@ -80,7 +82,7 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
                 uri.startsWith("/api/v2/member") ||
                 uri.startsWith("/api/v1/carts") ||
                 uri.startsWith("/api/v2/carts") ||
-                uri.startsWith("/api/v1/delivery") ||
+                uri.startsWith("/api/v1/delivery") || uri.startsWith("/api/v2/delivery") ||
                 uri.startsWith("/api/v1/orders") ||
                 uri.startsWith("/api/v2/orders") ||
                 uri.startsWith("/api/v1/fcm-tokens") ||

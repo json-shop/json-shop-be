@@ -130,7 +130,7 @@ public class SecurityConfig {
                                 "/api/v1/carts/**", "/api/v1/delivery/**",
                                 "/api/v1/orders/**", "/api/v2/orders/**", "/api/v1/fcm-tokens/**",
                                 "/api/v1/notifications/**",
-                                "/api/v2/carts/**"
+                                "/api/v2/carts/**", "/api/v2/delivery/**"
                         ).hasAuthority("MEMBER")
 
                         // 그 외
