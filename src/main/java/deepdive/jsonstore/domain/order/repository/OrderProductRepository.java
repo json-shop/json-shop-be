@@ -13,10 +13,8 @@ import java.util.UUID;
 @Repository
 public interface OrderProductRepository extends JpaRepository<OrderProduct, Long> {
 
-//    @Query("SELECT op FROM OrderProduct op " +
-//            "JOIN FETCH op.product p " +
-//            "WHERE p.admin.id = :adminId")
-    Page<OrderProduct> findByUid(@Param("uid") UUID uid, Pageable pageable);
-
-    Page<OrderProduct> findByUlid(@Param("ulid") byte[] ulid, Pageable pageable);
+    @Query("SELECT op FROM OrderProduct op " +
+            "JOIN FETCH op.product p " +
+            "WHERE p.admin.id = :adminId")
+    Page<OrderProduct> findByAdminId(@Param("adminId") long adminId, Pageable pageable);
 }

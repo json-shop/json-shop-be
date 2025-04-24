@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.admin.service.order;
 
 import deepdive.jsonstore.domain.admin.dto.OrderProductSalesResponse;
 import deepdive.jsonstore.domain.admin.dto.OrderUpdateRequest;
+import deepdive.jsonstore.domain.admin.service.AdminValidationService;
 import deepdive.jsonstore.domain.order.repository.OrderProductRepository;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.order.service.OrderService;
@@ -19,14 +20,17 @@ public class AdminOrderSerivce {
 
     private final OrderService orderService;
     private final OrderProductRepository orderProductRepository;
+    private final AdminValidationService adminValidationService;
 
     public Page<OrderProductSalesResponse> getOrderResponsesByPage(UUID adminUid, Pageable pageable) {
-        return orderProductRepository.findByUid(adminUid, pageable)
+        var admin = adminValidationService.getAdminById(adminUid);
+        return orderProductRepository.findByAdminId(admin.getId(), pageable)
                 .map(OrderProductSalesResponse::from);
     }
 
     public Page<OrderProductSalesResponse> getOrderResponsesByPage(byte[] adminUlid, Pageable pageable) {
-        return orderProductRepository.findByUlid(adminUlid, pageable)
+        var admin = adminValidationService.getAdminById(adminUlid);
+        return orderProductRepository.findByAdminId(admin.getId(), pageable)
                 .map(OrderProductSalesResponse::from);
     }
 
