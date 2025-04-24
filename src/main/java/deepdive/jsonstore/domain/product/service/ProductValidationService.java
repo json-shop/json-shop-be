@@ -25,6 +25,11 @@ public class ProductValidationService {
 			.orElseThrow(ProductException.ProductNotFoundException::new);
 	}
 
+	public Product findActiveProductById(byte[] ulid) {
+		return productRepository.findByUlidAndStatusIsNot(ulid, ProductStatus.DISCONTINUED)
+				.orElseThrow(ProductException.ProductNotFoundException::new);
+	}
+
 	public Product findProductByIdAndAdmin(UUID productId, UUID adminId) {
 		Product product = productRepository.findByUid(productId).orElseThrow(ProductException.ProductNotFoundException::new);
 		if(!product.getAdmin().getUid().equals(adminId)) throw new ProductException.ProductForbiddenException();

@@ -127,7 +127,7 @@ public class SecurityConfig {
                         .hasAuthority("MEMBER")
                         .requestMatchers(
                                 "/api/v1/carts/**", "/api/v1/delivery/**",
-                                "/api/v1/orders/**", "/api/v1/fcm-tokens/**",
+                                "/api/v1/orders/**", "/api/v2/orders/**", "/api/v1/fcm-tokens/**",
                                 "/api/v1/notifications/**",
                                 "/api/v2/carts/**"
                         ).hasAuthority("MEMBER")

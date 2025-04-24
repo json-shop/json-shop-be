@@ -1,5 +1,7 @@
 package deepdive.jsonstore.domain.order.controller;
 
+import de.huxhorn.sulky.ulid.ULID;
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.order.dto.*;
 import deepdive.jsonstore.domain.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -8,45 +10,50 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.PermitAll;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/orders")
-public class OrderController {
+@RequestMapping("/api/v2/orders")
+public class OrderControllerV2 {
 
     private final OrderService orderService;
 
     /** 주문 생성 */
     @PostMapping
     public ResponseEntity<Void> createOrder(
-            @AuthenticationPrincipal(expression="uid") UUID memberUid,
-            @RequestBody OrderRequest orderRequest) {
-        var orderUid = orderService.createOrder(memberUid, orderRequest);
+            @AuthenticationPrincipal(expression="ulid") byte[] memberUlid,
+            @RequestBody OrderRequestV2 orderRequestV2) {
+        log.info("memberUlid={}", Base64.getUrlEncoder().encodeToString(memberUlid));
+        var orderUid = orderService.createOrder(memberUlid, orderRequestV2);
         return ResponseEntity.created(
-                URI.create("/api/v1/orders/" + orderUid.toString())
+                URI.create("/api/v1/orders/" + Base64.getUrlEncoder().encodeToString(orderUid))
         ).build();
     }
 
     /** 주문 조회 */
     @GetMapping("/{orderUid}")
-    public ResponseEntity<OrderResponse> getOrder(@PathVariable("orderUid") UUID orderUid) {
-        return ResponseEntity.ok(orderService.getOrderResponse(orderUid));
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable("orderUid") String orderUlid) {
+        log.info("orderUlid={}",orderUlid);
+        return ResponseEntity.ok(orderService.getOrderResponse(Base64.getUrlDecoder().decode(orderUlid)));
     }
 
     /** 주문 페이지 조회 */
     @GetMapping("")
     public ResponseEntity<Page<OrderResponse>> getOrder(
-            @AuthenticationPrincipal(expression="uid") UUID memberUid,
+            @AuthenticationPrincipal(expression="ulid") byte[] memberUlid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "desc") String direction
-
     ) {
         var sortDirection = Sort.Direction.fromString(direction);
         var pageRequest = PageRequest.of(
@@ -54,30 +61,38 @@ public class OrderController {
                 10,
                 Sort.by(sortDirection, "createdAt")
         );
-        return ResponseEntity.ok(orderService.getOrderResponsesByPage(memberUid, pageRequest));
+
+        log.info("memberUlid={}", Base64.getUrlEncoder().encodeToString(memberUlid));
+        return ResponseEntity.ok(orderService.getOrderResponsesByPage(memberUlid, pageRequest));
     }
 
     /** PG 결제 승인 요청 */
     @PostMapping("/confirm")
     public ResponseEntity<Void> confirm(@RequestBody ConfirmRequest confirmRequest) {
+        log.info("confirm={}", confirmRequest);
         orderService.confirmOrder(confirmRequest);
         return ResponseEntity.ok().build();
     }
 
+
     /** 주문 취소 */
     @PostMapping("/{orderUid}/cancel")
-    public ResponseEntity<?> cancel(@PathVariable("orderUid") UUID orderUid) {
-        orderService.cancelOrderBeforeShipment(orderUid);
+    public ResponseEntity<?> cancel(@PathVariable("orderUid") String orderUlid) {
+        log.info("orderUlid={}", orderUlid);
+        orderService.cancelOrderBeforeShipment(Base64.getUrlDecoder().decode(orderUlid));
         return ResponseEntity.ok().build();
     }
 
     /** 사용자 배송지 변경 */
     @PutMapping("/{orderUid}/delivery/{deliveryUid}")
     public ResponseEntity<?> updateOrderDelivery(
-            @PathVariable("orderUid") UUID orderUid,
-            @PathVariable("deliveryUid") UUID deliveryUid
+            @PathVariable("orderUid") String orderUlid,
+            @PathVariable("deliveryUid") String deliveryUlid
     ) {
-        orderService.updateOrderDeliveryBeforeShipping(orderUid, deliveryUid);
+        orderService.updateOrderDeliveryBeforeShipping(
+                Base64.getUrlDecoder().decode(orderUlid),
+                Base64.getUrlDecoder().decode(deliveryUlid)
+        );
         return ResponseEntity.ok().build();
     }
 }

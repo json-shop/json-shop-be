@@ -37,7 +37,7 @@ public class JwtTokenUtil {
     public JwtTokenDto generateToken(UUID uuid, byte[] ulid, String authorities, Key key) {
         long now = System.currentTimeMillis();
         Date expiryDate = new Date(now + validityInMilliseconds);
-        String base64Ulid = Base64.getEncoder().encodeToString(ulid);
+        String base64Ulid = Base64.getUrlEncoder().encodeToString(ulid);
 
         String accessToken = Jwts.builder()
                 .setSubject(uuid.toString())  // UUID를 String으로 변환하여 subject에 포함

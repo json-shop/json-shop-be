@@ -80,6 +80,7 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
                 uri.startsWith("/api/v2/carts") ||
                 uri.startsWith("/api/v1/delivery") ||
                 uri.startsWith("/api/v1/orders") ||
+                uri.startsWith("/api/v2/orders") ||
                 uri.startsWith("/api/v1/fcm-tokens") ||
                 uri.startsWith("/api/v1/notifications");
     }

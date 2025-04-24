@@ -15,34 +15,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.util.Base64;
 
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin/orders")
+@RequestMapping("/api/v2/admin/orders")
 @RestController
-public class AdminOrderController {
+public class AdminOrderControllerV2 {
 
     private final AdminOrderSerivce adminOrderService;
     private final OrderService orderService;
 
     /** 주문상품 조회 */
     @GetMapping("/{orderUid}")
-    public ResponseEntity<OrderResponse> getOrder(@PathVariable("orderUid") UUID orderUid) {
-        log.info("orderUid={}", orderUid);
-        return ResponseEntity.ok(orderService.getOrderResponse(orderUid));
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable("orderUid") String orderUlid) {
+        log.info("orderUlid={}", orderUlid);
+        return ResponseEntity.ok(orderService.getOrderResponse(Base64.getUrlDecoder().decode(orderUlid)));
     }
 
     /** 주문상품 페이지 조회 */
     @GetMapping("")
     public ResponseEntity<Page<OrderProductSalesResponse>> getOrder(
-            @AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
+            @AuthenticationPrincipal(expression = "adminUlid") byte[] adminUlid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "desc") String direction
     ) {
 
-        log.info("adminUid={}", adminUid);
+        log.info("adminUlid={}", adminUlid);
 
         var sortDirection = Sort.Direction.fromString(direction);
         var pageRequest = PageRequest.of(
@@ -50,17 +50,20 @@ public class AdminOrderController {
                 10,
                 Sort.by(sortDirection, "createdAt")
         );
-        return ResponseEntity.ok(adminOrderService.getOrderResponsesByPage(adminUid, pageRequest));
+        return ResponseEntity.ok(adminOrderService.getOrderResponsesByPage(adminUlid, pageRequest));
     }
 
     @PutMapping("/{orderUid}")
     public ResponseEntity<Void> updateState(
-            @PathVariable("orderUid") UUID orderUid,
+            @PathVariable("orderUid") String orderUlid,
             @RequestBody OrderUpdateRequest orderUpdateRequest
     ) {
-        // TODO : Log 테이블?
-        log.info("orderUid={}", orderUid);
-        adminOrderService.updateOrder(orderUid, orderUpdateRequest, "관리자가 수정함");
+        log.info("orderUlid={}", orderUlid);
+        adminOrderService.updateOrder(
+                Base64.getUrlDecoder().decode(orderUlid),
+                orderUpdateRequest,
+                "관리자가 수정함"
+        );
         return ResponseEntity.ok().build();
     }
 }
