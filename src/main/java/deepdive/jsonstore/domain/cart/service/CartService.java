@@ -22,6 +22,32 @@ public class CartService {
     // 카트에 상품 추가
     public Cart addProductToCart(UUID memberUid, UUID productUid, Long amount) {
         Member member = validateService.validateMember(memberUid);
+        log.info("member = {}", member.getUid());
+        Product product = validateService.validateProduct(productUid, amount);
+
+        // 이미 있는 상품을 등록하려는 경우
+        Cart cart = alreadyInCart(member, product, amount);
+        if (cart != null) {
+            return cart;
+        }
+
+        // 새 상품인데 수량이 0 이하인 경우
+        validateService.validateNewCartAmount(amount);
+
+        Cart newCart = Cart.builder()
+                .member(member)
+                .product(product)
+                .amount(amount)
+                .build();
+        return cartRepository.save(newCart);
+    }
+
+
+    // 카트에 상품 추가
+    public Cart addProductToCart(byte[] memberUid, byte[] productUid, Long amount) {
+        Member member = validateService.validateMember(memberUid);
+        log.info("member = {}", member.getUlid());
+
         Product product = validateService.validateProduct(productUid, amount);
 
         // 이미 있는 상품을 등록하려는 경우
@@ -67,6 +93,17 @@ public class CartService {
     public List<Cart> getCartByMemberUid(UUID memberUid) {
         // 멤버ID 기반으로 카트 리스트 조회
         List<Cart> carts = cartRepository.findByMemberUid(memberUid);
+
+        // 카트 리스트가 비었는지 확인
+        validateService.validateCartList(carts);
+
+        return carts;
+    }
+
+    // 카트 리스트 조회
+    public List<Cart> getCartByMemberUid(byte[] memberUid) {
+        // 멤버ID 기반으로 카트 리스트 조회
+        List<Cart> carts = cartRepository.findByMemberUlid(memberUid);
 
         // 카트 리스트가 비었는지 확인
         validateService.validateCartList(carts);

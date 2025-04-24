@@ -20,4 +20,6 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     @EntityGraph(attributePaths = {"product", "member"})
     List<Cart> findByMemberUid(UUID memberUid);
 
+    @EntityGraph(attributePaths = {"product", "member"})
+    List<Cart> findByMemberUlid(byte[] memberUid);
 }
