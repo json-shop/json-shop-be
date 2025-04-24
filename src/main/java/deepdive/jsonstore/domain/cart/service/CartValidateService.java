@@ -40,14 +40,6 @@ public class CartValidateService {
         Product product = productRepository.findByUid(productUid)
                 .orElseThrow(CartException.ProductNotFoundException::new);
 
-        // 상품이 판매중인지 검증
-        if (!product.getStatus().equals(ProductStatus.ON_SALE))
-            throw new CartException.ProductForbiddenException();
-
-        // 상품 수량이 적절한지 검증
-        if (product.getStock() < amount)
-            throw new CartException.ProductOutOfStockException();
-
         return product;
     }
 
@@ -56,14 +48,6 @@ public class CartValidateService {
     public Product validateProduct(byte[] productUid, Long amount) {
         Product product = productRepository.findByUlid(productUid)
                 .orElseThrow(CartException.ProductNotFoundException::new);
-
-        // 상품이 판매중인지 검증
-        if (!product.getStatus().equals(ProductStatus.ON_SALE))
-            throw new CartException.ProductForbiddenException();
-
-        // 상품 수량이 적절한지 검증
-        if (product.getStock() < amount)
-            throw new CartException.ProductOutOfStockException();
 
         return product;
     }

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,9 +47,10 @@ public class CartService {
     // 카트에 상품 추가
     public Cart addProductToCart(byte[] memberUid, byte[] productUid, Long amount) {
         Member member = validateService.validateMember(memberUid);
-        log.info("member = {}", member.getUlid());
+        log.info("member={}", Base64.getUrlEncoder().encodeToString(member.getUlid()));
 
         Product product = validateService.validateProduct(productUid, amount);
+        log.info("product={}", Base64.getUrlEncoder().encodeToString(product.getUlid()));
 
         // 이미 있는 상품을 등록하려는 경우
         Cart cart = alreadyInCart(member, product, amount);
@@ -94,9 +96,6 @@ public class CartService {
         // 멤버ID 기반으로 카트 리스트 조회
         List<Cart> carts = cartRepository.findByMemberUid(memberUid);
 
-        // 카트 리스트가 비었는지 확인
-        validateService.validateCartList(carts);
-
         return carts;
     }
 
@@ -104,9 +103,6 @@ public class CartService {
     public List<Cart> getCartByMemberUid(byte[] memberUid) {
         // 멤버ID 기반으로 카트 리스트 조회
         List<Cart> carts = cartRepository.findByMemberUlid(memberUid);
-
-        // 카트 리스트가 비었는지 확인
-        validateService.validateCartList(carts);
 
         return carts;
     }
