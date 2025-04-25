@@ -5,6 +5,7 @@ import deepdive.jsonstore.common.config.FirebaseConfig;
 import deepdive.jsonstore.common.config.RedisTestService;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.common.exception.MemberException;
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.delivery.dto.DeliveryRegRequestDTO;
 import deepdive.jsonstore.domain.delivery.dto.DeliveryResponseDTO;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
@@ -86,6 +87,7 @@ class DeliveryServiceTest {
     private Delivery createDelivery(Member member, String recipient) {
         Delivery delivery = Delivery.builder()
                 .uid(UUID.randomUUID())
+                .ulid(UlidUtil.createUlidBytes())
                 .address("서울")
                 .zipCode("12345")
                 .phone("010-1234-5678")

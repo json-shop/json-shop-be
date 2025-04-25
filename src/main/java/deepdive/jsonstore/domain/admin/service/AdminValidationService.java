@@ -20,10 +20,10 @@ public class AdminValidationService {
 	private final AdminRepository adminRepository;
 
 	public Admin getAdminById(UUID uid) {
-		return adminRepository.findByUidAndDeletedIsFalse(uid).orElseThrow(AdminException.AdminNotFoundException::new);
+		return adminRepository.findByUidAndDeletedFalse(uid).orElseThrow(AdminException.AdminNotFoundException::new);
 	}
 
 	public Admin getAdminById(byte[] ulid) {
-		return adminRepository.findByUidAndDeletedIsFalse(ulid).orElseThrow(AdminException.AdminNotFoundException::new);
+		return adminRepository.findByUlidAndDeletedFalse(ulid).orElseThrow(AdminException.AdminNotFoundException::new);
 	}
 }

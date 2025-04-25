@@ -176,6 +176,7 @@ public class MemberJwtTokenProviderTest {
 
         CustomMemberDetails mockMemberDetails = mock(CustomMemberDetails.class);
         when(customMemberDetailsService.loadUserByUuid(testUuid)).thenReturn(mockMemberDetails);
+        when(mockMemberDetails.getUlid()).thenReturn(testUlid);
 
         // when
         Authentication result = memberJwtTokenProvider.getAuthentication(token);

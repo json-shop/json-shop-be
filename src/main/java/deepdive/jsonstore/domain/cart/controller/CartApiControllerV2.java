@@ -8,6 +8,8 @@ import deepdive.jsonstore.domain.cart.service.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -45,13 +47,12 @@ public class CartApiControllerV2 {
 
     // 특정 멤버 카트 상품 조회
     @GetMapping
-    public ResponseEntity<List<CartResponseV2>> getCartByMemberId(@AuthenticationPrincipal(expression = "ulid") byte[] memberUlid) {
-        log.info("member={}", Base64.getUrlEncoder().encodeToString(memberUlid));
+    public ResponseEntity<Page<CartResponseV2>> getCartByMemberId(@AuthenticationPrincipal(expression = "ulid") byte[] memberUlid, Pageable pageable) {
+        log.info("member={}", Base64.getEncoder().encodeToString(memberUlid));
 
-        List<Cart> cart = cartService.getCartByMemberUid(memberUlid);
-        List<CartResponseV2> response = cart.stream()
-                .map(CartResponseV2::new)
-                .collect(Collectors.toList());
+        Page<Cart> cart = cartService.getCartByMemberUid(memberUlid, pageable);
+        Page<CartResponseV2> response = cart.map(CartResponseV2::new);
+
         return ResponseEntity.ok(response);
     }
 }

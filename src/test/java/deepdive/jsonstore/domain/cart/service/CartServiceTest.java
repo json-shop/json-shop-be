@@ -78,7 +78,7 @@ class CartServiceTest {
 
             when(validateService.validateMember(memberUid)).thenReturn(member);
             when(validateService.validateProduct(productUid, addedAmount)).thenReturn(product);
-            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(existingCart);
+            when(cartRepository.findByMemberAndProduct(member, product).get()).thenReturn(existingCart);
             when(validateService.validateAmount(existingCart, product, addedAmount)).thenReturn(updatedAmount);
             when(cartRepository.save(existingCart)).thenReturn(existingCart);
 
@@ -105,7 +105,7 @@ class CartServiceTest {
             Cart cart = Cart.builder().member(member).product(product).amount(1L).build();
             Long newAmount = 5L;
 
-            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(cart);
+            when(cartRepository.findByMemberAndProduct(member, product).get()).thenReturn(cart);
             when(validateService.validateAmount(cart, product, newAmount)).thenReturn(newAmount);
             when(cartRepository.save(cart)).thenReturn(cart);
 
@@ -181,7 +181,7 @@ class CartServiceTest {
                             .build()
             );
 
-            when(cartRepository.findByMemberUid(memberUid)).thenReturn(mockCarts);
+            when(cartRepository.findByMember_Uid(memberUid)).thenReturn(mockCarts);
 
             // when
             List<Cart> result = cartService.getCartByMemberUid(memberUid);
@@ -191,7 +191,7 @@ class CartServiceTest {
             assertThat(result.get(0).getId()).isEqualTo(1L);
             assertThat(result.get(1).getProduct()).isNotNull();
 
-            verify(cartRepository).findByMemberUid(memberUid);
+            verify(cartRepository).findByMember_Uid(memberUid);
             verify(validateService).validateCartList(mockCarts);
         }
     }

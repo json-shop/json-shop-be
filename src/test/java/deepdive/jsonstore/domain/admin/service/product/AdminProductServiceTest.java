@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import deepdive.jsonstore.common.util.UlidUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,16 +70,18 @@ class AdminProductServiceTest {
 	@BeforeEach
 	public void setUp() throws NoSuchAlgorithmException {
 		productList = new ArrayList<>();
-		admin = Admin.builder().uid(UUID.randomUUID()).username("test").build();
+		admin = Admin.builder().uid(UUID.randomUUID()).ulid(UlidUtil.createUlidBytes()).username("test").build();
 		Category[] categories = Category.values();
 
 		for (int i = 1; i <= 5; i++) {
 			UUID productId = UUID.randomUUID();
+			byte[] ulidBytes = UlidUtil.createUlidBytes();
 			Product product = Product.builder()
 				.id((long)i)
 				.soldCount(10*i)
 				.price(10000*i)
 				.uid(productId)
+                .ulid(ulidBytes)
 				.stock(10)
 				.status(i%2 == 0 ? ProductStatus.ON_SALE: ProductStatus.DISCONTINUED)
 				.name("상품"+i)
