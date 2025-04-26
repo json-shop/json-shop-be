@@ -38,6 +38,11 @@ spring:
       s3:
         bucket: ${BUCKET_NAME}
 
+  elasticsearch:
+    connection-timeout: 3s
+
+
+
 logging:
   level:
     org.hibernate.SQL: DEBUG

@@ -6,6 +6,8 @@ import deepdive.jsonstore.domain.admin.dto.*;
 import deepdive.jsonstore.domain.admin.entity.Admin;
 import deepdive.jsonstore.domain.admin.repository.AdminRepository;
 import deepdive.jsonstore.domain.admin.service.AdminValidationService;
+import deepdive.jsonstore.domain.admin.service.product.evnet.ProductCreatedEvent;
+import deepdive.jsonstore.domain.admin.service.product.evnet.ProductUpdatedEvent;
 import deepdive.jsonstore.domain.product.dto.ProductResponse;
 import deepdive.jsonstore.domain.product.dto.ProductSearchCondition;
 import deepdive.jsonstore.domain.product.entity.Product;
@@ -17,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.internal.constraintvalidators.bv.size.SizeValidatorForArraysOfLong;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,22 +45,31 @@ public class AdminProductServiceV2 {
 	private final AdminValidationService adminValidationService;
 	private final ProductRepository productRepository;
 	private final ProductQueryRepository productQueryRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
+	@Transactional
 	public String createProduct(byte[] adminUid, MultipartFile productImage, CreateProductRequest createProductRequest) {
 		Admin admin = adminValidationService.getAdminById(adminUid);
 		String image = s3ImageService.uploadImage(productImage);
 		Product product = productRepository.save(createProductRequest.toProduct(image,admin,getImageByte(productImage)));
 
+		eventPublisher.publishEvent(new ProductCreatedEvent(product));
 		return getEncoder().encodeToString(product.getUlid());
 
 	}
 
+	@Transactional
 	public String createProduct(byte[] adminUid, CreateProductRequest createProductRequest) {
 		Admin admin = adminValidationService.getAdminById(adminUid);
 		Product product = productRepository.save(createProductRequest.toProduct(null, admin, null));
 
+
+		eventPublisher.publishEvent(new ProductCreatedEvent(product));
 		return getUrlEncoder().encodeToString(product.getUlid());
 	}
+
+
+
 
 	@Transactional
 	public ProductResponse updateProduct(byte[] adminUid, MultipartFile productImage, UpdateProductRequest updateProductRequest) {
@@ -72,6 +84,7 @@ public class AdminProductServiceV2 {
 			}
 		}
 		product.updateProduct(updateProductRequest);
+		eventPublisher.publishEvent(new ProductUpdatedEvent(product));
 		return ProductResponse.toProductResponse(product);
 	}
 
@@ -109,4 +122,6 @@ public class AdminProductServiceV2 {
 			throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
 		}
 	}
+
+
 }
