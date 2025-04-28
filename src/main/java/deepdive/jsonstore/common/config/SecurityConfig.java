@@ -109,6 +109,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         // 공용
                         .requestMatchers(
                                 "/", "/index.html", "/css/**", "/js/**", "/firebase-messaging-sw.js",
