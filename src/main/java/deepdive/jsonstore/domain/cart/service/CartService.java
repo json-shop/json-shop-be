@@ -75,7 +75,7 @@ public class CartService {
     // 카트에 상품이 존재할 경우 수량 체크 후 수량추가
     public Cart alreadyInCart(Member member, Product product, Long amount) {
         Cart cart = cartRepository.findByMemberAndProduct(member, product)
-                .orElseThrow(CartException.CartNotFoundException::new);
+                .orElse(null);
 
         if (cart != null) {
             amount = validateService.validateAmount(cart, product, amount);

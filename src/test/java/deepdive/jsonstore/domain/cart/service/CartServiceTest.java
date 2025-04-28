@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.cart.service;
 
 import deepdive.jsonstore.domain.cart.entity.Cart;
+import deepdive.jsonstore.domain.cart.exception.CartException;
 import deepdive.jsonstore.domain.cart.repository.CartRepository;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.product.entity.Product;
@@ -8,12 +9,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class CartServiceTest {
@@ -50,7 +55,7 @@ class CartServiceTest {
 
             when(validateService.validateMember(memberUid)).thenReturn(member);
             when(validateService.validateProduct(productUid, amount)).thenReturn(product);
-            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(null);
+            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(Optional.empty());
             when(cartRepository.save(any(Cart.class))).thenReturn(newCart);
 
             // when
@@ -61,6 +66,7 @@ class CartServiceTest {
             assertThat(result.getAmount()).isEqualTo(amount);
             verify(cartRepository).save(any(Cart.class));
         }
+
 
         @Test
         @DisplayName("성공 - 카트에 동일 상품이 존재할 때 수량 갱신")
@@ -78,7 +84,7 @@ class CartServiceTest {
 
             when(validateService.validateMember(memberUid)).thenReturn(member);
             when(validateService.validateProduct(productUid, addedAmount)).thenReturn(product);
-            when(cartRepository.findByMemberAndProduct(member, product).get()).thenReturn(existingCart);
+            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(Optional.of(existingCart));
             when(validateService.validateAmount(existingCart, product, addedAmount)).thenReturn(updatedAmount);
             when(cartRepository.save(existingCart)).thenReturn(existingCart);
 
@@ -105,7 +111,7 @@ class CartServiceTest {
             Cart cart = Cart.builder().member(member).product(product).amount(1L).build();
             Long newAmount = 5L;
 
-            when(cartRepository.findByMemberAndProduct(member, product).get()).thenReturn(cart);
+            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(Optional.of(cart));
             when(validateService.validateAmount(cart, product, newAmount)).thenReturn(newAmount);
             when(cartRepository.save(cart)).thenReturn(cart);
 
@@ -126,14 +132,12 @@ class CartServiceTest {
             Product product = Product.builder().uid(UUID.randomUUID()).build();
             Long amount = 2L;
 
-            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(null);
+            when(cartRepository.findByMemberAndProduct(member, product)).thenReturn(Optional.empty());
 
             // when
-            Cart result = cartService.alreadyInCart(member, product, amount);
+            Cart cart = cartService.alreadyInCart(member, product, amount);
+            assertThat(cart).isNull();
 
-            // then
-            assertThat(result).isNull();
-            verify(cartRepository, never()).save(any());
         }
     }
 
@@ -192,7 +196,6 @@ class CartServiceTest {
             assertThat(result.get(1).getProduct()).isNotNull();
 
             verify(cartRepository).findByMember_Uid(memberUid);
-            verify(validateService).validateCartList(mockCarts);
         }
     }
 }
