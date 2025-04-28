@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,7 @@ import javax.annotation.security.PermitAll;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -67,11 +69,12 @@ public class OrderControllerV2 {
     }
 
     /** PG 결제 승인 요청 */
+    @PermitAll
     @PostMapping("/confirm")
     public ResponseEntity<Void> confirm(@RequestBody ConfirmRequest confirmRequest) {
         log.info("confirm={}", confirmRequest);
-        orderService.confirmOrder(confirmRequest);
-        return ResponseEntity.ok().build();
+        orderService.confirmOrderV2(confirmRequest);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
 
@@ -93,6 +96,14 @@ public class OrderControllerV2 {
                 Base64.getUrlDecoder().decode(orderUlid),
                 Base64.getUrlDecoder().decode(deliveryUlid)
         );
+        return ResponseEntity.ok().build();
+    }
+
+    @PermitAll
+    @PostMapping("/webhook")
+    public ResponseEntity<Void> webhook(@RequestBody WebhookRequest webhookRequest) {
+        log.info("webhookRequest={}", webhookRequest);
+        orderService.webhook(webhookRequest);
         return ResponseEntity.ok().build();
     }
 }

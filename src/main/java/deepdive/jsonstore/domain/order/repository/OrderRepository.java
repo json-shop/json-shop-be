@@ -32,4 +32,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                 AND p.status = 'ON_SALE'
 	    """)
     Optional<Order> findWithLockByUid(@Param("uid") UUID uid);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT o FROM Order o
+            JOIN FETCH o.orderProducts op
+            JOIN FETCH op.product p
+            JOIN FETCH o.member
+            WHERE o.ulid = :ulid
+                AND p.status = 'ON_SALE'
+	    """)
+    Optional<Order> findWithLockByUlid(@Param("ulid") byte[] ulid);
 }

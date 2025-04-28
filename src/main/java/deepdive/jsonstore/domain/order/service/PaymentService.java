@@ -3,10 +3,13 @@ package deepdive.jsonstore.domain.order.service;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.domain.order.dto.CancelRequest;
 import deepdive.jsonstore.domain.order.dto.ConfirmRequest;
+import deepdive.jsonstore.domain.order.dto.ConfirmRequestV2;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -14,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 ///**
 // * 400 - Bad Request	요청을 처리할 수 없습니다. 필수 파라미터를 보내지 않았거나, 파라미터 포맷이 잘못되었을 때 돌아오는 응답입니다. 요청 파라미터를 확인해주세요.
@@ -23,6 +27,7 @@ import java.util.Map;
 // * 500 - Server Error	토스페이먼츠 서버에서 에러가 발생했습니다.
 // */
 @Slf4j
+@EnableAsync
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
@@ -64,6 +69,8 @@ public class PaymentService {
 
     @Transactional
     public Map<String, Object> confirm(ConfirmRequest confirmRequest) {
+        log.info("confirmRequest : {}", confirmRequest);
+
         String url = apiBase + "/v1/payments/confirm";
         String auth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
 
@@ -84,8 +91,47 @@ public class PaymentService {
 
             return response.getBody();
         } catch (HttpClientErrorException e) {
+            log.info("LOG : {}", e.getLocalizedMessage());
+            throw new CommonException.InternalServerException();
+        }
+    }
+
+    @Async
+    @Transactional
+    public CompletableFuture<Map<String, Object>> ayncConfirm(ConfirmRequest confirmRequest) {
+        String url = apiBase + "/v1/payments/confirm";
+        String auth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic " + auth);
+
+        HttpEntity<ConfirmRequest> entity = new HttpEntity<>(confirmRequest, headers);
+        try {
+            ResponseEntity<Map> response =
+                    restTemplate.postForEntity(url, entity, Map.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new CommonException.InternalServerException();
+            }
+
+            return CompletableFuture.completedFuture(response.getBody());
+        } catch (HttpClientErrorException e) {
             log.info(e.getLocalizedMessage());
             throw new CommonException.InternalServerException();
         }
+    }
+
+    @Async
+    public void confirmTest(ConfirmRequestV2 confirmRequest) {
+        var restTamplate = new RestTemplate();
+
+        restTamplate.postForEntity(
+                "http://localhost:8080/webhook",
+                confirmRequest.orderId(),
+                String.class
+        );
     }
 }
