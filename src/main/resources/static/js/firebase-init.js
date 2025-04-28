@@ -8,6 +8,7 @@ const firebaseConfig = {
   measurementId: "G-4MW54E47HT"
 };
 
+firebase.analytics();
 firebase.initializeApp(firebaseConfig);
 firebase.auth().signInAnonymously().then(() => {
   console.log("익명 로그인 성공");

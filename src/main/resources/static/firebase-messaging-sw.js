@@ -12,7 +12,7 @@ const firebaseConfig = {
 };
 
 const messaging = firebase.messaging();
-
+firebase.analytics();
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] 백그라운드 메시지 수신:', payload);
     const notificationTitle = payload.notification.title;
