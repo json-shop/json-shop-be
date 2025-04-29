@@ -80,15 +80,13 @@ public class CartService {
 
     // 카트에 상품이 존재할 경우 수량 체크 후 수량추가
     public Cart alreadyInCart(Member member, Product product, Long amount) {
-        Cart cart = cartRepository.findByMemberAndProduct(member, product)
-                .orElseThrow(CartException.CartNotFoundException::new);
-
-        if (cart != null) {
-            amount = validateService.validateAmount(cart, product, amount);
-            cart.setAmount(amount);
-            return cartRepository.save(cart);
-        }
-        return null;
+        return cartRepository.findByMemberAndProduct(member, product)
+                .map(cart -> {
+                    Long newAmount = validateService.validateAmount(cart, product, amount);
+                    cart.setAmount(newAmount);
+                    return cartRepository.save(cart);
+                })
+                .orElse(null); // 등록된 게 없으면 null 반환 (신규 장바구니 생성)
     }
 
     // 카트 상품 목록 제거
