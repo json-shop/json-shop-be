@@ -34,5 +34,14 @@ public class ProductValidationServiceV2 {
 		return product;
 	}
 
+	public Product deleteProductByIdAndAdmin(String ulid, byte[] adminId) {
+		byte[] productId = Base64.getUrlDecoder().decode(ulid);
+		Product product = productRepository.findByUlid(productId).orElseThrow(ProductException.ProductNotFoundException::new);
+		if(!Arrays.equals(product.getAdmin().getUlid(), adminId)) throw new ProductException.ProductForbiddenException();
+		productRepository.delete(product);
+		return product;
+	}
+
+
 
 }

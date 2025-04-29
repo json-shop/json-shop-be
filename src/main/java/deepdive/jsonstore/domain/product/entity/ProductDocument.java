@@ -1,15 +1,18 @@
 package deepdive.jsonstore.domain.product.entity;
 
 
+import co.elastic.clients.elasticsearch.xpack.usage.Base;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
 
 @Document(indexName = "products")
 @Getter
@@ -18,6 +21,9 @@ public class ProductDocument {
     @Id
     @Field(type = FieldType.Keyword)
     private byte[] id;
+
+    @Field(type = FieldType.Keyword)
+    private String ulid;
 
     @Field(type = FieldType.Text)
     private String name;
@@ -33,15 +39,15 @@ public class ProductDocument {
 
     @Field(type = FieldType.Text)
     private String image;
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private Category category;
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private ProductStatus status;
 
     @Field(type = FieldType.Date)
-    private LocalDateTime createdAt;
+    private String createdAt;
     @Field(type = FieldType.Date)
-    private LocalDateTime updatedAt;
+    private String updatedAt;
 
 
     @Field(type = FieldType.Nested)
@@ -61,6 +67,7 @@ public class ProductDocument {
     public static ProductDocument from(Product product){
         return ProductDocument.builder()
                 .id(product.getUlid())
+                .ulid(Base64.getUrlEncoder().encodeToString(product.getUlid()))
                 .name(product.getName())
                 .description(product.getDetail())
                 .price(product.getPrice())
@@ -68,8 +75,8 @@ public class ProductDocument {
                 .image(product.getImage())
                 .category(product.getCategory())
                 .status(product.getStatus())
-                .createdAt(product.getCreatedAt())
-                .updatedAt(product.getUpdatedAt())
+                .createdAt(product.getCreatedAt().toString())
+                .updatedAt(product.getUpdatedAt().toString())
                 .adminInfo(AdminInfo.builder()
                         .id(product.getAdmin().getId())
                         .ulid(product.getAdmin().getUlid())

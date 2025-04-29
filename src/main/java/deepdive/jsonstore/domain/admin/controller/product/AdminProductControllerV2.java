@@ -41,7 +41,7 @@ public class AdminProductControllerV2 {
 	 * @return
 	 */
 	@PostMapping
-	public ResponseEntity<testDTO> createProduct(@RequestPart(value = "image", required = false) MultipartFile productImage,
+	public ResponseEntity<Void> createProduct(@RequestPart(value = "image", required = false) MultipartFile productImage,
 											  @AuthenticationPrincipal AdminMemberDetails admin,
 											  @RequestPart("productRequest") CreateProductRequest createProductRequest) {
 		log.info("productImage.isEmpty(): {}", productImage.isEmpty());
@@ -101,6 +101,16 @@ public class AdminProductControllerV2 {
 	) {
 		AdminProductResponse res = adminProductService.getAdminProduct(adminUid, productId);
 		return ResponseEntity.ok(res);
+	}
+
+	@DeleteMapping("/{productId}")
+	public ResponseEntity<Void> deleteProduct(
+			@AuthenticationPrincipal(expression = "adminUlid") byte[] adminUlid,
+			@PathVariable String productId
+	){
+		log.info("상품 삭제 요청: {}", productId);
+		adminProductService.deleteProduct(adminUlid, productId);
+		return ResponseEntity.ok().build();
 	}
 
 

@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.product.dto;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -51,7 +52,7 @@ public record ProductResponse(
                 .stock(productDocument.getStock())
                 .status(productDocument.getStatus())
                 .adminName(productDocument.getAdminInfo().getId().toString())
-                .createdAt(productDocument.getCreatedAt())
+                .createdAt(LocalDateTime.parse(productDocument.getCreatedAt()))
                 .build();
     }
 }
