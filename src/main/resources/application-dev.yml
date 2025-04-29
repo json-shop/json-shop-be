@@ -40,7 +40,7 @@ spring:
 
   elasticsearch:
     connection-timeout: 3s
-
+    uris: ${ELASTICSEARCH_HOST:localhost}
 
 
 logging:
