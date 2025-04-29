@@ -27,14 +27,17 @@ public class ProductSearchService {
 
     public ProductResponse getActiveProduct(String productId) {
         byte[] decodedId = Base64.getUrlDecoder().decode(productId);
-        try {
-            ProductDocument productDocument = productEsRepository.findByIdAndStatusIsNot(decodedId, ProductStatus.DISCONTINUED)
-                    .orElseThrow(ProductException.ProductNotFoundException::new);
+//        ProductDocument productDocument = productEsRepository.findByIdAndStatusIsNot(decodedId, ProductStatus.DISCONTINUED)
+//                .orElseThrow(ProductException.ProductNotFoundException::new);
 
+        try {
+            ProductDocument productDocument = productEsRepository.findById(decodedId)
+                    .orElseThrow(ProductException.ProductNotFoundException::new);
 
             meterRegistry.counter("business.product.search.success").increment();
 
             return ProductResponse.toProductResponse(productDocument);
+
         } catch (ProductException.ProductNotFoundException e) {
 
             meterRegistry.counter("business.product.search.failure").increment();

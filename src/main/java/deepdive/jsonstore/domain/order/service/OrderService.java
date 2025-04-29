@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -81,11 +82,11 @@ public class OrderService {
 
     /**
      * 주문서 조회
-     * @param orderUid 주문 uid
+     * @param orderUlid 주문 uid
      * @return 주문서 Dto
      */
-    public OrderResponse getOrderResponse(byte[] orderUid) {
-        var loadedOrder = loadByUid(orderUid);
+    public OrderResponse getOrderResponse(byte[] orderUlid) {
+        var loadedOrder = loadByUid(orderUlid);
         orderValidationService.validateExpiration(loadedOrder);
         return OrderResponse.from(loadedOrder);
     }
@@ -234,7 +235,7 @@ public class OrderService {
         }
 
         // 재고 검사
-        orderValidationService.validateProductStock(order);
+//        orderValidationService.validateProductStock(order);
         orderValidationService.validateExpiration(order);
         
         // consume
@@ -243,9 +244,8 @@ public class OrderService {
         order.changeState(OrderStatus.PAYMENT_PENDING);
 
         var paymentResponse = paymentService.confirm(confirmRequest);
+//        paymentService.confirmTest(confirmRequest);
         order.setPaymentKey(paymentResponse.get("paymentKey").toString());
-
-        order.changeState(OrderStatus.PAID);
 
         var sb = new StringBuilder();
         var title = order.getTitle();
@@ -263,6 +263,59 @@ public class OrderService {
             log.warn("발송 실패"); // 재발송 전략?
         }
     }
+
+    /**
+     *
+     * @param confirmRequest
+     * @return 컨펌프로세스 결과를 반환합니다.
+     */
+    @Retryable(
+            value = { PessimisticLockingFailureException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 200, multiplier = 2.0, maxDelay = 2000)
+    )
+    @Transactional(timeout = 5)
+    public void confirmOrderV2(ConfirmRequest confirmRequest) {
+
+        var uild = Base64.getUrlDecoder().decode(confirmRequest.orderId());
+        var order = orderRepository.findWithLockByUlid(uild)
+                .orElseThrow(OrderException.OrderNotFound::new); // 여기서 order + orderProducts + product + member 모두 fetch + lock
+        if (confirmRequest.amount() != order.getTotal()) {
+            order.changeState(OrderStatus.FAILED);
+            throw new OrderException.OrderTotalMismatchException();
+        }
+
+        // 재고 검사
+//        orderValidationService.validateProductStock(order);
+        orderValidationService.validateExpiration(order);
+
+        // consume
+        productStockService.consumeStock(order);
+
+        order.changeState(OrderStatus.PAYMENT_PENDING);
+
+        var paymentResponse = paymentService.confirm(confirmRequest);
+//        paymentService.confirmTest(confirmRequest);
+        order.setPaymentKey(paymentResponse.get("paymentKey").toString());
+        log.info("LOG={}", paymentResponse);
+
+        var sb = new StringBuilder();
+        var title = order.getTitle();
+        sb.append(title).append("\n");
+        sb.append(order.getTotal()).append("원 결제성공");
+        var notificationBody = sb.toString();
+
+        // 성공 알림 발송
+        try {
+            notificationService.sendNotification(
+                    order.getMember().getUid(),
+                    "결제 성공", notificationBody,
+                    NotificationCategory.ORDERED);
+        } catch (CommonException.InternalServerException e) {
+            log.warn("발송 실패"); // 재발송 전략?
+        }
+    }
+
 
     // 발송 전에 결제 취소 기능
     @Transactional
@@ -370,5 +423,16 @@ public class OrderService {
                 delivery.getPhone(),
                 delivery.getRecipient()
         );
+    }
+
+    @Transactional
+    public void webhook(WebhookRequest webhookRequest) {
+        if (webhookRequest.eventType().equals("PAYMENT_STATUS_CHANGED")) {
+            if (webhookRequest.data().status().equals("DONE")) {
+                var orderUlid = Base64.getUrlDecoder().decode(webhookRequest.data().orderId());
+                var order = loadByUid(orderUlid);
+                order.changeState(OrderStatus.PAID);
+            }
+        }
     }
 }

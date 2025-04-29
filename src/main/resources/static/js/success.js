@@ -11,11 +11,12 @@
         orderId: orderId,
         amount: amount,
       };
-
-      const response = await fetch("http://localhost:8080/api/v1/orders/confirm", {
+      alert(requestData.paymentKey);
+      const response = await fetch("http://localhost:8080/api/v2/orders/confirm", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhMTQyYmE0MS1mNjMzLTRkMDAtYWY2NS0zMWQzYzU2M2FmM2QiLCJhdXRoIjoiTUVNQkVSIiwidWxpZCI6IkFaWmxRTi14dXJ6dDc2eDJjTUFERFE9PSIsImV4cCI6MTc0ODA1MTMwMH0.JetgX7JXA52GC8bw2HCX2cWCDSwDwu6Z1KUCVPqN9oA"
         },
         body: JSON.stringify(requestData),
       });
@@ -23,9 +24,10 @@
       const json = await response.json();
 
       if (!response.ok) {
+        alert(response.status)
         // 결제 실패 비즈니스 로직을 구현하세요.
         console.log(json);
-        window.location.href = `/fail?message=${json.message}&code=${json.code}`;
+        window.location.href = `/fail.html?message=${json.message}&code=${json.code}`;
       }
 
 

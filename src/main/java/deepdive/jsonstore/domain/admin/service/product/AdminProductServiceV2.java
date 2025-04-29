@@ -7,6 +7,7 @@ import deepdive.jsonstore.domain.admin.entity.Admin;
 import deepdive.jsonstore.domain.admin.repository.AdminRepository;
 import deepdive.jsonstore.domain.admin.service.AdminValidationService;
 import deepdive.jsonstore.domain.admin.service.product.evnet.ProductCreatedEvent;
+import deepdive.jsonstore.domain.admin.service.product.evnet.ProductDeletedEvent;
 import deepdive.jsonstore.domain.admin.service.product.evnet.ProductUpdatedEvent;
 import deepdive.jsonstore.domain.product.dto.ProductResponse;
 import deepdive.jsonstore.domain.product.dto.ProductSearchCondition;
@@ -124,4 +125,10 @@ public class AdminProductServiceV2 {
 	}
 
 
+	@Transactional
+	public void deleteProduct(byte[] adminUlid, String productId) {
+		Product product = productValidationService.deleteProductByIdAndAdmin(productId, adminUlid);
+		log.info("delete product: {}", productId);
+		eventPublisher.publishEvent(new ProductDeletedEvent(product));
+	}
 }

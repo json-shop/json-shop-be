@@ -1,6 +1,5 @@
 package deepdive.jsonstore.common.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepdive.jsonstore.domain.auth.auth.AdminJwtAuthenticationFilter;
 import deepdive.jsonstore.domain.auth.auth.AdminLoginAuthenticationFilter;
 import deepdive.jsonstore.domain.auth.auth.AdminJwtTokenProvider;
@@ -113,7 +112,11 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/prometheus").permitAll()
                         // 공용
                         .requestMatchers(
-                                "/", "/index.html", "/css/**", "/js/**", "/firebase-messaging-sw.js",
+                                //https://docs.tosspayments/com/reference/using-api/webhook-events
+                                "/api/v2/orders/webhook", //TODO : 웹훅 인증 필터 필요
+                                "/api/v2/orders/confirm", //TODO : 외부 API 인증 체계 마련할 것 CORS이나
+                                "/", "/index.html", "/success.html/**", "/fail.html/**", "/favicon.ico", "/checkout.html",
+                                 "/css/**", "/js/**", "/firebase-messaging-sw.js",
                                 "/api/v1/login", "/api/v1/admin/login",
                                 "/api/v1/join", "/api/v1/admin/join",
                                 "/api/v1/products/**",
