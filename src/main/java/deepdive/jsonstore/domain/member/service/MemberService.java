@@ -5,6 +5,7 @@ import deepdive.jsonstore.domain.member.dto.ResetPasswordRequestDTO;
 import deepdive.jsonstore.domain.member.dto.UpdateMemberRequestDTO;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.util.MemberUtil;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,6 +20,7 @@ public class MemberService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MemberUtil memberUtil;
     private final MemberValidationService memberValidationService;
+    private final MeterRegistry meterRegistry;
 
     @Transactional
     public void deleteCurrentMember() {
@@ -40,6 +42,7 @@ public class MemberService {
             throw new MemberException.CurrentPasswordIncorrectException();
         }
 
+        meterRegistry.counter("business.member.password.reset").increment();
         member.resetPassword(passwordEncoder.encode(dto.newPassword()));
 
     }

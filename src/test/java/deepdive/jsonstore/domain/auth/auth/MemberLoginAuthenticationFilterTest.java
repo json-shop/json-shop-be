@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ class MemberLoginAuthenticationFilterTest {
     private AuthenticationManager authenticationManager;
     private MemberJwtTokenProvider memberJwtTokenProvider;
     private ObjectMapper objectMapper;
+    private MeterRegistry meterRegistry;
 
     @BeforeEach
     @DisplayName("테스트를 위한 객체 초기화")
@@ -36,7 +38,7 @@ class MemberLoginAuthenticationFilterTest {
         authenticationManager = mock(AuthenticationManager.class);
         memberJwtTokenProvider = mock(MemberJwtTokenProvider.class);
         objectMapper = new ObjectMapper();
-        filter = new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider);
+        filter = new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider, meterRegistry);
     }
 
     @Test

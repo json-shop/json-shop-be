@@ -5,6 +5,7 @@ import deepdive.jsonstore.domain.cart.exception.CartException;
 import deepdive.jsonstore.domain.cart.repository.CartRepository;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.product.entity.Product;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class CartService {
     private final CartRepository cartRepository;
     private final CartValidateService validateService;
+    private final MeterRegistry meterRegistry;
 
     // 카트에 상품 추가
     public Cart addProductToCart(UUID memberUid, UUID productUid, Long amount) {
@@ -36,6 +38,8 @@ public class CartService {
 
         // 새 상품인데 수량이 0 이하인 경우
         validateService.validateNewCartAmount(amount);
+
+        meterRegistry.counter("business.cart.added").increment();
 
         Cart newCart = Cart.builder()
                 .member(member)
@@ -62,6 +66,8 @@ public class CartService {
 
         // 새 상품인데 수량이 0 이하인 경우
         validateService.validateNewCartAmount(amount);
+
+        meterRegistry.counter("business.cart.added").increment();
 
         Cart newCart = Cart.builder()
                 .member(member)
@@ -90,6 +96,7 @@ public class CartService {
         // 카트 목록이 있는지 조회
         validateService.validateCart(cartId);
 
+        meterRegistry.counter("business.cart.deleted").increment();
         // 카트 제거
         cartRepository.deleteById(cartId);
     }

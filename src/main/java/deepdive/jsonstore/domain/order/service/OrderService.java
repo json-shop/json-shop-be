@@ -15,6 +15,7 @@ import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.service.ProductStockService;
 import deepdive.jsonstore.domain.product.service.ProductValidationService;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.PessimisticLockingFailureException;
@@ -40,6 +41,7 @@ public class OrderService {
     private final DeliveryService deliveryService;
     private final NotificationService notificationService;
     private final PaymentService paymentService;
+    private final MeterRegistry meterRegistry;
 
     /** 주문 엔티티를 uid로 조회 */
     @Transactional
@@ -130,6 +132,7 @@ public class OrderService {
         orderProducts.forEach(order::addOrderProduct);
         var savedOrder = orderRepository.save(order);
 
+        meterRegistry.counter("business.order.created").increment();
         return savedOrder.getUid();
     }
     /**
@@ -158,7 +161,7 @@ public class OrderService {
         // 주문 상품 등록
         orderProducts.forEach(order::addOrderProduct);
         var savedOrder = orderRepository.save(order);
-
+        meterRegistry.counter("business.order.created").increment();
         return savedOrder.getUlid();
     }
 
@@ -226,6 +229,7 @@ public class OrderService {
 
         if (confirmRequest.amount() != order.getTotal()) {
             order.changeState(OrderStatus.FAILED);
+            meterRegistry.counter("business.order.failed").increment();
             throw new OrderException.OrderTotalMismatchException();
         }
 
@@ -293,6 +297,8 @@ public class OrderService {
             log.info("발송 실패");
         }
         order.expire();
+
+        meterRegistry.counter("business.order.cancelled").increment();
     }
 
     // 발송 전에 결제 취소 기능
@@ -328,6 +334,8 @@ public class OrderService {
             log.info("발송 실패");
         }
         order.expire();
+
+        meterRegistry.counter("business.order.cancelled").increment();
     }
 
     @Transactional

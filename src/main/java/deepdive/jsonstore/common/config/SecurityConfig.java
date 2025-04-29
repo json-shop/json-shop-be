@@ -9,6 +9,7 @@ import deepdive.jsonstore.domain.auth.auth.MemberLoginAuthenticationFilter;
 import deepdive.jsonstore.domain.auth.auth.MemberJwtTokenProvider;
 import deepdive.jsonstore.domain.auth.service.AdminMemberDetailsService;
 import deepdive.jsonstore.domain.auth.service.CustomMemberDetailsService;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -85,12 +86,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            MeterRegistry meterRegistry
     ) throws Exception {
 
         // 회원 로그인 필터
-        MemberLoginAuthenticationFilter memberLoginFilter =
-                new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider);
+        MemberLoginAuthenticationFilter memberLoginFilter = new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider, meterRegistry);
         memberLoginFilter.setFilterProcessesUrl("/api/v1/login");
 
         // 관리자 로그인 필터 (전용 매니저 사용)
