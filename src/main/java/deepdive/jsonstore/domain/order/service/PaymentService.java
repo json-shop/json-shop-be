@@ -96,13 +96,15 @@ public class PaymentService {
             } else {
                 // ⭐ 결제 실패 메트릭 추가
                 meterRegistry.counter("business.payment.failure").increment();
-
+                log.info("결제 실패");
                 throw new CommonException.InternalServerException();
             }
 
 
         } catch (HttpClientErrorException e) {
             log.info("LOG : {}", e.getLocalizedMessage());
+            meterRegistry.counter("business.payment.failure").increment();
+            log.info("결제 실패");
             throw new CommonException.InternalServerException();
         }
     }

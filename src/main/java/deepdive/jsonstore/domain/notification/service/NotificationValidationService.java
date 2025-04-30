@@ -19,7 +19,7 @@ public class NotificationValidationService {
     public String validateAndGetFcmToken(UUID memberUid) {
         String token = redisTemplate.opsForValue().get("fcm:token:" + memberUid);
         if (token == null) {
-            throw new NotificationException.MissingFcmTokenException();
+            return null;
         }
         return token;
     }

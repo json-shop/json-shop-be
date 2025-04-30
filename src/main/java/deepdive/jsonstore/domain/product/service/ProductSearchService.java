@@ -1,10 +1,12 @@
 package deepdive.jsonstore.domain.product.service;
 
 import deepdive.jsonstore.domain.product.dto.ProductResponse;
+import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.entity.ProductDocument;
 import deepdive.jsonstore.domain.product.entity.ProductStatus;
 import deepdive.jsonstore.domain.product.exception.ProductException;
 import deepdive.jsonstore.domain.product.repository.ProductEsRepository;
+import deepdive.jsonstore.domain.product.repository.ProductRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import java.util.List;
 @Slf4j
 public class ProductSearchService {
     private final ProductEsRepository productEsRepository;
+    private final ProductRepository productRepository;
     private final MeterRegistry meterRegistry;
 
 //    public List<ProductDocument> searchByName(String name) {
@@ -44,4 +47,23 @@ public class ProductSearchService {
             throw e;
         }
     }
+
+    public ProductResponse getActiveProductJPA(String productId) {
+        byte[] decodedId = Base64.getUrlDecoder().decode(productId);
+
+        try {
+            Product product = productRepository.findByUlidAndStatusIsNot(decodedId, ProductStatus.DISCONTINUED)
+                    .orElseThrow(ProductException.ProductNotFoundException::new);
+
+            meterRegistry.counter("business.product.search.success").increment();
+
+            return ProductResponse.toProductResponse(product);
+
+        } catch (ProductException.ProductNotFoundException e) {
+
+            meterRegistry.counter("business.product.search.failure").increment();
+            throw e;
+        }
+    }
+
 }

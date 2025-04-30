@@ -38,6 +38,13 @@ public class ProductControllerV2 {
 		return ResponseEntity.ok(res);
 	}
 
+	@GetMapping("/search/jpa/{productId}")
+	public ResponseEntity<ProductResponse> getProductFromJpa(@PathVariable String productId) {
+		log.info("productId: {}", productId);
+		ProductResponse res = productSearchService.getActiveProductJPA(productId);
+		return ResponseEntity.ok(res);
+	}
+
 	@GetMapping
 	public ResponseEntity<Page<ProductResponse>> getActiveProduct(ProductSearchCondition condition, Pageable pageable) {
 		log.info("condition: {}", condition);
