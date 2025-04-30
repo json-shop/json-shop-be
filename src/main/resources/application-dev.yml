@@ -18,6 +18,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 #        format_sql: true
+#        show_sql: true
+#        use_sql_comments: true
     open-in-view: false
 
   sql:
@@ -46,8 +48,9 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
+#    org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  config: classpath:logback-dev.xml
 
 #로컬에서 가져올 때 (CI)
 fcm:
@@ -62,4 +65,12 @@ external:
 tosspayments:
   api-base: ${TOSSPAYMENTS_API_BASE:https://api.tosspayments.com}
   api-secret: ${TOSSPAYMENTS_API_SECRET:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}
+
+decorator:
+  datasource:
+    enabled: true
+    p6spy:
+      enable-logging: true
+      multiline: true
+      logging: slf4j
   

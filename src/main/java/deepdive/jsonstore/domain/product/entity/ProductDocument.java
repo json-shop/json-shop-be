@@ -1,17 +1,13 @@
 package deepdive.jsonstore.domain.product.entity;
 
 
-import co.elastic.clients.elasticsearch.xpack.usage.Base;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Base64;
 
 @Document(indexName = "products")
