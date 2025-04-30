@@ -38,3 +38,41 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: 1999byh/jsonstore:latest
+      - name: Discord Notify - Build Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "username": "Spidey Bot",
+            "embeds": [{
+              "title": "✅ Docker 이미지 빌드 성공!",
+              "color": 3066993,
+              "fields": [
+                { "name": "📦 이미지", "value": "1999byh/jsonstore:latest", "inline": true },
+                { "name": "🔀 브랜치", "value": "${{ github.base_ref }}", "inline": true },
+                { "name": "🧑‍💻 작성자", "value": "${{ github.actor }}", "inline": true },
+                { "name": "🔗 PR 링크", "value": "https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}" }
+              ],
+              "timestamp": "'$(date --utc +%Y-%m-%dT%H:%M:%SZ)'"
+            }]
+          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Discord Notify - Build Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "username": "Spidey Bot",
+            "embeds": [{
+              "title": "❌ Docker 이미지 빌드 실패",
+              "color": 15158332,
+              "fields": [
+                { "name": "🔀 브랜치", "value": "${{ github.base_ref }}", "inline": true },
+                { "name": "🧑‍💻 작성자", "value": "${{ github.actor }}", "inline": true },
+                { "name": "📄 로그", "value": "GitHub Actions에서 상세 로그를 확인해주세요." }
+              ],
+              "timestamp": "'$(date --utc +%Y-%m-%dT%H:%M:%SZ)'"
+            }]
+          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
