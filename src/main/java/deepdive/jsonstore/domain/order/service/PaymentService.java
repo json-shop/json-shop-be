@@ -3,6 +3,7 @@ package deepdive.jsonstore.domain.order.service;
 import deepdive.jsonstore.common.exception.CommonException;
 import deepdive.jsonstore.domain.order.dto.CancelRequest;
 import deepdive.jsonstore.domain.order.dto.ConfirmRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import deepdive.jsonstore.domain.order.dto.ConfirmRequestV2;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,8 @@ public class PaymentService {
 
     @Value("${tosspayments.api-secret}")
     private String secretKey;
+
+    private final MeterRegistry meterRegistry;
 
     @Transactional
     public void cancelFullAmount(String paymentKey, String reason) {
@@ -85,11 +88,19 @@ public class PaymentService {
             ResponseEntity<Map> response =
                     restTemplate.postForEntity(url, entity, Map.class);
 
-            if (!response.getStatusCode().is2xxSuccessful()) {
+            if (response.getStatusCode().is2xxSuccessful()) {
+                // ⭐ 결제 성공 메트릭 추가
+                meterRegistry.counter("business.payment.success").increment();
+
+                return response.getBody();
+            } else {
+                // ⭐ 결제 실패 메트릭 추가
+                meterRegistry.counter("business.payment.failure").increment();
+
                 throw new CommonException.InternalServerException();
             }
 
-            return response.getBody();
+
         } catch (HttpClientErrorException e) {
             log.info("LOG : {}", e.getLocalizedMessage());
             throw new CommonException.InternalServerException();

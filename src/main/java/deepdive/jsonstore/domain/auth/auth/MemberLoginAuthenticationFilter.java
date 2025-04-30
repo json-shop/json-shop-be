@@ -5,6 +5,7 @@ import deepdive.jsonstore.common.dto.ErrorResponse;
 import deepdive.jsonstore.common.exception.AuthException;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.dto.LoginRequest;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,13 +22,16 @@ import java.io.IOException;
 public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private final MemberJwtTokenProvider memberJwtTokenProvider;
+    private final MeterRegistry meterRegistry;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public MemberLoginAuthenticationFilter(AuthenticationManager authenticationManager,
-                                           MemberJwtTokenProvider memberJwtTokenProvider) {
+                                           MemberJwtTokenProvider memberJwtTokenProvider,
+                                           MeterRegistry meterRegistry) {
         super(new AntPathRequestMatcher("/api/v1/login", "POST"));
         setAuthenticationManager(authenticationManager);
         this.memberJwtTokenProvider = memberJwtTokenProvider;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -51,6 +55,8 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
         JwtTokenDto tokenDto = memberJwtTokenProvider.generateToken(authResult);
         log.info("login success tokenDto = {}", tokenDto.getAccessToken());
 
+        meterRegistry.counter("business.member.login.success").increment();
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(objectMapper.writeValueAsString(tokenDto));
@@ -67,6 +73,8 @@ public class MemberLoginAuthenticationFilter extends AbstractAuthenticationProce
                 "MEMBER_LOGIN_FAILED", // 에러 코드
                 "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요." // 에러 메시지
         );
+
+        meterRegistry.counter("business.member.login.failure").increment();
 
         // HTTP 상태와 JSON 응답 설정
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

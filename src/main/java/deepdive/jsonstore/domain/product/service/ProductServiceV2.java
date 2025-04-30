@@ -7,6 +7,7 @@ import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.entity.ProductDocument;
 import deepdive.jsonstore.domain.product.repository.ProductEsRepository;
 import deepdive.jsonstore.domain.product.repository.ProductQueryRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,9 +26,11 @@ public class ProductServiceV2 {
 
 	private final ProductValidationServiceV2 productValidationService;
 	private final ProductEsRepository productEsRepository;
-
+    private final MeterRegistry meterRegistry;
 	public ProductResponse getActiveProductDetail(String id) {
 		Product product = productValidationService.findActiveProductById(id);
+		meterRegistry.counter("business.product.viewed").increment();
+
 		return ProductResponse.toProductResponse(product);
 	}
 

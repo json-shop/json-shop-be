@@ -13,6 +13,7 @@ import deepdive.jsonstore.domain.notification.dto.NotificationHistoryResponse;
 import deepdive.jsonstore.domain.notification.entity.Notification;
 import deepdive.jsonstore.domain.notification.entity.NotificationCategory;
 import deepdive.jsonstore.domain.notification.repository.NotificationRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,6 +34,7 @@ public class NotificationService {
     private final MemberRepository memberRepository;
     private final NotificationValidationService validationService;
     private final FirebaseMessaging firebaseMessaging;
+    private final MeterRegistry meterRegistry;
 
     public void saveToken(UUID memberUid, String token) {
         // 멤버 검증
@@ -59,12 +61,12 @@ public class NotificationService {
 
             String response = firebaseMessaging.sendAsync(fcmMessage).get();
             log.info("FCM message sent successfully to user {} with message ID: {}", memberUid, response);
-
+            meterRegistry.counter("business.notification.success").increment();
             saveNotificationRecord(member, title, body, category);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error sending FCM message to user {}: {}", memberUid, e.getMessage());
-
+            meterRegistry.counter("business.notification.failure").increment();
             memberRepository.findByUid(memberUid).ifPresent(member ->
                     saveNotificationRecord(member, title, body, NotificationCategory.ERROR));
 
