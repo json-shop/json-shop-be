@@ -66,7 +66,6 @@ public class NotificationService {
             } else {
                 log.error("❌ Unexpected error sending FCM to user {}: {}", memberUid, e.getMessage());
             }
-
             handleFailure(member, title, body, "FCM send failed");
             throw new CommonException.InternalServerException();
         }
