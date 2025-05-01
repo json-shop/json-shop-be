@@ -159,4 +159,12 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
+
+    @ExceptionHandler(FcmException.MissingFcmTokenException.class)
+    public ResponseEntity<ErrorResponse> handleMissingFcmToken(FcmException.MissingFcmTokenException ex) {
+        JsonStoreErrorCode errorCode = ex.getErrorCode();
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
+                .body(new ErrorResponse(errorCode.name(), errorCode.getMessage()));
+    }
 }

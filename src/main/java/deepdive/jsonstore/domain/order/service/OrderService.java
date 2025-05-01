@@ -162,7 +162,7 @@ public class OrderService {
         // 주문 상품 등록
         orderProducts.forEach(order::addOrderProduct);
         var savedOrder = orderRepository.save(order);
-        meterRegistry.counter("business.order.created").increment();
+        meterRegistry.counter("business.order.creation").increment();
         return savedOrder.getUlid();
     }
 
