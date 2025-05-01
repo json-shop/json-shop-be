@@ -1,15 +1,14 @@
 name: Deploy to EC2
 
 on:
-  pull_request:
-    branches:
-      - dev
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
     types:
-      - closed
+      - completed
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
