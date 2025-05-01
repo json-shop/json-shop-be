@@ -20,3 +20,16 @@ management:
       show-details: always
   security:
     enabled: false  # actuator security 끄기
+
+  info:
+    java:
+      enabled: true
+    os:
+      enabled: true
+    env:
+      enabled: true
+
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true
