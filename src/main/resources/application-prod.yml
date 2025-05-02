@@ -7,6 +7,10 @@ spring:
     url: ${DB_URL:jdbc:mysql://localhost:3306/json_store}
     username: ${DB_USERNAME:json}
     password: ${DB_PASSWORD:jsonpw}
+    hikari:
+      maximum-pool-size: 62
+      minumum-idle: 10
+      connection-timeout: 30000
 
   jwt:
     secret-key: "${SECRET_KEY}"
