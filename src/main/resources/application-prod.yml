@@ -69,8 +69,9 @@ decorator:
       logging: slf4j
       multiline: true
 
-server:
-  tomcat:
-    threads:
-      max: 40
-      min-spare: 10
+#server:
+#  tomcat:
+#    threads:
+#      max: 40
+#      min-spare: 10
+
