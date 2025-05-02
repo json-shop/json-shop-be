@@ -48,6 +48,7 @@ public class ProductControllerV2 {
 	@GetMapping
 	public ResponseEntity<Page<ProductResponse>> getActiveProduct(ProductSearchCondition condition, Pageable pageable) {
 		log.info("condition: {}", condition);
+		log.info("pageable: {}", pageable);
 		Page<ProductResponse> res = productService.getProductList(condition, pageable);
 		log.info("res: {}", res);
 		return ResponseEntity.ok(res);
