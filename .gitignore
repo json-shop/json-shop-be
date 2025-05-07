@@ -40,3 +40,8 @@ out/
 .sql
 
 /src/main/resources/FirebaseAccessKey.json
+/DummyData
+application.*
+
+logstash.conf
+prometheus.yml

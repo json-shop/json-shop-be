@@ -4,3 +4,32 @@ order:
 spring:
   profiles:
     active: dev
+
+  jpa:
+    properties:
+      hibernate:
+        default_batch_fetch_size: 1000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    health:
+      show-details: always
+  security:
+    enabled: false  # actuator security 끄기
+
+  info:
+    java:
+      enabled: true
+    os:
+      enabled: true
+    env:
+      enabled: true
+
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true

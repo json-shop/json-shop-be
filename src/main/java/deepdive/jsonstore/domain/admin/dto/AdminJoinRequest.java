@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+
 public record AdminJoinRequest(
         @NotBlank(message = "이메일을 입력해주세요.")
         @Email(message = "유효한 이메일을 입력해주세요.")
@@ -22,7 +23,7 @@ public record AdminJoinRequest(
         String username,
 
         @NotBlank(message = "전화번호를 입력해주세요.")
-        @Pattern(regexp = "^\\d{10,11}$", message = "전화번호는 10~11자리 숫자여야 합니다.")
+        @Pattern(regexp = "^\\d{9,11}$", message = "전화번호는 9~11자리 숫자여야 합니다.")
         String phone
 ) {
 }

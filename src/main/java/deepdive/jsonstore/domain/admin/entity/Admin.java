@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.admin.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
+import deepdive.jsonstore.common.util.UlidUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,9 @@ public class Admin extends BaseEntity {
 
     @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID uid;
+
+    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    private byte[] ulid;
 
     @Column(nullable = false, unique = true, length = 255)
     private String username;
@@ -49,6 +53,9 @@ public class Admin extends BaseEntity {
     public void generateUUID() {
         if (this.uid == null) {
             this.uid = UUID.randomUUID();
+        }
+        if (this.ulid == null) {
+            this.ulid = UlidUtil.createUlidBytes();
         }
     }
 }

@@ -48,10 +48,11 @@ public class OrderController {
             @RequestParam(defaultValue = "desc") String direction
 
     ) {
+        var sortDirection = Sort.Direction.fromString(direction);
         var pageRequest = PageRequest.of(
                 0,
                 10,
-                Sort.by(direction, "createdAt")
+                Sort.by(sortDirection, "createdAt")
         );
         return ResponseEntity.ok(orderService.getOrderResponsesByPage(memberUid, pageRequest));
     }

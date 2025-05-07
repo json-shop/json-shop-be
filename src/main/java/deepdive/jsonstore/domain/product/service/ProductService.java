@@ -2,6 +2,7 @@ package deepdive.jsonstore.domain.product.service;
 
 import java.util.UUID;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,11 @@ public class ProductService {
 
 	private final ProductValidationService productValidationService;
 	private final ProductQueryRepository productQueryRepository;
+	private final MeterRegistry meterRegistry;
 
 	public ProductResponse getActiveProductDetail(UUID id) {
 		Product product = productValidationService.findActiveProductById(id);
+		meterRegistry.counter("business.product.viewed").increment();
 		return ProductResponse.toProductResponse(product);
 	}
 

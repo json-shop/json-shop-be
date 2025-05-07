@@ -1,40 +1,65 @@
 services:
-  app:
-    image: ghcr.io/json-store-25/json-store-be:latest
-    container_name: json-store-app
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: json_elasticsearch
     ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    volumes:
-      - /home/ec2-user/firebaseAccessKey.json:/app/firebaseAccessKey.json:ro
+      - "9200:9200"
+    mem_limit: 6g
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/firebaseAccessKey.json
-    restart: always
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    networks:
+      - json-elastic-network
 
-#  redis:
-#    image: redis:latest
-#    container_name: json-store-redis
-#    hostname: redis
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - redis-data:/data
-#
-#  mysql:
-#    image: mysql:9.2
-#    container_name: json-store-mysql
-#    restart: always
-#    environment:
-#      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-#      MYSQL_DATABASE: ${DB_NAME}
-#      MYSQL_USER: ${DB_USERNAME}
-#      MYSQL_PASSWORD: ${DB_PASSWORD}
-#    ports:
-#      - "3306:3306"
-#    volumes:
-#      - mysql-data:/var/lib/mysql
-#
-#volumes:
-#  redis-data:
-#  mysql-data:
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.0
+    container_name: json_logstash
+    ports:
+      - "5044:5044"
+      - "5045:5045"
+      - "9600:9600"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - json-elastic-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.1
+    container_name: json_kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_BASEPATH=/api/kibana
+      - SERVER_REWRITEBASEPATH=true
+    depends_on:
+      - elasticsearch
+    networks:
+      - json-elastic-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: json_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - json-elastic-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: json_grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - json-elastic-network
+
+networks:
+  json-elastic-network:
+    driver: bridge

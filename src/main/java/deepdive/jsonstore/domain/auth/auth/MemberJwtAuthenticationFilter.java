@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -30,6 +32,14 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
+        log.info("reqeustURI = {}", requestURI);
+
+        // TODO : 보안키 필터 마련할 것
+        // 필터에 토큰이 없는 웹훅이 걸려서 일단 추가
+        if (requestURI.equals("/api/v2/orders/webhook")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (!isMemberProtectedPath(requestURI)) {
             filterChain.doFilter(request, response);
@@ -40,6 +50,7 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String token = memberJwtTokenProvider.resolveToken(request);
+            log.info("token = {}", token);
 
             if (!StringUtils.hasText(token)) {
                 throw new AuthException.EmptyTokenException(); // 토큰이 비어있는 경우
@@ -51,6 +62,7 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 토큰이 유효한 경우 Authentication 설정
             Authentication authentication = memberJwtTokenProvider.getAuthentication(token);
+            log.info("인증된 사용자 principal = {}", authentication.getPrincipal());
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             filterChain.doFilter(request, response);
@@ -74,9 +86,12 @@ public class MemberJwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isMemberProtectedPath(String uri) {
         return uri.startsWith("/api/v1/member") ||
-                uri.startsWith("/api/v1/cart") ||
-                uri.startsWith("/api/v1/delivery") ||
+                uri.startsWith("/api/v2/member") ||
+                uri.startsWith("/api/v1/carts") ||
+                uri.startsWith("/api/v2/carts") ||
+                uri.startsWith("/api/v1/delivery") || uri.startsWith("/api/v2/delivery") ||
                 uri.startsWith("/api/v1/orders") ||
+                uri.startsWith("/api/v2/orders") ||
                 uri.startsWith("/api/v1/fcm-tokens") ||
                 uri.startsWith("/api/v1/notifications");
     }

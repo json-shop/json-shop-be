@@ -9,7 +9,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-messaging-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth-compat.js"></script>
-  <script src="https://js.tosspayments.com/v2/standard"></script>
 
   <link rel="stylesheet" href="./css/style.css" />
 </head>
@@ -35,6 +34,10 @@
     <p id="tokenStatus"></p>
   </div>
 
+  <input type="file" id="tokenFile" accept=".json" />
+  <button id="registerAllButton">더미 유저 저장</button>
+  <pre id="bulkTokenStatus"></pre>
+
   <!-- 알림 테스트 -->
   <div class="card">
     <h2>2. 알림 테스트</h2>
@@ -56,31 +59,8 @@
     <div id="notificationHistory"></div>
   </div>
 
-  <div class="card">
-    <div class="form-group">
-      <label>주문 번호: <input type="text" id="order-id" value="ORDER123" /></label><br />
-      <label>결제 금액(₩): <input type="number" id="order-price" value="50000" /></label><br />
-      <label>쿠폰 금액(₩): <input type="number" id="coupon-price" value="5000" /></label><br />
-      <label>성공 URL: <input type="text" id="success-url" value="/success.html" /></label><br />
-      <label>실패 URL: <input type="text" id="fail-url" value="/fail.html" /></label>
-    </div>
-
-    <!-- 할인 쿠폰 체크박스 -->
-    <div class="form-group checkbox-group">
-      <input type="checkbox" id="coupon-box" />
-      <label for="coupon-box"> 쿠폰 적용 </label>
-    </div>
-
-    <!-- 결제 UI -->
-    <div id="payment-method"></div>
-    <div id="agreement"></div>
-
-    <!-- 결제 버튼 -->
-    <button id="payment-button" style="margin-top: 30px">결제하기</button>
-  </div>
 </div>
 
-<script src="./js/requestPayment.js"></script>
 <script src="./js/firebase-init.js"></script>
 <script src="./js/register-token.js"></script>
 <script src="./js/send-notification.js"></script>
@@ -103,6 +83,62 @@
     });
   }
 </script>
+<script>
+  let jwtList = [];
+
+  // 파일 업로드 후 JWT 파싱
+  document.getElementById('tokenFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const text = await file.text();
+    const json = JSON.parse(text);
+    jwtList = json.map(row => row.accessToken);
+    document.getElementById('bulkTokenStatus').textContent = `📦 ${jwtList.length}개의 JWT 토큰 로드 완료`;
+  });
+
+  // 일괄 등록 버튼 클릭 시 실행
+  document.getElementById('registerAllButton').addEventListener('click', async () => {
+    const status = document.getElementById('bulkTokenStatus');
+    status.textContent = '🚀 일괄 토큰 등록 시작...';
+    const results = [];
+
+    for (let i = 0; i < jwtList.length; i++) {
+      const jwt = jwtList[i];
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          results.push(`❌ ${i + 1}: 알림 권한 거부`);
+          continue;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        const fcmToken = await firebase.messaging().getToken({
+          vapidKey: "BMudtW8mJr24K2EAYNoi2-8G_KYrTgRVWt93aQyYthGuaFEIWWcf1uU7D4s-FxCEWmlTCJJBlgrEHmRl7y8fCUI",
+          serviceWorkerRegistration: registration,
+        });
+
+        const res = await fetch('/api/v1/fcm-tokens', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwt}`
+          },
+          body: JSON.stringify({ token: fcmToken }),
+        });
+
+        if (res.ok) {
+          results.push(`✅ ${i + 1}: 등록 성공`);
+        } else {
+          results.push(`❌ ${i + 1}: 실패 - ${await res.text()}`);
+        }
+      } catch (err) {
+        results.push(`❌ ${i + 1}: 오류 - ${err.message}`);
+      }
+    }
+
+    status.textContent = `📦 등록 결과\n${results.join('\n')}`;
+  });
+</script>
+
 
 </body>
 </html>

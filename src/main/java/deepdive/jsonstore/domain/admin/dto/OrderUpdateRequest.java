@@ -4,7 +4,7 @@ import deepdive.jsonstore.domain.order.entity.OrderStatus;
 import lombok.Builder;
 
 @Builder
-public record OrderUpdateResponse (
+public record OrderUpdateRequest(
     OrderStatus status,
     String recipient, // 수령인
     String phone, // 전화번호

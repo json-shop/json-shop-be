@@ -17,6 +17,7 @@ import java.io.*;
 @Configuration
 public class FirebaseConfig {
 
+
     //    @Value("${fcm.credentials.file:classpath:firebaseAccessKey.json}")
     @Value("${fcm.credentials.file}") //ec2에서 불러올 때
     private String fcmCredentialsPath;

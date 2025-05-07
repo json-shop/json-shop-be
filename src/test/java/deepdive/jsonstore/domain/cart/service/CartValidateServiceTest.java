@@ -104,37 +104,6 @@ class CartValidateServiceTest {
                     () -> cartValidateService.validateProduct(productUid, 1L));
         }
 
-        @Test
-        @DisplayName("실패 - 상품 판매 중 아님")
-        void fail_productNotOnSale() {
-            UUID productUid = UUID.randomUUID();
-            Product product = Product.builder()
-                    .uid(productUid)
-                    .status(ProductStatus.DISCONTINUED)
-                    .stock(10)
-                    .build();
-
-            when(productRepository.findByUid(productUid)).thenReturn(Optional.of(product));
-
-            assertThrows(CartException.ProductForbiddenException.class,
-                    () -> cartValidateService.validateProduct(productUid, 1L));
-        }
-
-        @Test
-        @DisplayName("실패 - 재고 부족")
-        void fail_outOfStock() {
-            UUID productUid = UUID.randomUUID();
-            Product product = Product.builder()
-                    .uid(productUid)
-                    .status(ProductStatus.ON_SALE)
-                    .stock(2)
-                    .build();
-
-            when(productRepository.findByUid(productUid)).thenReturn(Optional.of(product));
-
-            assertThrows(CartException.ProductOutOfStockException.class,
-                    () -> cartValidateService.validateProduct(productUid, 5L));
-        }
     }
 
     @Nested

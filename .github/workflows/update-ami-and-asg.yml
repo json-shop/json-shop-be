@@ -1,0 +1,51 @@
+name: Update AMI and Auto Scaling Group
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-ami-and-update-asg:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create new AMI from Instance
+        id: create-ami
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=json25-backend-ec2-1" --query "Reservations[].Instances[].InstanceId" --output text)
+          echo "Using INSTANCE_ID=$INSTANCE_ID"
+          AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "jsonstore-ami-$(date +%Y%m%d%H%M%S)" --no-reboot --query "ImageId" --output text)
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+
+      - name: Wait for AMI to become available
+        run: |
+          aws ec2 wait image-available --image-ids ${{ env.AMI_ID }}
+
+      - name: Update Launch Template with new AMI
+        run: |
+          aws ec2 create-launch-template-version \
+            --launch-template-id ${{ secrets.LAUNCH_TEMPLATE_ID }} \
+            --source-version 1 \
+            --launch-template-data "{\"ImageId\":\"${{ env.AMI_ID }}\"}"
+
+      - name: Set default version for Launch Template
+        run: |
+          LATEST_VERSION=$(aws ec2 describe-launch-template-versions --launch-template-id ${{ secrets.LAUNCH_TEMPLATE_ID }} --query "LaunchTemplateVersions[-1].VersionNumber" --output text)
+          aws ec2 modify-launch-template \
+            --launch-template-id ${{ secrets.LAUNCH_TEMPLATE_ID }} \
+            --default-version $LATEST_VERSION
+
+      - name: Start Instance Refresh in Auto Scaling Group
+        run: |
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name ${{ secrets.AUTO_SCALING_GROUP_NAME }} \
+            --strategy Rolling

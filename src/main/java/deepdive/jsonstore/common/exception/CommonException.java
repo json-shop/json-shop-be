@@ -21,4 +21,5 @@ public class CommonException extends RuntimeException {
             super(JsonStoreErrorCode.SERVER_ERROR);
         }
     }
+
 }

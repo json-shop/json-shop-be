@@ -50,6 +50,12 @@ public class AdminProductService {
 		return product.getUid().toString();
 	}
 
+	public String createProduct(UUID adminUid, CreateProductRequest createProductRequest) {
+		Admin admin = adminValidationService.getAdminById(adminUid);
+		Product product = productRepository.save(createProductRequest.toProduct(null, admin, null));
+		return product.getUid().toString();
+	}
+
 	@Transactional
 	public ProductResponse updateProduct(UUID adminUid, MultipartFile productImage, UpdateProductRequest updateProductRequest) {
 		Product product = productValidationService.findProductByIdAndAdmin(updateProductRequest.uid(), adminUid);

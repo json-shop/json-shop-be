@@ -7,6 +7,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminJwtTokenProvider {
@@ -39,11 +41,12 @@ public class AdminJwtTokenProvider {
     // UUID와 권한만 포함된 토큰 생성
     public JwtTokenDto generateToken(Authentication authentication) {
         AdminMemberDetails adminDetails = (AdminMemberDetails) authentication.getPrincipal();
+        log.info("base64encoding admin ulid = {}", Base64.getUrlEncoder().encode(adminDetails.getAdminUlid()));
         String authorities = adminDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         // JWT 토큰 생성 시 UUID와 권한만 포함
-        return jwtTokenUtil.generateToken(adminDetails.getAdminUid(), authorities, key);
+        return jwtTokenUtil.generateToken(adminDetails.getAdminUid(), adminDetails.getAdminUlid(), authorities, key);
     }
 
     public boolean validateToken(String token) {
@@ -56,6 +59,7 @@ public class AdminJwtTokenProvider {
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+        log.info("bearerToken = {}", bearerToken);
         return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
     }
 
@@ -64,6 +68,8 @@ public class AdminJwtTokenProvider {
         Claims claims = parseClaims(token);
         UUID adminUid = UUID.fromString(claims.getSubject());  // 토큰에서 UUID 추출
         AdminMemberDetails adminDetails = adminMemberDetailsService.loadUserByUuid(adminUid);  // UUID로 사용자 로드
+        log.info("base64encoding admin ulid = {}", Base64.getUrlEncoder().encode(adminDetails.getAdminUlid()));
+
         return new UsernamePasswordAuthenticationToken(adminDetails, "", adminDetails.getAuthorities());
     }
 }

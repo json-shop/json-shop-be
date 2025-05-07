@@ -29,18 +29,25 @@ public class CartValidateService {
                 .orElseThrow(CartException.MemberNotFoundException::new);
     }
 
+    // 멤버 검증
+    public Member validateMember(byte[] memberUid) {
+        return memberRepository.findByUlid(memberUid)
+                .orElseThrow(CartException.MemberNotFoundException::new);
+    }
+
     // 상품 검증
     public Product validateProduct(UUID productUid, Long amount) {
         Product product = productRepository.findByUid(productUid)
                 .orElseThrow(CartException.ProductNotFoundException::new);
 
-        // 상품이 판매중인지 검증
-        if (!product.getStatus().equals(ProductStatus.ON_SALE))
-            throw new CartException.ProductForbiddenException();
+        return product;
+    }
 
-        // 상품 수량이 적절한지 검증
-        if (product.getStock() < amount)
-            throw new CartException.ProductOutOfStockException();
+
+    // 상품 검증
+    public Product validateProduct(byte[] productUid, Long amount) {
+        Product product = productRepository.findByUlid(productUid)
+                .orElseThrow(CartException.ProductNotFoundException::new);
 
         return product;
     }
