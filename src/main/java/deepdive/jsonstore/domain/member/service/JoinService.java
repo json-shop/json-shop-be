@@ -38,4 +38,5 @@ public class JoinService {
         meterRegistry.counter("business.member.signup.success").increment();
         log.info("회원가입 완료: {}", member.getUsername());
     }
+
 }
