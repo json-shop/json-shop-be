@@ -1,7 +1,8 @@
 package deepdive.jsonstore.domain.order.entity;
 
 import deepdive.jsonstore.common.entity.BaseEntity;
-import deepdive.jsonstore.domain.admin.dto.OrderUpdateResponse;
+import deepdive.jsonstore.common.util.UlidUtil;
+import deepdive.jsonstore.domain.admin.dto.OrderUpdateRequest;
 import deepdive.jsonstore.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,6 +26,10 @@ public class Order extends BaseEntity {
     @Builder.Default
     @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
     private UUID uid = UUID.randomUUID();
+
+    @Builder.Default
+    @Column(unique = true, columnDefinition = "BINARY(16)", nullable = false)
+    private byte[] ulid = UlidUtil.createUlidBytes();
 
     @ManyToOne
     @JoinColumn(name = "member_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
@@ -100,11 +105,11 @@ public class Order extends BaseEntity {
         this.recipient = recipient;
     }
 
-    public void update(OrderUpdateResponse orderUpdateResponse) {
-        if (orderUpdateResponse.status() != null) this.orderStatus = orderUpdateResponse.status();
-        if (orderUpdateResponse.address() != null) this.address = orderUpdateResponse.address();
-        if (orderUpdateResponse.zipCode() != null) this.zipCode = orderUpdateResponse.zipCode();
-        if (orderUpdateResponse.phone() != null) this.phone = orderUpdateResponse.phone();
-        if (orderUpdateResponse.phone() != null) this.recipient = orderUpdateResponse.phone();
+    public void update(OrderUpdateRequest orderUpdateRequest) {
+        if (orderUpdateRequest.status() != null) this.orderStatus = orderUpdateRequest.status();
+        if (orderUpdateRequest.address() != null) this.address = orderUpdateRequest.address();
+        if (orderUpdateRequest.zipCode() != null) this.zipCode = orderUpdateRequest.zipCode();
+        if (orderUpdateRequest.phone() != null) this.phone = orderUpdateRequest.phone();
+        if (orderUpdateRequest.phone() != null) this.recipient = orderUpdateRequest.phone();
     }
 }

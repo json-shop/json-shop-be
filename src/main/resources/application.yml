@@ -1,6 +1,10 @@
 order:
   expire-minutes: 15
 
+#spring:
+ # profiles:
+    #active: dev
+
+# src/test/resources/application-test.yml (테스트용)
 spring:
-  profiles:
-    active: dev
+

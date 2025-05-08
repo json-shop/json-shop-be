@@ -38,9 +38,15 @@ public class AdminProductController {
 	private final AdminProductService adminProductService;
 
 	@PostMapping
-	public ResponseEntity<Void> createProduct(@RequestPart("image") MultipartFile productImage,
-		@AuthenticationPrincipal AdminMemberDetails admin,
-		@RequestPart("productRequest") CreateProductRequest createProductRequest) {
+	public ResponseEntity<Void> createProduct(@RequestPart(value = "image", required = false) MultipartFile productImage,
+											  @AuthenticationPrincipal AdminMemberDetails admin,
+											  @RequestPart("productRequest") CreateProductRequest createProductRequest) {
+		if (productImage == null || productImage.isEmpty()) {
+			log.info("in this");
+			String id = adminProductService.createProduct(admin.getAdminUid(), createProductRequest);
+			return ResponseEntity.created(URI.create("/api/v1/products/"+id)).build();
+		}
+
 		String id = adminProductService.createProduct(admin.getAdminUid(), productImage, createProductRequest);
 		return ResponseEntity.created(URI.create("/api/v1/products/"+id)).build();
 	}
@@ -54,16 +60,21 @@ public class AdminProductController {
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<AdminProductListResponse>> getAdminProductList(@RequestParam String adminId,
-		ProductSearchCondition condition, Pageable pageable) {
-		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(UUID.fromString(adminId), condition, pageable);
+	public ResponseEntity<Page<AdminProductListResponse>> getAdminProductList(
+			@AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
+			ProductSearchCondition condition, Pageable pageable
+	) {
+		log.info("condition: {}", condition);
+		Page<AdminProductListResponse> res = adminProductService.getAdminProductList(adminUid, condition, pageable);
 		return ResponseEntity.ok(res);
 	}
 
 	@GetMapping("/{productId}")
-	public ResponseEntity<AdminProductResponse> getAdminProduct(@PathVariable UUID productId, @RequestParam String adminId) {
-		AdminProductResponse res = adminProductService.getAdminProduct(UUID.fromString(adminId), productId);
+	public ResponseEntity<AdminProductResponse> getAdminProduct(
+			@AuthenticationPrincipal(expression = "adminUid") UUID adminUid,
+			@PathVariable UUID productId
+	) {
+		AdminProductResponse res = adminProductService.getAdminProduct(adminUid, productId);
 		return ResponseEntity.ok(res);
 	}
-
 }

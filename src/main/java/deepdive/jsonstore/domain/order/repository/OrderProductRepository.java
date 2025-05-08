@@ -8,11 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
 public interface OrderProductRepository extends JpaRepository<OrderProduct, Long> {
 
     @Query("SELECT op FROM OrderProduct op " +
             "JOIN FETCH op.product p " +
             "WHERE p.admin.id = :adminId")
-    Page<OrderProduct> findByProductAdminId(@Param("adminId") Long adminId, Pageable pageable);
+    Page<OrderProduct> findByAdminId(@Param("adminId") long adminId, Pageable pageable);
 }

@@ -1,7 +1,8 @@
 package deepdive.jsonstore.domain.admin.service.order;
 
 import deepdive.jsonstore.domain.admin.dto.OrderProductSalesResponse;
-import deepdive.jsonstore.domain.admin.dto.OrderUpdateResponse;
+import deepdive.jsonstore.domain.admin.dto.OrderUpdateRequest;
+import deepdive.jsonstore.domain.admin.service.AdminValidationService;
 import deepdive.jsonstore.domain.order.repository.OrderProductRepository;
 import deepdive.jsonstore.domain.order.repository.OrderRepository;
 import deepdive.jsonstore.domain.order.service.OrderService;
@@ -19,17 +20,30 @@ public class AdminOrderSerivce {
 
     private final OrderService orderService;
     private final OrderProductRepository orderProductRepository;
-    private final OrderRepository orderRepository;
+    private final AdminValidationService adminValidationService;
 
-    public Page<OrderProductSalesResponse> getOrderResponsesByPage(Long adminId, Pageable pageable) {
-        return orderProductRepository.findByProductAdminId(adminId, pageable)
+    public Page<OrderProductSalesResponse> getOrderResponsesByPage(UUID adminUid, Pageable pageable) {
+        var admin = adminValidationService.getAdminById(adminUid);
+        return orderProductRepository.findByAdminId(admin.getId(), pageable)
+                .map(OrderProductSalesResponse::from);
+    }
+
+    public Page<OrderProductSalesResponse> getOrderResponsesByPage(byte[] adminUlid, Pageable pageable) {
+        var admin = adminValidationService.getAdminById(adminUlid);
+        return orderProductRepository.findByAdminId(admin.getId(), pageable)
                 .map(OrderProductSalesResponse::from);
     }
 
     @Transactional
-    public void updateOrder(UUID orderUid, OrderUpdateResponse orderUpdateResponse, String reason) {
+    public void updateOrder(UUID orderUid, OrderUpdateRequest orderUpdateRequest, String reason) {
         var order = orderService.loadByUid(orderUid);
-        order.update(orderUpdateResponse);
+        order.update(orderUpdateRequest);
+    }
+
+    @Transactional
+    public void updateOrder(byte[] orderUlid, OrderUpdateRequest orderUpdateRequest, String reason) {
+        var order = orderService.loadByUid(orderUlid);
+        order.update(orderUpdateRequest);
     }
 
 }

@@ -22,6 +22,9 @@ public class Delivery extends BaseEntity {
     @Column(nullable = false)
     private UUID uid;
 
+    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    private byte[] ulid;
+
     @Setter
     @Column(nullable = false)
     private String address;

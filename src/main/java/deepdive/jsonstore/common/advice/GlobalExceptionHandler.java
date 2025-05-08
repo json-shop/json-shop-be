@@ -28,9 +28,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        log.error("Unhandled exception: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.name(), "서버 오류입니다."));
+    }
+
+
     // Spring valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validationExceptionsHandler(MethodArgumentNotValidException ex) {
+        log.error("Validation error: {}", ex.getMessage(), ex);
         // 첫 번째 에러만 꺼내서 CustomException으로 감쌈
         FieldError fieldError = ex.getBindingResult().getFieldError();
 
@@ -68,6 +77,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DeliveryException.class)
     public ResponseEntity<ErrorResponse> deliveryExceptionHandler(DeliveryException ex) {
+        log.error("Delivery error: {}", ex.getMessage(), ex);
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
@@ -103,12 +113,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductException.class)
     public ResponseEntity<ErrorResponse> ProductExceptionHandler(ProductException ex) {
+        log.info("ProductException: {}", ex.getErrorCode().name());
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 
     @ExceptionHandler(AdminException.class)
     public ResponseEntity<ErrorResponse> AdminExceptionHandler(AdminException ex) {
+        log.info("AdminException: {}", ex.getErrorCode().name());
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
@@ -122,6 +134,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MemberException.class)
     public ResponseEntity<ErrorResponse> memberExceptionHandler(MemberException ex) {
+        log.info("MemberException: {}", ex.getErrorCode().name());
         ErrorResponse response = new ErrorResponse(ex.getErrorCode().name(), ex.getErrorCode().getMessage());
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
@@ -147,5 +160,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, ex.getErrorCode().getHttpStatus());
     }
 
-
+    @ExceptionHandler(FcmException.MissingFcmTokenException.class)
+    public ResponseEntity<ErrorResponse> handleMissingFcmToken(FcmException.MissingFcmTokenException ex) {
+        JsonStoreErrorCode errorCode = ex.getErrorCode();
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
+                .body(new ErrorResponse(errorCode.name(), errorCode.getMessage()));
+    }
 }

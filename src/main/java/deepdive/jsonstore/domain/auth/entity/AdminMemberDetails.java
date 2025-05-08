@@ -9,12 +9,14 @@ import java.util.UUID;
 public class AdminMemberDetails implements UserDetails {
 
     private final UUID adminUid;  // Admin의 UUID
+    private final byte[] adminUlid;
     private final String password; // Admin의 비밀번호
     private final Collection<? extends GrantedAuthority> authorities;
 
     // 생성자: UUID, 비밀번호, 권한을 받음
-    public AdminMemberDetails(UUID adminUid, String password, Collection<? extends GrantedAuthority> authorities) {
+    public AdminMemberDetails(UUID adminUid, byte[] adminUlid, String password, Collection<? extends GrantedAuthority> authorities) {
         this.adminUid = adminUid;
+        this.adminUlid = adminUlid;
         this.password = password;
         this.authorities = authorities;
     }
@@ -57,5 +59,9 @@ public class AdminMemberDetails implements UserDetails {
     // UUID 반환
     public UUID getAdminUid() {
         return adminUid;
+    }
+
+    public byte[] getAdminUlid() {
+        return adminUlid;
     }
 }

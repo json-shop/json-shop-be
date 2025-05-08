@@ -12,7 +12,7 @@ public record JoinRequest(
         String email,
 
         @NotBlank(message = "비밀번호를 입력해주세요.")
-        @Size(min = 10, message = "비밀번호는 10자 이상이어야 합니다.")
+        @Size(min = 9, message = "비밀번호는 9자 이상이어야 합니다.")
         String password,
 
         @NotBlank(message = "비밀번호 확인을 입력해주세요.")
@@ -22,7 +22,7 @@ public record JoinRequest(
         String username,
 
         @NotBlank(message = "전화번호를 입력해주세요.")
-        @Pattern(regexp = "^\\d{10,11}$", message = "전화번호는 10~11자리 숫자여야 합니다.")
+        @Pattern(regexp = "^\\d{9,11}$", message = "전화번호는 10~11자리 숫자여야 합니다.")
         String phone
 ) {
 }

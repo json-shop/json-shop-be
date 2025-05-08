@@ -9,4 +9,7 @@ public record ProductSearchCondition(
 	ProductSortType sort,
 	String search
 ) {
+	public boolean isEmpty() {
+		return this.category == null && this.sort == null && this.search == null;
+	}
 }
