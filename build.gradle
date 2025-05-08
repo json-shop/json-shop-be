@@ -92,6 +92,12 @@ dependencies {
     //Redisson
     implementation 'org.redisson:redisson-spring-boot-starter:3.23.5'
 
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation "org.testcontainers:testcontainers:1.19.0"
+    testImplementation "org.testcontainers:junit-jupiter:1.19.0"
+
+
+
 }
 
 tasks.named('test') {
