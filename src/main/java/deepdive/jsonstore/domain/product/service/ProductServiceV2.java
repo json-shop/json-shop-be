@@ -3,6 +3,7 @@ package deepdive.jsonstore.domain.product.service;
 import deepdive.jsonstore.domain.product.dto.ProductCache;
 import deepdive.jsonstore.domain.product.dto.ProductResponse;
 import deepdive.jsonstore.domain.product.dto.ProductSearchCondition;
+import deepdive.jsonstore.domain.product.entity.Category;
 import deepdive.jsonstore.domain.product.entity.Product;
 import deepdive.jsonstore.domain.product.entity.ProductDocument;
 import deepdive.jsonstore.domain.product.repository.ProductEsRepository;
@@ -28,8 +29,9 @@ public class ProductServiceV2 {
 	private final ProductEsRepository productEsRepository;
     private final MeterRegistry meterRegistry;
 	private final RedisTemplate<String, Object> redisTemplate;
-	private static final String CACHE_KEY = "productPage:";
-	private static final long TTL = 5;
+
+	private static final String CACHE_KEY_BASE = "productPage:";
+	private static final long TTL = 5; // 하드코딩했습니다.
 
 	public ProductResponse getActiveProductDetail(String id) {
 		Product product = productValidationService.findActiveProductById(id);
@@ -38,34 +40,48 @@ public class ProductServiceV2 {
 		return ProductResponse.toProductResponse(product);
 	}
 
+	/** 조건에 따라 es조회 */
 	public Page<ProductResponse> getProductList(ProductSearchCondition condition, Pageable pageable) {
-		if (condition.isEmpty()
-				&& pageable.getSort().isUnsorted()
-				&& pageable.getPageNumber() == 0) {
+		String name = condition.search();
+		Category category = condition.category();
+		boolean hasSearch = name != null;
+		boolean hasCategory = category != null;
+		boolean isFirstPage = pageable.getPageNumber() == 1;
 
+		// 캐시 확인
+		String cacheKey = CACHE_KEY_BASE + category + ":" + name + ":" + pageable.getSort();
 
-			ProductCache cached = (ProductCache) redisTemplate.opsForValue().get(CACHE_KEY);
-
-			if (cached != null) { // && !cached.content().isEmpty() 아예 상품이 없는 경우
-				log.info("from cache");
-				return new PageImpl<>(cached.content(), pageable, cached.totalElements());
-			}
-
-//			log.info("from All");
-			Page<ProductResponse> result = productEsRepository.findAll(pageable)
-					.map(ProductResponse::toProductResponse);
-
-			ProductCache cache = ProductCache.builder()
-					.content(result.getContent())
-					.totalElements(result.getTotalElements())
-					.build();
-
-			redisTemplate.opsForValue().set(CACHE_KEY, cache, Duration.ofMinutes(TTL));
-			return result;
+		var cached = (ProductCache) redisTemplate.opsForValue().get(cacheKey);
+		if (cached != null) { // && !cached.content().isEmpty() 아예 상품이 없는 경우
+			log.info("from cache");
+			return new PageImpl<>(cached.content(), pageable, cached.totalElements()); // 캐시를 바로 반환
 		}
 
-		Page<ProductDocument> productDocuments = productEsRepository.searchByCategoryAndName(condition.category(), condition.search(), pageable);
-		return productDocuments.map(ProductResponse::toProductResponse);
-	}
+		// 쿼리
+		Page<ProductDocument> productDocuments;
+		if (hasSearch && !hasCategory) {
+			productDocuments = productEsRepository.searchByName(name, pageable); // 키워드(이름)
+		} else if (!hasSearch && hasCategory ) {
+			productDocuments = productEsRepository.searchByCategory(category, pageable); // 카테고리
+		} else if (hasSearch && hasCategory) {
+			productDocuments = productEsRepository.searchByCategoryAndName(category, name, pageable); // 복합
+		} else {
+			productDocuments = productEsRepository.findAll(pageable); // 전체
+		}
 
+		// response 생성
+		Page<ProductResponse> productResponses = productDocuments
+				.map(ProductResponse::toProductResponse);
+
+		// 첫 페이지라면 캐시
+		if (isFirstPage) {
+			ProductCache cache = ProductCache.builder()
+					.content(productResponses.getContent())
+					.totalElements(productResponses.getTotalElements())
+					.build();
+			redisTemplate.opsForValue().set(cacheKey, cache, Duration.ofMinutes(TTL));
+		}
+
+		return productResponses;
+	}
 }

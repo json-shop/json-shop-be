@@ -35,5 +35,38 @@ public interface ProductEsRepository extends ElasticsearchRepository<ProductDocu
             Pageable pageable
     );
 
+    @Query("""
+    {
+      "bool": {
+        "must": [
+          { "term": { "category": "?0" }},
+        ],
+        "must_not": [
+          { "term": { "status": "DISCONTINUED" }}
+        ]
+      }
+    }
+    """)
+    Page<ProductDocument> searchByCategory(
+            Category category,
+            Pageable pageable
+    );
+
+    @Query("""
+    {
+      "bool": {
+        "must": [
+          { "match": { "name":     "?1" }}
+        ],
+        "must_not": [
+          { "term": { "status": "DISCONTINUED" }}
+        ]
+      }
+    }
+    """)
+    Page<ProductDocument> searchByName(
+            String name,
+            Pageable pageable
+    );
 
 }
