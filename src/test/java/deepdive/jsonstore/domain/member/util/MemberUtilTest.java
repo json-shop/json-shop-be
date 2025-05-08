@@ -1,6 +1,7 @@
 package deepdive.jsonstore.domain.member.util;
 
 import deepdive.jsonstore.common.exception.AuthException;
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.auth.entity.CustomMemberDetails;
 import deepdive.jsonstore.domain.member.entity.Member;
 import deepdive.jsonstore.domain.member.repository.MemberRepository;
@@ -39,10 +40,12 @@ public class MemberUtilTest {
     void getCurrentMember_성공_테스트() {
         // given
         UUID mockUuid = UUID.randomUUID();
+        byte[] mockUlid = UlidUtil.createUlidBytes();
         Member mockMember = Member.builder()
                 .email("test@example.com")
                 .username("tester")
                 .uid(mockUuid)
+                .ulid(mockUlid)
                 .build();
 
         // MemberRepository 모킹
@@ -51,6 +54,7 @@ public class MemberUtilTest {
         // CustomMemberDetails 객체 생성
         CustomMemberDetails customDetails = new CustomMemberDetails(
                 mockUuid, // UUID 추가
+                mockUlid,
                 "encryptedPassword", // 비밀번호 추가
                 Collections.singleton(new SimpleGrantedAuthority("MEMBER")) // 권한 추가
         );

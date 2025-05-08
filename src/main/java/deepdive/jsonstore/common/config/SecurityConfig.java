@@ -1,6 +1,5 @@
 package deepdive.jsonstore.common.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepdive.jsonstore.domain.auth.auth.AdminJwtAuthenticationFilter;
 import deepdive.jsonstore.domain.auth.auth.AdminLoginAuthenticationFilter;
 import deepdive.jsonstore.domain.auth.auth.AdminJwtTokenProvider;
@@ -9,6 +8,7 @@ import deepdive.jsonstore.domain.auth.auth.MemberLoginAuthenticationFilter;
 import deepdive.jsonstore.domain.auth.auth.MemberJwtTokenProvider;
 import deepdive.jsonstore.domain.auth.service.AdminMemberDetailsService;
 import deepdive.jsonstore.domain.auth.service.CustomMemberDetailsService;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +29,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -85,12 +85,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            MeterRegistry meterRegistry
     ) throws Exception {
 
         // 회원 로그인 필터
-        MemberLoginAuthenticationFilter memberLoginFilter =
-                new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider);
+        MemberLoginAuthenticationFilter memberLoginFilter = new MemberLoginAuthenticationFilter(authenticationManager, memberJwtTokenProvider, meterRegistry);
         memberLoginFilter.setFilterProcessesUrl("/api/v1/login");
 
         // 관리자 로그인 필터 (전용 매니저 사용)
@@ -109,26 +109,33 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         // 공용
                         .requestMatchers(
-                                "/", "/index.html", "/css/**", "/js/**", "/firebase-messaging-sw.js",
+                                //https://docs.tosspayments/com/reference/using-api/webhook-events
+                                "/api/v2/orders/webhook", //TODO : 웹훅 인증 필터 필요
+                                "/api/v2/orders/confirm", //TODO : 외부 API 인증 체계 마련할 것 CORS이나
+                                "/", "/index.html", "/success.html/**", "/fail.html/**", "/favicon.ico", "/checkout.html",
+                                 "/css/**", "/js/**", "/firebase-messaging-sw.js",
                                 "/api/v1/login", "/api/v1/admin/login",
                                 "/api/v1/join", "/api/v1/admin/join",
                                 "/api/v1/products/**",
+                                "/api/v2/products/**",
                                 "/swagger-ui/**", "/v3/api-docs/**"
                         ).permitAll()
 
                         // 관리자 전용
-                        .requestMatchers("/api/v1/admin/**")
+                        .requestMatchers("/api/v1/admin/**", "/api/v2/admin/**")
                         .hasAuthority("ADMIN")
 
                         // 회원 전용
-                        .requestMatchers("/api/v1/member/**")
+                        .requestMatchers("/api/v1/member/**", "/api/v2/member/**")
                         .hasAuthority("MEMBER")
                         .requestMatchers(
-                                "/api/v1/cart/**", "/api/v1/delivery/**",
-                                "/api/v1/orders/**", "/api/v1/fcm-tokens/**",
-                                "/api/v1/notifications/**"
+                                "/api/v1/carts/**", "/api/v1/delivery/**",
+                                "/api/v1/orders/**", "/api/v2/orders/**", "/api/v1/fcm-tokens/**",
+                                "/api/v1/notifications/**",
+                                "/api/v2/carts/**", "/api/v2/delivery/**"
                         ).hasAuthority("MEMBER")
 
                         // 그 외

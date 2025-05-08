@@ -13,11 +13,17 @@ import java.util.UUID;
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
     Optional<Delivery> findByUid(UUID uid);
+    Optional<Delivery> findByUlid(byte[] ulid);
 
     @Query("SELECT new deepdive.jsonstore.domain.delivery.dto.DeliveryResponseDTO(d.address, d.zipCode, d.phone, d.recipient) " +
             "FROM Delivery d " +
             "WHERE d.member.uid = :uid")
     List<DeliveryResponseDTO> findByMemberUidAsDTO(@Param("uid") UUID uid);
+
+    @Query("SELECT new deepdive.jsonstore.domain.delivery.dto.DeliveryResponseDTO(d.address, d.zipCode, d.phone, d.recipient) " +
+            "FROM Delivery d " +
+            "WHERE d.member.ulid = :ulid")
+    List<DeliveryResponseDTO> findByMemberUlidAsDTO(@Param("ulid") byte[] ulid);
 
     boolean existsByUid(UUID uid);
 }

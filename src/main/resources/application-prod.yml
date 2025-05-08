@@ -7,6 +7,9 @@ spring:
     url: ${DB_URL:jdbc:mysql://localhost:3306/json_store}
     username: ${DB_USERNAME:json}
     password: ${DB_PASSWORD:jsonpw}
+    hikari:
+      maximum-pool-size: 124
+      connection-timeout: 30000
 
   jwt:
     secret-key: "${SECRET_KEY}"
@@ -17,7 +20,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
+#        format_sql: true
 
   sql:
     init:
@@ -38,10 +41,15 @@ spring:
       s3:
         bucket: ${BUCKET_NAME}
 
+  elasticsearch:
+    connection-timeout: 3s
+    uris: ${ELASTICSEARCH_HOST:localhost}
+
 logging:
   level:
-    org.hibernate.SQL: DEBUG
+#    org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  config: classpath:logback-prod.xml
 
 #ec2에서 가져올때 (CD)
 fcm:
@@ -52,3 +60,18 @@ fcm:
 tosspayments:
   api-base: ${TOSSPAYMENTS_API_BASE:https://api.tosspayments.com}
   api-secret: ${TOSSPAYMENTS_API_SECRET:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}
+
+decorator:
+  datasource:
+    enabled: true
+    p6spy:
+      enable-logging: true
+      logging: slf4j
+      multiline: true
+
+#server:
+#  tomcat:
+#    threads:
+#      max: 40
+#      min-spare: 10
+

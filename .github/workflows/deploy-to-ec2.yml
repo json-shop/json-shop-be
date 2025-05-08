@@ -1,0 +1,74 @@
+name: Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Connect to EC2 and Deploy
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu
+
+            echo "${{ secrets.ENV }}" | base64 -d > /home/ubuntu/.env
+
+            mkdir -p /home/ubuntu/nginx
+            echo "${{ secrets.DEFAULT_CONF }}" | base64 -d > /home/ubuntu/nginx/default.conf
+
+            docker compose pull
+            docker compose down
+            docker compose up --build -d
+
+      - name: Discord Notify - Deploy Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "username": "Spidey Bot",
+            "embeds": [{
+              "title": "🚀 EC2 배포 성공!",
+              "color": 3447003,
+              "fields": [
+                { "name": "🌐 서버", "value": "${{ secrets.EC2_HOST }}", "inline": true },
+                { "name": "🔀 브랜치", "value": "${{ github.base_ref }}", "inline": true },
+                { "name": "🧑‍💻 작성자", "value": "${{ github.actor }}", "inline": true },
+                { "name": "🔗 PR 링크", "value": "https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}" }
+              ],
+              "timestamp": "'$(date --utc +%Y-%m-%dT%H:%M:%SZ)'"
+            }]
+          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Discord Notify - Deploy Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "username": "Spidey Bot",
+            "embeds": [{
+              "title": "🔥 EC2 배포 실패",
+              "color": 15158332,
+              "fields": [
+                { "name": "🌐 서버", "value": "${{ secrets.EC2_HOST }}", "inline": true },
+                { "name": "🔀 브랜치", "value": "${{ github.base_ref }}", "inline": true },
+                { "name": "🧑‍💻 작성자", "value": "${{ github.actor }}", "inline": true },
+                { "name": "📄 로그", "value": "GitHub Actions에서 에러 로그를 확인해주세요." }
+              ],
+              "timestamp": "'$(date --utc +%Y-%m-%dT%H:%M:%SZ)'"
+            }]
+          }' ${{ secrets.DISCORD_WEBHOOK_URL }}

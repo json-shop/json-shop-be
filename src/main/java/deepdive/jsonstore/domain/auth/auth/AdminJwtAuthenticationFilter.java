@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final AdminJwtTokenProvider adminJwtTokenProvider;
@@ -30,20 +32,22 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
+        log.info("reqeustURI = {}", requestURI);
 
         // 관리자 API가 아닌 경우 필터 통과
-        if (!requestURI.startsWith("/api/v1/admin")) {
+        if (!requestURI.startsWith("/api/v1/admin") && !requestURI.startsWith("/api/v2/admin")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if ("/api/v1/admin/join".equals(requestURI)) {
+        if ("/api/v1/admin/join".equals(requestURI) || "/api/v2/admin/login".equals(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             String token = adminJwtTokenProvider.resolveToken(request);
+            log.info("token = {}", token);
 
             if (!StringUtils.hasText(token)) {
                 throw new AuthException.EmptyTokenException(); // 토큰이 비어있는 경우
@@ -55,6 +59,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 토큰이 유효한 경우 Authentication 설정
             Authentication authentication = adminJwtTokenProvider.getAuthentication(token);
+            log.info("인증된 사용자 principal = {}", authentication.getPrincipal());
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             filterChain.doFilter(request, response);

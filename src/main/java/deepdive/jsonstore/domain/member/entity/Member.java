@@ -1,7 +1,9 @@
 package deepdive.jsonstore.domain.member.entity;
 
+import de.huxhorn.sulky.ulid.ULID;
 import deepdive.jsonstore.common.entity.BaseEntity;
 import deepdive.jsonstore.common.exception.MemberException;
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +25,9 @@ public class Member extends BaseEntity {
 
     @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID uid;
+
+    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    private byte[] ulid;
 
     @Setter
     @Column(nullable = false, unique = true, length = 255)
@@ -72,6 +77,7 @@ public class Member extends BaseEntity {
     @PrePersist
     public void prePersist() {
         this.uid = (this.uid == null) ? UUID.randomUUID() : this.uid;
+        this.ulid = (this.ulid == null) ? UlidUtil.createUlidBytes() : this.ulid;
     }
 
     // 회원 삭제 처리 메서드

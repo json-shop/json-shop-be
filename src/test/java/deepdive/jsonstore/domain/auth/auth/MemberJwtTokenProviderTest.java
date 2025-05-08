@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.auth.auth;
 
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.auth.dto.JwtTokenDto;
 import deepdive.jsonstore.domain.auth.entity.CustomMemberDetails;
 import deepdive.jsonstore.domain.auth.service.CustomMemberDetailsService;
@@ -45,12 +46,14 @@ public class MemberJwtTokenProviderTest {
     private Key mockKey;
 
     private UUID testUuid;
+    private byte[] testUlid;
     private final String SECRET_KEY = "testSecretKeyWithAtLeast256BitsForHMACSHA";
 
     @BeforeEach
     void setUp() {
         // UUID 생성
         testUuid = UUID.randomUUID();
+        testUlid = UlidUtil.createUlidBytes();
 
         // JwtTokenProvider 프로퍼티 설정
         ReflectionTestUtils.setField(memberJwtTokenProvider, "secretKey", SECRET_KEY);
@@ -68,6 +71,7 @@ public class MemberJwtTokenProviderTest {
         // given
         CustomMemberDetails mockMemberDetails = mock(CustomMemberDetails.class);
         when(mockMemberDetails.getUid()).thenReturn(testUuid);
+        when(mockMemberDetails.getUlid()).thenReturn(testUlid);
 
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
@@ -77,7 +81,7 @@ public class MemberJwtTokenProviderTest {
         when(mockAuthentication.getPrincipal()).thenReturn(mockMemberDetails);
 
         JwtTokenDto expectedToken = new JwtTokenDto("Bearer", "accessToken");
-        when(jwtTokenUtil.generateToken(eq(testUuid), eq("ROLE_USER"), any(Key.class)))
+        when(jwtTokenUtil.generateToken(eq(testUuid), eq(testUlid), eq("ROLE_USER"), any(Key.class)))
                 .thenReturn(expectedToken);
 
         // when
@@ -87,7 +91,7 @@ public class MemberJwtTokenProviderTest {
         assertThat(result).isNotNull();
         assertThat(result.getGrantType()).isEqualTo("Bearer");
         assertThat(result.getAccessToken()).isEqualTo("accessToken");
-        verify(jwtTokenUtil).generateToken(eq(testUuid), eq("ROLE_USER"), any(Key.class));
+        verify(jwtTokenUtil).generateToken(eq(testUuid), eq(testUlid), eq("ROLE_USER"), any(Key.class));
     }
 
     @Test
@@ -172,6 +176,7 @@ public class MemberJwtTokenProviderTest {
 
         CustomMemberDetails mockMemberDetails = mock(CustomMemberDetails.class);
         when(customMemberDetailsService.loadUserByUuid(testUuid)).thenReturn(mockMemberDetails);
+        when(mockMemberDetails.getUlid()).thenReturn(testUlid);
 
         // when
         Authentication result = memberJwtTokenProvider.getAuthentication(token);

@@ -1,5 +1,6 @@
 package deepdive.jsonstore.domain.order.service;
 
+import deepdive.jsonstore.common.util.UlidUtil;
 import deepdive.jsonstore.domain.delivery.entity.Delivery;
 import deepdive.jsonstore.domain.delivery.service.DeliveryService;
 import deepdive.jsonstore.domain.notification.service.NotificationService;
@@ -198,10 +199,11 @@ class OrderServiceTest {
             void getOrderResponse_성공() {
                 //given
                 var orderUid = UUID.randomUUID();
-                var member = Member.builder().build();
+                var member = Member.builder().ulid(UlidUtil.createUlidBytes()).build();
 
                 var order = Order.builder()
                         .uid(orderUid)
+                        .ulid(UlidUtil.createUlidBytes())
                         .member(member)
                         .orderStatus(OrderStatus.PAYMENT_PENDING)
                         .expiredAt(LocalDateTime.now().plusMinutes(15))
