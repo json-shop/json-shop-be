@@ -39,8 +39,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints(@QueryHint(name = "javax.persistence.lock.timeout", value = "1000"))
-	@Query("SELECT p FROM Product p WHERE p.id IN :ids")
-	List<Product> findAllWithLockByIds(@Param("ids") List<Long> productIds);
+	@Query("SELECT p FROM Product p WHERE p.id IN :productIds")
+	List<Product> findAllWithLockByIds(@Param("productIds") List<Long> productIds);
 
 	@Query("SELECT p FROM Product p JOIN FETCH p.admin WHERE p.uid = :productUid and p.admin.uid = :adminUid")
 	Optional<Product> findByUidAndAdminUid(@Param("productUid") UUID productUid, @Param("adminUid") UUID adminUid);

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenUtil {
 
-    private final long validityInMilliseconds = 1000 * 60 * 60 * 24; // 24시간
+    private final long validityInMilliseconds = 1000L * 60 * 60 * 24 * 30; // 24시간
 
     /**
      * JWT 서명용 키 생성 (HMAC-SHA256)

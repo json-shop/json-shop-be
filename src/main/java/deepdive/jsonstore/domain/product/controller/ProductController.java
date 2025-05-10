@@ -17,10 +17,11 @@ import deepdive.jsonstore.domain.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 @RestController
+@Slf4j
 public class ProductController {
 	private final ProductService productService;
 
@@ -32,7 +33,9 @@ public class ProductController {
 
 	@GetMapping
 	public ResponseEntity<Page<ProductListResponse>> getActiveProduct(ProductSearchCondition condition, Pageable pageable) {
+		log.info("condition: {}", condition);
 		Page<ProductListResponse> res = productService.getProductList(condition, pageable);
+		log.info("res: {}", res);
 		return ResponseEntity.ok(res);
 	}
 
